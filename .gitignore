@@ -1,0 +1,43 @@
+# ASI 360 Agency - Git Ignore Rules
+
+# Environment & Secrets
+.env
+*.env
+!.env.example
+
+# Docker volumes & data
+letsencrypt/
+backups/
+client-configs/*/passwords.txt
+
+# Astra Pro plugins (proprietary)
+astra-pro-plugins/
+
+# Client data directories
+*_wp_data/
+*_mysql_data/
+
+# Logs
+*.log
+nohup.out
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# WordPress cache
+wp-content/cache/
+wp-content/uploads/wc-logs/
