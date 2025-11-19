@@ -1,0 +1,35 @@
+{
+  "name": "asi360-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for ASI 360 - mobile access to business intelligence and data",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc && node dist/index.js",
+    "start": "node dist/index.js",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "asi360",
+    "business-intelligence",
+    "supabase"
+  ],
+  "author": "ASI 360 Agency",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1",
+    "telegraf": "^4.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
