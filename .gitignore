@@ -67,7 +67,9 @@ package-lock.json
 *.key
 *.cert
 
-# Database dumps
+# Database dumps (but allow migration and seed files)
 *.sql
+!infrastructure/supabase/migrations/*.sql
+!infrastructure/supabase/seeds/*.sql
 *.sqlite
 *.db
