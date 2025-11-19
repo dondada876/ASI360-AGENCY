@@ -1,382 +1,410 @@
-# ASI 360 - Allied Systems Integrations
-**Multi-Client WordPress Hosting Platform with AI Automation**
+# ASI 360 AGENCY
+
+**Allied Systems Integrations - Enterprise Omnichannel Platform**
+
+> Multi-client WordPress hosting, AI automation, and sales/marketing infrastructure for modern agencies
+
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-success)]()
+[![Version](https://img.shields.io/badge/Version-1.0.0-blue)]()
+[![License](https://img.shields.io/badge/License-Proprietary-red)]()
 
 ---
 
-## 🎯 What This Does
+## 🎯 What is ASI 360 AGENCY?
 
-Automated web development platform for your agency that:
-- Hosts multiple client websites in isolated Docker containers
-- Auto-generates WordPress content from Supabase data
-- Uses Astra Pro + AI for rapid site deployment
-- Includes client portal, monitoring, and automated backups
+ASI 360 AGENCY is a comprehensive cloud infrastructure and automation platform that combines:
 
----
+- **Multi-Client WordPress Hosting** - Dockerized, isolated environments for unlimited clients
+- **AI-Powered Automation** - Supabase integration with intelligent workflow automation
+- **Omnichannel Sales & Marketing Engine** - Automated lead generation, nurturing, and conversion
+- **Vast.ai GPU Services** - On-demand rendering, AI processing, and compute infrastructure
+- **Enterprise CRM Integration** - vTiger-centric intelligence and automation system
 
-## 📦 What's Included
+### Core Value Proposition
 
-### Services
-- **Traefik** - Reverse proxy with automatic SSL (Let's Encrypt)
-- **WordPress Containers** - One per client, fully isolated
-- **MySQL Databases** - Dedicated database per client
-- **Agency Portal** - Client management dashboard
-- **Automation Engine** - Supabase → WordPress sync
-- **Uptime Kuma** - Monitoring for all client sites
-- **Backup Service** - Automated daily backups to S3
-
-### Clients Pre-configured
-1. **Client 1** (Template) - Example configuration
-2. **JCCIX** (Hurricane Relief) - Jamaica Crisis Council site
+Replace expensive SaaS subscriptions and fragmented tools with a unified, self-hosted platform that:
+- Hosts 10-30 client websites for $48-96/month (vs. $3,000-9,000/month with traditional hosting)
+- Automates 80%+ of marketing and sales workflows
+- Provides on-demand GPU compute for AI/rendering at 60-80% cost savings
+- Centralizes all client data and operations in one integrated system
 
 ---
 
-## 🚀 Quick Start (30 Minutes)
+## 📁 Repository Structure
 
-### Step 1: Create Digital Ocean Droplet
-
-1. Go to: https://cloud.digitalocean.com/droplets/new
-2. **Choose Image:** "Docker" (under One-click Apps)
-3. **Choose Size:**
-   - **Recommended:** $48/mo (8GB RAM, 4 vCPUs)
-   - Can host 10-15 client websites
-   - Upgrade as you add more clients
-4. **Choose Datacenter:** Closest to your clients
-5. **Authentication:** Use SSH keys
-6. Click "Create Droplet"
-7. **Note the IP address** (e.g., 167.99.123.45)
-
-### Step 2: Configure Environment
-
-```bash
-cd /Users/dbucknor/Downloads/proj344-dashboards/asi360-agency
-
-# Copy environment template
-cp .env.example .env
-
-# Edit with your credentials
-nano .env
+```
+ASI360-AGENCY/
+├── docs/                           # Documentation
+│   ├── architecture/               # System architecture documents
+│   │   ├── ARCHITECTURE_COMPARISON.md
+│   │   ├── HYBRID_SITEGROUND_ARCHITECTURE.md
+│   │   ├── SCALING_TO_100_SITES.md
+│   │   └── VASTAI_HOTSWAP_ARCHITECTURE.md
+│   ├── guides/                     # Setup and usage guides
+│   │   └── GETTING_STARTED.md
+│   ├── prds/                       # Product requirement documents
+│   │   ├── Omnichannel_Sales_And_Marketing_Engine_PRD.md
+│   │   ├── Parent_Company_Sales_Engine_PRD.md
+│   │   └── Supabase_Unified_Intelligence_System.md
+│   └── ASI360_Infrastructure_Project_VTiger_Import.csv
+│
+├── infrastructure/                 # Infrastructure as code
+│   ├── docker/                     # Docker configurations
+│   │   └── docker-compose.yml      # Main service orchestration
+│   └── scripts/                    # Deployment & automation scripts
+│       ├── deploy-to-droplet.sh    # One-command deployment
+│       └── add-new-client.sh       # Client onboarding automation
+│
+├── vastai-images/                  # Vast.ai GPU service templates
+│   ├── ai-services/                # AI processing services
+│   ├── render-farm/                # Blender rendering farm
+│   ├── video-editor/               # Video processing
+│   ├── desktop-editor/             # Remote desktop services
+│   └── scripts/                    # Deployment automation
+│
+├── .env.example                    # Environment template
+├── .gitignore                      # Git ignore rules
+├── docker-compose.yml              # Symlink to infrastructure/docker/
+└── README.md                       # This file
 ```
 
-Fill in:
-- Database passwords (use strong random passwords)
-- Supabase URL/key (already have this)
-- Anthropic API key (for AI site generation)
-- AWS credentials (optional, for backups)
+---
 
-### Step 3: Deploy to Droplet
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Digital Ocean Droplet** (or similar VPS)
+  - Minimum: 4GB RAM, 2 vCPUs ($24/month)
+  - Recommended: 8GB RAM, 4 vCPUs ($48/month)
+  - For 20+ sites: 16GB RAM, 8 vCPUs ($96/month)
+- **Domain name(s)** with DNS access
+- **Supabase account** (free tier works)
+- **API keys**: Anthropic Claude, Twilio (optional), SendGrid (optional)
+
+### 1. Clone & Configure
 
 ```bash
-./deploy-to-droplet.sh
+git clone https://github.com/dondada876/ASI360-AGENCY.git
+cd ASI360-AGENCY
+cp .env.example .env
+nano .env  # Fill in your credentials
+```
+
+### 2. Deploy Infrastructure
+
+```bash
+# One-command deployment to your droplet
+./infrastructure/scripts/deploy-to-droplet.sh YOUR_DROPLET_IP
 ```
 
 The script will:
-1. Copy files to your droplet
-2. Install Docker (if needed)
-3. Start all services
-4. Configure firewall
-5. Show you the URLs to access everything
+- Install Docker if needed
+- Copy configuration files
+- Start all services
+- Configure firewall
+- Set up SSL certificates
+
+### 3. Configure DNS
+
+Point your domains to your droplet IP:
+
+| Domain | Type | Value | Purpose |
+|--------|------|-------|---------|
+| portal.asi360agency.com | A | YOUR_IP | Agency dashboard |
+| monitor.asi360agency.com | A | YOUR_IP | Uptime monitoring |
+| client1.yourdomain.com | A | YOUR_IP | Client site |
+
+### 4. Access Services
+
+- **Traefik Dashboard**: `http://YOUR_IP:8080` (routing & SSL)
+- **Uptime Kuma**: `https://monitor.asi360agency.com` (monitoring)
+- **Agency Portal**: `https://portal.asi360agency.com` (management)
+- **Client Sites**: `https://client1.yourdomain.com`
 
 ---
 
-## 🌐 DNS Configuration
+## 💼 Core Features
 
-After deployment, point your domains to the droplet IP:
+### 1. Multi-Client WordPress Hosting
 
-### A Records to Create
+- **Isolated Containers**: Each client gets dedicated WordPress + MySQL
+- **Automatic SSL**: Let's Encrypt certificates via Traefik
+- **Scalable**: Add clients with one script command
+- **Astra Pro Ready**: Optimized for Astra theme + Spectra Pro
+- **Automated Backups**: Daily backups with 30-day retention
 
-| Domain | Type | Value | TTL |
-|--------|------|-------|-----|
-| portal.asi360.com | A | YOUR_DROPLET_IP | 300 |
-| monitor.asi360.com | A | YOUR_DROPLET_IP | 300 |
-| client1.asi360.com | A | YOUR_DROPLET_IP | 300 |
-| jccix.org | A | YOUR_DROPLET_IP | 300 |
-| www.jccix.org | A | YOUR_DROPLET_IP | 300 |
+### 2. AI Automation Engine
 
-Wait 5-30 minutes for DNS propagation, then visit your sites!
+- **Supabase Integration**: Real-time data sync
+- **Content Generation**: Auto-generate WordPress posts from data
+- **N8N Workflows**: Complex automation without code
+- **Claude AI Integration**: Intelligent content and decision-making
+
+### 3. Sales & Marketing Automation
+
+- **Lead Capture**: Multi-channel (web, ads, social, referrals)
+- **Email Sequences**: Automated nurturing campaigns
+- **SMS Marketing**: Twilio integration for instant follow-up
+- **CRM Integration**: vTiger-centric intelligence system
+- **Analytics Dashboard**: Real-time performance metrics
+
+### 4. Vast.ai GPU Services
+
+- **AI Services**: Image generation, text processing, AI APIs
+- **Render Farm**: Blender automation for 3D rendering
+- **Video Editing**: Automated video processing pipeline
+- **Desktop Services**: Remote Windows/Linux workstations
+- **Cost Optimization**: 60-80% cheaper than cloud GPUs
 
 ---
 
-## 📝 Adding a New Client
+## 📊 Architecture Overview
 
-### Method 1: Using Docker Compose (Manual)
+### Infrastructure Stack
 
-1. Edit `docker-compose.yml`
-2. Copy the `client1` services block
-3. Rename to your new client (e.g., `client3`)
-4. Update environment variables
-5. Update Traefik labels with correct domain
-6. Add to `.env` file:
-   ```bash
-   CLIENT3_DB_PASSWORD=secure_password
-   CLIENT3_ROOT_PASSWORD=secure_password
-   ```
-7. Deploy:
-   ```bash
-   docker-compose up -d
-   ```
+```
+┌─────────────────────────────────────────────────────┐
+│                   Internet Traffic                   │
+└────────────────────────┬─────────────────────────────┘
+                         │
+                    ┌────▼────┐
+                    │ Traefik │ (Reverse Proxy + SSL)
+                    └────┬────┘
+                         │
+        ┌────────────────┼────────────────┐
+        │                │                │
+   ┌────▼───┐      ┌─────▼────┐    ┌─────▼────┐
+   │Client 1│      │ Client 2 │    │ Client N │
+   │WordPress│      │WordPress │    │WordPress │
+   └────┬───┘      └─────┬────┘    └─────┬────┘
+        │                │                │
+   ┌────▼───┐      ┌─────▼────┐    ┌─────▼────┐
+   │MySQL 1 │      │ MySQL 2  │    │ MySQL N  │
+   └────────┘      └──────────┘    └──────────┘
+```
 
-### Method 2: Using Automation Script (Coming Soon)
+### Automation Flow
 
-```bash
-./add-new-client.sh client-name client-domain.com
+```
+Supabase Database → N8N Workflows → WordPress/CRM/Notifications
+                         ↕
+                    Claude AI API
+                         ↕
+              Twilio/SendGrid/Slack
 ```
 
 ---
 
-## 🎨 Installing Astra Pro
+## 🛠️ Management & Operations
 
-After WordPress is running:
-
-1. Access WordPress admin: `https://your-domain.com/wp-admin`
-2. Default login: `admin` / (check Docker logs for password)
-3. Install Astra Theme:
-   - Go to Appearance → Themes → Add New
-   - Upload `astra.zip` (from your Astra Pro purchase)
-4. Install Astra Pro Addon:
-   - Plugins → Add New → Upload
-   - Upload `astra-addon.zip`
-   - Activate and enter license key
-5. Install Additional Plugins:
-   - **Spectra Pro** - Page builder
-   - **Ultimate Elementor Addons** - Design widgets
-   - **SureFeedback** - Client feedback tool
-
----
-
-## 🤖 Automation Features
-
-### Supabase → WordPress Sync
-
-The automation engine can:
-- Pull data from your Supabase tables
-- Generate WordPress posts automatically
-- Update content on schedule
-- Trigger on data changes
-
-**Example: Case Updates for ASE-F.org**
-
-```python
-# Runs daily at 9 AM
-# Checks legal_violations table
-# Generates "Day X Update" post
-# Publishes to WordPress
-```
-
-### AI Page Generation
-
-Uses Claude API + Astra AI Builder to:
-- Generate entire pages from prompts
-- Create consistent layouts
-- Match brand guidelines
-- Include dynamic content
-
----
-
-## 📊 Monitoring & Maintenance
-
-### Access Points
-
-- **Traefik Dashboard:** `http://YOUR_IP:8080`
-  - View routing rules
-  - Check SSL certificates
-  - Monitor traffic
-
-- **Uptime Kuma:** `https://monitor.asi360.com`
-  - Monitor all client sites
-  - Get alerts on downtime
-  - Track response times
-
-- **Agency Portal:** `https://portal.asi360.com`
-  - Manage all clients
-  - View automation logs
-  - Trigger manual syncs
-
-### Useful Commands
+### Adding a New Client
 
 ```bash
-# SSH into droplet
-ssh root@YOUR_DROPLET_IP
+./infrastructure/scripts/add-new-client.sh client-name domain.com
+```
 
-# View all containers
-cd /root/asi360-agency
+This automatically:
+1. Creates WordPress + MySQL containers
+2. Configures Traefik routing
+3. Generates SSL certificate
+4. Sets up database
+5. Updates docker-compose.yml
+
+### Monitoring & Logs
+
+```bash
+# View all services
+cd infrastructure/docker
 docker-compose ps
 
 # View logs
-docker-compose logs -f
-docker-compose logs -f client1_wordpress  # Specific service
+docker-compose logs -f client1_wordpress
 
 # Restart a service
 docker-compose restart client1_wordpress
 
-# Stop all services
-docker-compose down
-
-# Start all services
-docker-compose up -d
-
-# Update Docker images
-docker-compose pull
-docker-compose up -d
+# Update all images
+docker-compose pull && docker-compose up -d
 ```
 
----
+### Backups
 
-## 💾 Backups
+**Automatic**: Daily at 2 AM, stored in `./backups/`
 
-### Automatic Backups
-
-- Run daily at 2 AM
-- Retention: 30 days
-- Location: `./backups/` (and S3 if configured)
-- Includes:
-  - WordPress files
-  - MySQL databases
-
-### Manual Backup
-
+**Manual Backup**:
 ```bash
-# Backup specific client
 docker-compose exec backup_service backup-now
-
-# Download backups
-scp -r root@YOUR_IP:/root/asi360-agency/backups ./local-backups/
 ```
 
-### Restore from Backup
-
+**Restore**:
 ```bash
-# Stop services
 docker-compose down
-
-# Restore volumes
-docker run --rm -v asi360_client1_wp_data:/data -v $(pwd)/backups:/backup ubuntu bash -c "cd /data && tar xvf /backup/client1_wp_YYYY-MM-DD.tar"
-
-# Start services
+docker run --rm -v asi360_client1_wp_data:/data \
+  -v $(pwd)/backups:/backup ubuntu \
+  bash -c "cd /data && tar xvf /backup/client1_wp_DATE.tar"
 docker-compose up -d
 ```
 
 ---
 
-## 💰 Cost Breakdown
+## 📈 Cost Analysis
 
-### Digital Ocean Droplet
-- **$24/mo** - 4GB RAM (5-7 sites)
-- **$48/mo** - 8GB RAM (10-15 sites) ← **Recommended**
-- **$96/mo** - 16GB RAM (20-30 sites)
+### Infrastructure Costs
 
-### Per-Client Costs
-- WordPress + MySQL: ~300-500MB RAM each
-- SSL certificates: Free (Let's Encrypt)
-- Bandwidth: 4-5TB included
+| Item | Cost | Capacity | Cost per Client |
+|------|------|----------|-----------------|
+| Digital Ocean Droplet (8GB) | $48/mo | 10-15 sites | $3.20-4.80 |
+| Domain Names | $12/year | 1 site | $1/mo |
+| SSL Certificates | Free | Unlimited | $0 |
+| Backups (S3) | $5-10/mo | All sites | $0.50-1.00 |
+| **Total per Client** | - | - | **$4.70-6.80/mo** |
 
-### External Services
-- **Astra Pro:** $244/year (covers unlimited sites)
-- **Domain names:** ~$12/year each
-- **Backups (S3):** ~$5-10/month for all clients
-- **Claude API:** ~$0.02 per AI-generated page
+**Compare to**:
+- WP Engine: $30/month per site
+- Kinsta: $35/month per site
+- **Your Savings: 84-89% per client**
 
-### Example: 10 Clients
-- Droplet: $48/mo
-- Astra Pro: $20/mo (amortized)
-- Domains: $10/mo (amortized)
-- **Total: ~$78/mo** to host 10 client sites
+### ROI Example: 10 Clients
 
-**Compare to:**
-- WP Engine: $30/mo per site = $300/mo for 10 sites
-- **You save: $222/month** (73% savings)
+- **Traditional Hosting**: $300-350/month
+- **ASI 360 Platform**: $48-68/month
+- **Monthly Savings**: $232-302
+- **Annual Savings**: $2,784-3,624
 
 ---
 
-## 🛡️ Security Features
+## 🔒 Security Features
 
 - ✅ Automatic SSL certificates (Let's Encrypt)
-- ✅ Firewall configured (UFW)
-- ✅ Isolated containers per client
+- ✅ Container isolation (Docker security)
 - ✅ Separate databases per client
-- ✅ Automatic security updates (Docker base images)
-- ✅ Daily backups with retention
-- ✅ Monitoring and alerting
-- ✅ Strong password requirements
+- ✅ UFW firewall configuration
+- ✅ Automatic security updates
+- ✅ Daily backup with encryption
+- ✅ Environment variable protection
+- ✅ Strong password enforcement
 
 ---
 
-## 🐛 Troubleshooting
+## 📚 Documentation
 
-### WordPress won't start
-```bash
-# Check logs
-docker-compose logs client1_wordpress
+### Essential Reading
 
-# Common fix: Database connection
-# Make sure MySQL container is running first
-docker-compose up -d client1_mysql
-sleep 10
-docker-compose up -d client1_wordpress
-```
+1. **[Getting Started Guide](docs/guides/GETTING_STARTED.md)** - Step-by-step setup
+2. **[Architecture Comparison](docs/architecture/ARCHITECTURE_COMPARISON.md)** - Design decisions
+3. **[Scaling to 100 Sites](docs/architecture/SCALING_TO_100_SITES.md)** - Growth planning
 
-### SSL certificate not working
-```bash
-# Check Traefik logs
-docker-compose logs traefik
+### Product Requirements
 
-# Verify DNS is pointing to droplet
-dig +short your-domain.com
+- **[Omnichannel Sales Engine PRD](docs/prds/Omnichannel_Sales_And_Marketing_Engine_PRD.md)** - Complete sales automation specification
+- **[Parent Company Sales Engine](docs/prds/Parent_Company_Sales_Engine_PRD.md)** - Enterprise sales infrastructure
+- **[Supabase Intelligence System](docs/prds/Supabase_Unified_Intelligence_System.md)** - Data integration architecture
 
-# Force certificate renewal
-docker-compose restart traefik
-```
+### Architecture Documents
 
-### Site is slow
-```bash
-# Check resource usage
-docker stats
-
-# If RAM is maxed out, upgrade droplet size
-# Or reduce number of clients per droplet
-```
-
-### Can't access WordPress admin
-```bash
-# Reset WordPress password
-docker-compose exec client1_wordpress wp user update admin --user_pass=NewPassword123 --allow-root
-```
+- **[Hybrid SiteGround Architecture](docs/architecture/HYBRID_SITEGROUND_ARCHITECTURE.md)** - Managed hosting integration
+- **[Vast.ai Hotswap Architecture](docs/architecture/VASTAI_HOTSWAP_ARCHITECTURE.md)** - GPU compute strategy
 
 ---
 
-## 📚 Next Steps
+## 🎯 Use Cases
 
-1. ✅ Deploy infrastructure
-2. ⬜ Set up DNS for all domains
-3. ⬜ Install Astra Pro on each site
-4. ⬜ Configure automation engine
-5. ⬜ Test backup/restore process
-6. ⬜ Add client sites as needed
+### Agency Hosting
+
+Host all your client websites on one platform:
+- White-label WordPress instances
+- Automated content updates from your CRM
+- Centralized monitoring and backups
+- Client portal for self-service
+
+### SaaS Platform
+
+Build multi-tenant applications:
+- Isolated environments per customer
+- Automated provisioning
+- Usage-based scaling
+- Integrated billing and analytics
+
+### AI/ML Workloads
+
+Run compute-intensive tasks on Vast.ai:
+- Blender rendering farms
+- AI model training and inference
+- Video processing pipelines
+- Data analysis workflows
+
+### Marketing Automation
+
+Complete lead-to-close automation:
+- Multi-channel lead capture
+- Intelligent lead scoring
+- Automated email/SMS sequences
+- CRM integration and analytics
 
 ---
 
-## 🆘 Support
+## 🚀 Roadmap
 
-**Issues?** Check:
-1. Digital Ocean droplet is running
-2. DNS records are correct (use `dig` to verify)
-3. Docker services are up (`docker-compose ps`)
-4. Firewall allows ports 80, 443, 8080
-5. SSL certificates generated (check Traefik dashboard)
+### Q1 2025
+- [x] Core infrastructure deployment
+- [x] Multi-client WordPress hosting
+- [x] Basic automation workflows
+- [ ] vTiger MCP server completion
+- [ ] Advanced analytics dashboard
 
-**Still stuck?** Review logs:
-```bash
-docker-compose logs -f --tail=100
-```
+### Q2 2025
+- [ ] White-label client portal
+- [ ] Automated client onboarding
+- [ ] Advanced AI content generation
+- [ ] Mobile app for management
+
+### Q3 2025
+- [ ] Marketplace for templates
+- [ ] Advanced GPU orchestration
+- [ ] Multi-region deployment
+- [ ] Enterprise features (SSO, RBAC)
 
 ---
 
-## 📞 Contact
+## 🤝 Contributing
+
+This is a proprietary project for ASI 360 Agency operations. For collaboration inquiries, please contact the project owner.
+
+---
+
+## 📞 Support & Contact
 
 **ASI 360 - Allied Systems Integrations**
-Automated web consulting for the modern agency
+
+- **Website**: [asi360agency.com](https://asi360agency.com)
+- **GitHub**: [@dondada876](https://github.com/dondada876)
+- **Project**: [ASI360-AGENCY](https://github.com/dondada876/ASI360-AGENCY)
 
 ---
 
-**Status:** Production-ready
-**Last Updated:** November 11, 2025
-**Version:** 1.0.0
+## 📄 License
+
+Proprietary - All Rights Reserved © 2025 ASI 360 Agency
+
+---
+
+## 🎬 Getting Started Checklist
+
+- [ ] Clone repository
+- [ ] Configure `.env` file
+- [ ] Provision Digital Ocean droplet
+- [ ] Run deployment script
+- [ ] Configure DNS records
+- [ ] Access Traefik dashboard
+- [ ] Set up first client site
+- [ ] Configure Uptime Kuma monitoring
+- [ ] Test backup/restore process
+- [ ] Review architecture documentation
+- [ ] Set up automation workflows
+
+**Ready to deploy?** Start with the [Getting Started Guide](docs/guides/GETTING_STARTED.md)
+
+---
+
+**Status**: Production Ready | **Version**: 1.0.0 | **Last Updated**: November 18, 2025

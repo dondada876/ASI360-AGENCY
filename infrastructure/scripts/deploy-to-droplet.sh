@@ -8,7 +8,7 @@ echo "🚀 ASI 360 Agency Deployment Starting..."
 echo ""
 
 # Configuration
-DROPLET_IP="NEW_DROPLET_IP_HERE"  # Change this after creating droplet
+DROPLET_IP="104.248.69.86"  # ASI360-Agency droplet
 DROPLET_USER="root"
 SSH_KEY_PATH="~/.ssh/id_rsa"
 
