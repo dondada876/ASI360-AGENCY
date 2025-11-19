@@ -1,0 +1,290 @@
+{
+  "sms_templates": {
+    "restaurant": {
+      "initial_contact": {
+        "template": "Hi {{firstName}}! Thanks for your interest in growing {{companyName}}'s online ordering. I can show you exactly how we help restaurants increase direct orders 40%+ and cut third-party fees. Got 15 min this week? Reply YES and I'll send my calendar link. - {{senderFirstName}}",
+        "char_count": 280,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "New lead created, industry contains 'restaurant'",
+        "send_within": "5 minutes"
+      },
+      "qualified_high_score": {
+        "template": "{{firstName}}, I just reviewed your info - {{companyName}} is a perfect fit for our restaurant tech. Based on your current volume, we could save you $2-3K/month in fees alone. Can we talk tomorrow? Reply with a good time. - {{senderFirstName}}",
+        "char_count": 250,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "Lead score >= 70, industry = restaurant",
+        "send_within": "2 minutes"
+      },
+      "follow_up_day_3": {
+        "template": "{{firstName}}, following up on our restaurant tech solution. Quick question: are you currently using DoorDash/Uber Eats? Most restaurants don't realize they're losing 30% to fees. 5-min call to show you the numbers? - {{senderFirstName}}",
+        "char_count": 240,
+        "variables": ["firstName", "senderFirstName"],
+        "trigger": "3 days after initial contact, no response",
+        "send_within": "N/A"
+      }
+    },
+    "smb_tech": {
+      "initial_contact": {
+        "template": "Hi {{firstName}}! Thanks for connecting about {{companyName}}'s growth. We help tech/SaaS companies automate their sales pipeline and close 40% faster. Interested in seeing how? Reply YES for my calendar. - {{senderFirstName}}",
+        "char_count": 235,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "New lead created, industry contains 'tech' or 'software' or 'saas'",
+        "send_within": "5 minutes"
+      },
+      "qualified_high_score": {
+        "template": "{{firstName}}, just saw {{companyName}} is looking to scale sales. Perfect timing - we just helped TechStart SF increase their close rate from 18% to 27% with automation. Quick call tomorrow? - {{senderFirstName}}",
+        "char_count": 215,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "Lead score >= 70, industry contains tech/software",
+        "send_within": "2 minutes"
+      }
+    },
+    "professional_services": {
+      "initial_contact": {
+        "template": "Hi {{firstName}}! Thanks for your interest. We help professional service firms like {{companyName}} automate client acquisition and nurturing. I'd love to show you our approach. Reply YES for a quick intro call this week. - {{senderFirstName}}",
+        "char_count": 250,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "New lead created, industry = professional services/consulting/legal/accounting",
+        "send_within": "5 minutes"
+      }
+    },
+    "ecommerce": {
+      "initial_contact": {
+        "template": "Hi {{firstName}}! Saw {{companyName}} is in ecommerce. We specialize in automating abandoned cart recovery, post-purchase sequences, and review generation. Average client sees 25% revenue lift in 60 days. Interested? Reply YES. - {{senderFirstName}}",
+        "char_count": 260,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "New lead created, industry contains 'ecommerce' or 'retail' or 'online store'",
+        "send_within": "5 minutes"
+      }
+    },
+    "generic_fallback": {
+      "initial_contact": {
+        "template": "Hi {{firstName}}! Thanks for connecting about {{companyName}}. I help businesses automate their sales and marketing so you can focus on growth. Quick 15-min call to see if we're a fit? Reply YES for my calendar. - {{senderFirstName}}",
+        "char_count": 235,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "New lead created, industry not matched to specific template",
+        "send_within": "5 minutes"
+      }
+    },
+    "event_triggered": {
+      "form_completed": {
+        "template": "{{firstName}}, thanks for completing our ROI calculator! Based on your numbers, you could save ${{projectedSavings}}/month with automation. Let's discuss - reply YES for my next available slot. - {{senderFirstName}}",
+        "char_count": 210,
+        "variables": ["firstName", "projectedSavings", "senderFirstName"],
+        "trigger": "ROI calculator form submitted",
+        "send_within": "1 minute"
+      },
+      "webinar_registered": {
+        "template": "{{firstName}}, you're registered for our {{webinarTopic}} webinar on {{webinarDate}}! I'll send the Zoom link 1 hour before. In the meantime, any specific questions you want me to cover? - {{senderFirstName}}",
+        "char_count": 210,
+        "variables": ["firstName", "webinarTopic", "webinarDate", "senderFirstName"],
+        "trigger": "Webinar registration completed",
+        "send_within": "2 minutes"
+      },
+      "demo_no_show": {
+        "template": "{{firstName}}, we missed you on our call today. No worries - things come up! Want to reschedule? I have slots open tomorrow and Thursday. Reply with your preference. - {{senderFirstName}}",
+        "char_count": 180,
+        "variables": ["firstName", "senderFirstName"],
+        "trigger": "Scheduled demo, attendee didn't join within 10 minutes",
+        "send_within": "15 minutes after scheduled time"
+      },
+      "proposal_sent": {
+        "template": "{{firstName}}, just sent your proposal for {{companyName}}. Check your email. I'm around for the next hour if you want to discuss - just call {{senderPhone}} or reply here. - {{senderFirstName}}",
+        "char_count": 190,
+        "variables": ["firstName", "companyName", "senderPhone", "senderFirstName"],
+        "trigger": "Proposal PDF sent via email",
+        "send_within": "2 minutes"
+      }
+    },
+    "nurture_sequences": {
+      "day_7_check_in": {
+        "template": "{{firstName}}, checking in! Have you had a chance to review the info I sent about automating {{companyName}}'s sales? Any questions I can answer? - {{senderFirstName}}",
+        "char_count": 160,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "7 days after initial contact, no response",
+        "send_within": "N/A"
+      },
+      "day_14_value_add": {
+        "template": "{{firstName}}, just published a case study on how we helped a company like {{companyName}} increase conversions 40%. Want me to send it over? Might give you some ideas. Reply YES. - {{senderFirstName}}",
+        "char_count": 200,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "14 days after initial contact, no response",
+        "send_within": "N/A"
+      },
+      "day_30_final_attempt": {
+        "template": "{{firstName}}, last message from me! If you're ever ready to explore automating {{companyName}}'s sales, I'm just a text away. Otherwise, I wish you nothing but success! - {{senderFirstName}}",
+        "char_count": 185,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "30 days after initial contact, no response",
+        "send_within": "N/A"
+      }
+    },
+    "re_engagement": {
+      "inactive_lead": {
+        "template": "{{firstName}}, it's been a while! {{companyName}} came to mind when we launched our new Quick Start package - full automation in 48 hours. Thought you might be interested. Reply SHOW ME if you want details. - {{senderFirstName}}",
+        "char_count": 225,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "Lead went cold (60+ days no activity), new product launch",
+        "send_within": "N/A"
+      },
+      "past_customer": {
+        "template": "{{firstName}}! Hope {{companyName}} is crushing it. Quick question - would you be open to a 10-min call about our new AI lead scoring? It's a game-changer. Reply YES if interested. - {{senderFirstName}}",
+        "char_count": 205,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "Past customer (churned 6-12 months ago), new feature launch",
+        "send_within": "N/A"
+      }
+    },
+    "response_handlers": {
+      "YES": {
+        "template": "Perfect! Here's my calendar: {{calendarLink}} - grab any slot that works for you. Looking forward to it! - {{senderFirstName}}",
+        "char_count": 125,
+        "variables": ["calendarLink", "senderFirstName"],
+        "trigger": "Lead replies with 'YES', 'yes', 'Yes', 'Y', 'Sure', 'Interested'",
+        "send_within": "1 minute"
+      },
+      "NOT_INTERESTED": {
+        "template": "No problem, {{firstName}}! If things change, you know where to find me. Best of luck with {{companyName}}! - {{senderFirstName}}",
+        "char_count": 125,
+        "variables": ["firstName", "companyName", "senderFirstName"],
+        "trigger": "Lead replies with 'NO', 'not interested', 'stop', 'unsubscribe'",
+        "send_within": "1 minute"
+      },
+      "MORE_INFO": {
+        "template": "Great question! I just sent you an email with all the details and pricing. Should be in your inbox now. Let me know if you don't see it! - {{senderFirstName}}",
+        "char_count": 150,
+        "variables": ["senderFirstName"],
+        "trigger": "Lead replies with questions or 'more info', 'pricing', 'details'",
+        "send_within": "1 minute"
+      }
+    }
+  },
+  "best_practices": {
+    "timing": {
+      "optimal_days": ["Tuesday", "Wednesday", "Thursday"],
+      "optimal_hours": "10:00 AM - 4:00 PM local time",
+      "avoid": ["Before 8 AM", "After 8 PM", "Weekends (unless B2C)"],
+      "5_minute_rule": "New leads have highest response rate within 5 minutes of inquiry"
+    },
+    "content": {
+      "max_length": "160 characters ideal, 300 max (2 SMS)",
+      "personalization": "Always use first name, company name when available",
+      "tone": "Conversational, friendly, not salesy",
+      "cta": "One clear call-to-action per message",
+      "value_first": "Lead with benefit, not feature"
+    },
+    "compliance": {
+      "required": [
+        "Sender identification (name or company)",
+        "Clear opt-out instructions",
+        "Only contact leads who provided phone number",
+        "Honor opt-out requests within 24 hours"
+      ],
+      "tcpa_compliance": "Must have prior express written consent for marketing SMS",
+      "opt_out_keywords": ["STOP", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"]
+    },
+    "response_handling": {
+      "reply_within": "1-5 minutes for inbound responses",
+      "use_templates": "For common responses (YES, NO, PRICING)",
+      "escalate_to_human": "If conversation becomes complex or lead is hot (score >= 80)",
+      "track_all": "Log every SMS to communications table in Supabase"
+    }
+  },
+  "variables_reference": {
+    "available_variables": [
+      {
+        "name": "firstName",
+        "source": "leads.first_name or contacts.first_name",
+        "required": true
+      },
+      {
+        "name": "lastName",
+        "source": "leads.last_name or contacts.last_name",
+        "required": false
+      },
+      {
+        "name": "companyName",
+        "source": "leads.company_name or clients.company_name",
+        "required": true
+      },
+      {
+        "name": "senderFirstName",
+        "source": "Environment variable or hardcoded",
+        "required": true,
+        "example": "Don"
+      },
+      {
+        "name": "senderPhone",
+        "source": "Environment variable TWILIO_FROM_NUMBER",
+        "required": true,
+        "format": "E.164 (+14155551234)"
+      },
+      {
+        "name": "calendarLink",
+        "source": "Environment variable or Calendly/Cal.com link",
+        "required": true,
+        "example": "https://calendly.com/asi360/strategy-call"
+      },
+      {
+        "name": "projectedSavings",
+        "source": "Calculated from form submissions or lead data",
+        "required": false,
+        "format": "Number without $ sign (e.g., 2500)"
+      },
+      {
+        "name": "webinarTopic",
+        "source": "Event/webinar registration data",
+        "required": false
+      },
+      {
+        "name": "webinarDate",
+        "source": "Event/webinar registration data",
+        "required": false,
+        "format": "Mon, Jan 15 at 2pm PT"
+      }
+    ]
+  },
+  "n8n_integration": {
+    "workflow_04_reference": "See infrastructure/n8n-workflows/04_sms_instant_response.json",
+    "twilio_setup": {
+      "credentials": "Twilio API (Account SID + Auth Token)",
+      "from_number": "Must be Twilio-verified number (E.164 format)",
+      "message_service_sid": "Optional for high-volume sending"
+    },
+    "template_selection_logic": {
+      "step_1": "Check lead industry field",
+      "step_2": "Match to industry-specific template",
+      "step_3": "If no match, use generic_fallback",
+      "step_4": "Replace all {{variables}} with actual data",
+      "step_5": "Send via Twilio API",
+      "step_6": "Log to communications table"
+    },
+    "error_handling": [
+      "Invalid phone number: Skip send, flag lead record",
+      "Twilio API error: Retry after 30 seconds, max 3 attempts",
+      "Opt-out detected: Add to suppression list, never contact again",
+      "Rate limit hit: Queue message for next send window"
+    ]
+  },
+  "metrics_tracking": {
+    "kpis": [
+      "Response rate (% of SMS that get replies)",
+      "Response time (how fast lead replies)",
+      "Conversion rate (SMS to call/meeting booked)",
+      "Opt-out rate (should be <1%)",
+      "Cost per conversation"
+    ],
+    "supabase_logging": {
+      "table": "communications",
+      "fields": [
+        "lead_id or contact_id",
+        "communication_type = 'sms'",
+        "direction = 'outbound' or 'inbound'",
+        "content (message text)",
+        "sent_at timestamp",
+        "twilio_message_sid",
+        "status (sent, delivered, failed, opt-out)"
+      ]
+    }
+  }
+}

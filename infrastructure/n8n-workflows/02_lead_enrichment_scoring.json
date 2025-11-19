@@ -1,0 +1,280 @@
+{
+  "name": "Lead Enrichment & Auto-Scoring",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "name": "Every 5 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "get",
+        "tableId": "leads",
+        "returnAll": false,
+        "limit": 10,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "lead_score",
+              "value": 0,
+              "condition": "equals"
+            },
+            {
+              "keyName": "lead_status",
+              "value": "new",
+              "condition": "equals"
+            }
+          ]
+        }
+      },
+      "name": "Get New Unscored Leads",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Lead Scoring Algorithm\n// Based on PRD-001 criteria\n\nconst items = $input.all();\nconst scoredLeads = [];\n\nfor (const item of items) {\n  const lead = item.json;\n  let score = 0;\n  \n  // Company Name provided (+15)\n  if (lead.company_name && lead.company_name.length > 0) {\n    score += 15;\n  }\n  \n  // Email provided (+10)\n  if (lead.email && lead.email.includes('@')) {\n    score += 10;\n  }\n  \n  // Phone provided (+10)\n  if (lead.phone && lead.phone.length >= 10) {\n    score += 10;\n  }\n  \n  // Lead source quality\n  if (lead.lead_source === 'referral') {\n    score += 25; // Referrals are highest quality\n  } else if (lead.lead_source === 'linkedin') {\n    score += 20;\n  } else if (lead.lead_source === 'google-ads') {\n    score += 15;\n  } else if (lead.lead_source === 'website') {\n    score += 10;\n  } else {\n    score += 5;\n  }\n  \n  // Industry match (restaurant, tech, events)\n  if (lead.industry && \n      (lead.industry.toLowerCase().includes('restaurant') ||\n       lead.industry.toLowerCase().includes('food') ||\n       lead.industry.toLowerCase().includes('tech') ||\n       lead.industry.toLowerCase().includes('event'))) {\n    score += 15;\n  }\n  \n  // Company size indicators\n  if (lead.company_size === '11-50' || lead.company_size === '51-200') {\n    score += 10;\n  } else if (lead.company_size === '201-1000') {\n    score += 5;\n  }\n  \n  // Budget indicators\n  if (lead.budget_range && \n      (lead.budget_range.includes('$10K') || lead.budget_range.includes('$20K'))) {\n    score += 15;\n  }\n  \n  // Decision timeline (urgent = higher score)\n  if (lead.decision_timeline === 'immediate' || lead.decision_timeline === '1-month') {\n    score += 10;\n  }\n  \n  // Cap score at 100\n  score = Math.min(score, 100);\n  \n  // Determine status based on score\n  let status = 'new';\n  if (score >= 70) {\n    status = 'qualified';\n  } else if (score >= 50) {\n    status = 'contacted';\n  } else if (score < 30) {\n    status = 'unqualified';\n  }\n  \n  scoredLeads.push({\n    json: {\n      id: lead.id,\n      lead_score: score,\n      lead_status: status,\n      scoring_date: new Date().toISOString()\n    }\n  });\n}\n\nreturn scoredLeads;"
+      },
+      "name": "Calculate Lead Score",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "update",
+        "tableId": "leads",
+        "filterType": "manual",
+        "matchBy": "id",
+        "fieldsToSend": "defineBelow",
+        "fields": {
+          "mappings": [
+            {
+              "fieldName": "lead_score",
+              "fieldValue": "={{ $json.lead_score }}"
+            },
+            {
+              "fieldName": "lead_status",
+              "fieldValue": "={{ $json.lead_status }}"
+            }
+          ]
+        }
+      },
+      "name": "Update Lead Score",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.lead_score }}",
+              "operation": "largerEqual",
+              "value2": 70
+            }
+          ]
+        }
+      },
+      "name": "If High Score",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "options": {},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $env.AUTHORIZED_USER_ID }}"
+            },
+            {
+              "name": "text",
+              "value": "🔥 Hot Lead Alert!\\n\\nScore: {{ $json.lead_score }}/100\\n\\nLead needs immediate follow-up!\\n\\nUse /leads qualified to see details."
+            },
+            {
+              "name": "parse_mode",
+              "value": "Markdown"
+            }
+          ]
+        }
+      },
+      "name": "Alert CEO - High Score Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "insert",
+        "tableId": "master_tasks",
+        "fieldsToSend": "defineBelow",
+        "fields": {
+          "mappings": [
+            {
+              "fieldName": "task_identifier",
+              "fieldValue": "=#LEAD{{ $now.format('MMdd') }}"
+            },
+            {
+              "fieldName": "priority_level",
+              "fieldValue": "P1"
+            },
+            {
+              "fieldName": "status",
+              "fieldValue": "S1"
+            },
+            {
+              "fieldName": "task_category",
+              "fieldValue": "Sales Follow-up"
+            },
+            {
+              "fieldName": "department_code",
+              "fieldValue": "CH03.1"
+            },
+            {
+              "fieldName": "task_description",
+              "fieldValue": "=Follow up with hot lead (score {{ $json.lead_score }})"
+            },
+            {
+              "fieldName": "energy_level",
+              "fieldValue": "E4"
+            },
+            {
+              "fieldName": "pomodoros_total",
+              "fieldValue": 1
+            },
+            {
+              "fieldName": "estimated_minutes",
+              "fieldValue": 25
+            },
+            {
+              "fieldName": "due_date",
+              "fieldValue": "={{ $now.format('yyyy-MM-dd') }}"
+            },
+            {
+              "fieldName": "assigned_to",
+              "fieldValue": "ceo@asi360.com"
+            }
+          ]
+        }
+      },
+      "name": "Create Follow-up Task",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1250, 350],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every 5 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Get New Unscored Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get New Unscored Leads": {
+      "main": [
+        [
+          {
+            "node": "Calculate Lead Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Lead Score": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Lead Score": {
+      "main": [
+        [
+          {
+            "node": "If High Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If High Score": {
+      "main": [
+        [
+          {
+            "node": "Alert CEO - High Score Lead",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Follow-up Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "2",
+      "name": "lead-management"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-11-19T00:00:00.000Z",
+  "versionId": "1"
+}

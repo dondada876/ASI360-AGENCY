@@ -1,0 +1,254 @@
+{
+  "name": "SMS Instant Lead Response (5-Min Rule)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      },
+      "name": "Every 2 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "get",
+        "tableId": "leads",
+        "returnAll": false,
+        "limit": 20,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "condition": "isNotNull"
+            },
+            {
+              "keyName": "created_at",
+              "value": "={{ $now.minus({ minutes: 5 }).toISO() }}",
+              "condition": "greaterThan"
+            },
+            {
+              "keyName": "last_contact_date",
+              "condition": "isNull"
+            }
+          ]
+        }
+      },
+      "name": "Get New Leads with Phone",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Format phone numbers and create SMS content\nconst items = $input.all();\nconst smsMessages = [];\n\nfor (const item of items) {\n  const lead = item.json;\n  \n  // Format phone number (remove non-digits, add +1)\n  let phone = lead.phone.replace(/\\D/g, '');\n  if (phone.length === 10) {\n    phone = '+1' + phone;\n  } else if (!phone.startsWith('+')) {\n    phone = '+' + phone;\n  }\n  \n  // Personalize message based on industry/lead source\n  let message = `Hi ${lead.first_name || 'there'}! Don from ASI 360 here. `;\n  \n  if (lead.industry && lead.industry.toLowerCase().includes('restaurant')) {\n    message += `Thanks for your interest in restaurant tech solutions. I can show you exactly how we'll increase your online orders 40%. Got 15 min this week? Reply YES and I'll send my calendar link.`;\n  } else if (lead.industry && lead.industry.toLowerCase().includes('tech')) {\n    message += `Thanks for your interest in cloud infrastructure. I can show you how to automate 80% of your workflows. Got 15 min this week? Reply YES for calendar link.`;\n  } else if (lead.lead_source === 'referral') {\n    message += `${lead.notes || 'Someone'} suggested we connect. I'd love to show you how we can help ${lead.company_name || 'your business'}. Got 15 min this week? Reply YES for calendar.`;\n  } else {\n    message += `Thanks for your interest in our services. I'd love to discuss how we can help ${lead.company_name || 'your business'}. Got 15 min this week? Reply YES and I'll send my calendar link.`;\n  }\n  \n  smsMessages.push({\n    json: {\n      ...lead,\n      formattedPhone: phone,\n      smsMessage: message\n    }\n  });\n}\n\nreturn smsMessages;"
+      },
+      "name": "Format SMS Message",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_ACCOUNT_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "To",
+              "value": "={{ $json.formattedPhone }}"
+            },
+            {
+              "name": "From",
+              "value": "={{ $env.TWILIO_PHONE_NUMBER }}"
+            },
+            {
+              "name": "Body",
+              "value": "={{ $json.smsMessage }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Send SMS via Twilio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 300],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "3",
+          "name": "Twilio API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "insert",
+        "tableId": "communications",
+        "fieldsToSend": "defineBelow",
+        "fields": {
+          "mappings": [
+            {
+              "fieldName": "communication_type",
+              "fieldValue": "sms"
+            },
+            {
+              "fieldName": "direction",
+              "fieldValue": "outbound"
+            },
+            {
+              "fieldName": "body",
+              "fieldValue": "={{ $json.smsMessage }}"
+            },
+            {
+              "fieldName": "from_person",
+              "fieldValue": "ASI 360 (SMS)"
+            },
+            {
+              "fieldName": "to_person",
+              "fieldValue": "={{ $json.formattedPhone }}"
+            },
+            {
+              "fieldName": "communication_date",
+              "fieldValue": "={{ $now.toISO() }}"
+            },
+            {
+              "fieldName": "twilio_message_sid",
+              "fieldValue": "={{ $('Send SMS via Twilio').item.json.sid }}"
+            }
+          ]
+        }
+      },
+      "name": "Log SMS Communication",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1050, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "update",
+        "tableId": "leads",
+        "filterType": "manual",
+        "matchBy": "id",
+        "fieldsToSend": "defineBelow",
+        "fields": {
+          "mappings": [
+            {
+              "fieldName": "last_contact_date",
+              "fieldValue": "={{ $now.format('yyyy-MM-dd') }}"
+            },
+            {
+              "fieldName": "lead_status",
+              "fieldValue": "contacted"
+            }
+          ]
+        }
+      },
+      "name": "Update Lead Status",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1250, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every 2 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Get New Leads with Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get New Leads with Phone": {
+      "main": [
+        [
+          {
+            "node": "Format SMS Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format SMS Message": {
+      "main": [
+        [
+          {
+            "node": "Send SMS via Twilio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS via Twilio": {
+      "main": [
+        [
+          {
+            "node": "Log SMS Communication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log SMS Communication": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "4",
+      "name": "sms-automation"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-11-19T00:00:00.000Z",
+  "versionId": "1"
+}

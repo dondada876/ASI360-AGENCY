@@ -1,0 +1,327 @@
+{
+  "name": "Email Automation - Nurture Sequences",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "get",
+        "tableId": "leads",
+        "returnAll": false,
+        "limit": 50,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "lead_status",
+              "value": "qualified",
+              "condition": "equals"
+            },
+            {
+              "keyName": "next_follow_up_date",
+              "value": "={{ $now.format('yyyy-MM-dd') }}",
+              "condition": "equals"
+            }
+          ]
+        }
+      },
+      "name": "Get Leads Needing Follow-up",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Determine which email in sequence to send\nconst items = $input.all();\nconst emailsToSend = [];\n\nfor (const item of items) {\n  const lead = item.json;\n  \n  // Calculate days since lead created\n  const createdDate = new Date(lead.created_at);\n  const now = new Date();\n  const daysSinceCreated = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));\n  \n  // Determine sequence step based on industry/segment\n  let sequence = 'restaurant'; // Default\n  if (lead.industry && lead.industry.toLowerCase().includes('tech')) {\n    sequence = 'smb';\n  } else if (lead.company_name && lead.company_name.toLowerCase().includes('event')) {\n    sequence = 'event';\n  }\n  \n  // Determine which email in sequence\n  let emailDay = 0;\n  if (daysSinceCreated === 0) {\n    emailDay = 0; // Immediate welcome\n  } else if (daysSinceCreated === 2) {\n    emailDay = 2;\n  } else if (daysSinceCreated === 5) {\n    emailDay = 5;\n  } else if (daysSinceCreated === 8) {\n    emailDay = 8;\n  } else if (daysSinceCreated === 12) {\n    emailDay = 12;\n  } else if (daysSinceCreated === 16) {\n    emailDay = 16;\n  } else if (daysSinceCreated === 21) {\n    emailDay = 21; // Final \"breakup\" email\n  }\n  \n  if (emailDay > 0 || daysSinceCreated === 0) {\n    emailsToSend.push({\n      json: {\n        ...lead,\n        sequence: sequence,\n        emailDay: emailDay,\n        daysSinceCreated: daysSinceCreated\n      }\n    });\n  }\n}\n\nreturn emailsToSend;"
+      },
+      "name": "Determine Email Sequence",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.sequence }}",
+              "operation": "equals",
+              "value2": "restaurant"
+            }
+          ]
+        }
+      },
+      "name": "If Restaurant Sequence",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.sequence }}",
+              "operation": "equals",
+              "value2": "smb"
+            }
+          ]
+        }
+      },
+      "name": "If SMB Sequence",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.FROM_EMAIL || 'don@asi360.com' }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.emailDay === 0 ? 'How ' + ($json.company_name || 'Top Restaurants') + ' Increased Orders 40%' : \n                  $json.emailDay === 2 ? '3 Ways You\\'re Losing Money Without Online Ordering' :\n                  $json.emailDay === 5 ? 'Restaurant Tech Case Study + Video Walkthrough' :\n                  $json.emailDay === 8 ? 'Quick Question About Your POS Setup' :\n                  $json.emailDay === 12 ? '⏰ Limited-Time Implementation Discount' :\n                  $json.emailDay === 16 ? 'Final Case Study: How We Can Help' :\n                  '❓ Should I Close Your File?' }}",
+        "message": "=Hi {{ $json.first_name || 'there' }},\\n\\n[Email content would go here based on day {{ $json.emailDay }} of restaurant sequence]\\n\\nBest regards,\\nDon Thompson\\nCEO, ASI 360 Agency",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "name": "Send Restaurant Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1050, 200],
+      "credentials": {
+        "smtp": {
+          "id": "2",
+          "name": "SendGrid SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.FROM_EMAIL || 'don@asi360.com' }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.emailDay === 0 ? 'Your Competitors Are Automating. Here\\'s How.' : \n                  $json.emailDay === 3 ? 'AI Workflow Automation Assessment' :\n                  $json.emailDay === 7 ? 'ROI Calculator + Implementation Timeline' :\n                  $json.emailDay === 10 ? '3 Businesses That Scaled With Our Infrastructure' :\n                  'Custom Proposal + 30-Min Strategy Call' }}",
+        "message": "=Hi {{ $json.first_name || 'there' }},\\n\\n[Email content would go here based on day {{ $json.emailDay }} of SMB sequence]\\n\\nBest regards,\\nDon Thompson\\nCEO, ASI 360 Agency",
+        "options": {}
+      },
+      "name": "Send SMB Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1050, 400],
+      "credentials": {
+        "smtp": {
+          "id": "2",
+          "name": "SendGrid SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "insert",
+        "tableId": "communications",
+        "fieldsToSend": "defineBelow",
+        "fields": {
+          "mappings": [
+            {
+              "fieldName": "communication_type",
+              "fieldValue": "email"
+            },
+            {
+              "fieldName": "direction",
+              "fieldValue": "outbound"
+            },
+            {
+              "fieldName": "subject",
+              "fieldValue": "={{ $json.subject }}"
+            },
+            {
+              "fieldName": "body",
+              "fieldValue": "=Email sent via automation sequence - Day {{ $json.emailDay }}"
+            },
+            {
+              "fieldName": "from_person",
+              "fieldValue": "don@asi360.com"
+            },
+            {
+              "fieldName": "to_person",
+              "fieldValue": "={{ $json.email }}"
+            },
+            {
+              "fieldName": "communication_date",
+              "fieldValue": "={{ $now.toISO() }}"
+            }
+          ]
+        }
+      },
+      "name": "Log Communication",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1250, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "update",
+        "tableId": "leads",
+        "filterType": "manual",
+        "matchBy": "id",
+        "fieldsToSend": "defineBelow",
+        "fields": {
+          "mappings": [
+            {
+              "fieldName": "last_contact_date",
+              "fieldValue": "={{ $now.format('yyyy-MM-dd') }}"
+            },
+            {
+              "fieldName": "next_follow_up_date",
+              "fieldValue": "={{ $now.plus({ days: $json.emailDay === 0 ? 2 : $json.emailDay === 2 ? 3 : $json.emailDay === 5 ? 3 : 4 }).format('yyyy-MM-dd') }}"
+            }
+          ]
+        }
+      },
+      "name": "Update Lead Contact Date",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every Hour": {
+      "main": [
+        [
+          {
+            "node": "Get Leads Needing Follow-up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Leads Needing Follow-up": {
+      "main": [
+        [
+          {
+            "node": "Determine Email Sequence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Email Sequence": {
+      "main": [
+        [
+          {
+            "node": "If Restaurant Sequence",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If SMB Sequence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Restaurant Sequence": {
+      "main": [
+        [
+          {
+            "node": "Send Restaurant Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If SMB Sequence": {
+      "main": [
+        [
+          {
+            "node": "Send SMB Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Restaurant Email": {
+      "main": [
+        [
+          {
+            "node": "Log Communication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMB Email": {
+      "main": [
+        [
+          {
+            "node": "Log Communication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Communication": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Contact Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "3",
+      "name": "email-automation"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-11-19T00:00:00.000Z",
+  "versionId": "1"
+}

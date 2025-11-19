@@ -1,0 +1,293 @@
+{
+  "name": "vTiger to Supabase Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "vtiger-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook - vTiger Events",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "vtiger-sync"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json }}",
+        "options": {}
+      },
+      "name": "Extract vTiger Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.module }}",
+              "operation": "equals",
+              "value2": "Accounts"
+            }
+          ]
+        }
+      },
+      "name": "If Account",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.module }}",
+              "operation": "equals",
+              "value2": "Leads"
+            }
+          ]
+        }
+      },
+      "name": "If Lead",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "upsert",
+        "tableId": "clients",
+        "options": {
+          "onConflict": "vtiger_account_id"
+        },
+        "fieldsToSend": "defineBelow",
+        "fields": {
+          "mappings": [
+            {
+              "fieldName": "company_name",
+              "fieldValue": "={{ $json.body.data.accountname }}"
+            },
+            {
+              "fieldName": "email",
+              "fieldValue": "={{ $json.body.data.email1 }}"
+            },
+            {
+              "fieldName": "phone",
+              "fieldValue": "={{ $json.body.data.phone }}"
+            },
+            {
+              "fieldName": "website",
+              "fieldValue": "={{ $json.body.data.website }}"
+            },
+            {
+              "fieldName": "industry",
+              "fieldValue": "={{ $json.body.data.industry }}"
+            },
+            {
+              "fieldName": "vtiger_account_id",
+              "fieldValue": "={{ $json.body.data.id }}"
+            },
+            {
+              "fieldName": "client_type",
+              "fieldValue": "={{ $json.body.data.accounttype === 'Customer' ? 'active' : 'prospect' }}"
+            }
+          ]
+        }
+      },
+      "name": "Upsert to Supabase - Clients",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [850, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "upsert",
+        "tableId": "leads",
+        "options": {
+          "onConflict": "vtiger_lead_id"
+        },
+        "fieldsToSend": "defineBelow",
+        "fields": {
+          "mappings": [
+            {
+              "fieldName": "first_name",
+              "fieldValue": "={{ $json.body.data.firstname }}"
+            },
+            {
+              "fieldName": "last_name",
+              "fieldValue": "={{ $json.body.data.lastname }}"
+            },
+            {
+              "fieldName": "company_name",
+              "fieldValue": "={{ $json.body.data.company }}"
+            },
+            {
+              "fieldName": "email",
+              "fieldValue": "={{ $json.body.data.email }}"
+            },
+            {
+              "fieldName": "phone",
+              "fieldValue": "={{ $json.body.data.phone }}"
+            },
+            {
+              "fieldName": "lead_source",
+              "fieldValue": "={{ $json.body.data.leadsource }}"
+            },
+            {
+              "fieldName": "lead_status",
+              "fieldValue": "={{ $json.body.data.leadstatus === 'New' ? 'new' : $json.body.data.leadstatus === 'Qualified' ? 'qualified' : 'contacted' }}"
+            },
+            {
+              "fieldName": "vtiger_lead_id",
+              "fieldValue": "={{ $json.body.data.id }}"
+            },
+            {
+              "fieldName": "assigned_to",
+              "fieldValue": "ceo@asi360.com"
+            }
+          ]
+        }
+      },
+      "name": "Upsert to Supabase - Leads",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [850, 400],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Synced to Supabase\", \"module\": $json.body.module } }}"
+      },
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log sync to Supabase\nconst syncLog = {\n  sync_date: new Date().toISOString(),\n  module: $input.item.json.body.module,\n  record_id: $input.item.json.body.data.id,\n  status: 'success'\n};\n\nreturn syncLog;"
+      },
+      "name": "Log Sync Activity",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 450]
+    }
+  ],
+  "connections": {
+    "Webhook - vTiger Events": {
+      "main": [
+        [
+          {
+            "node": "Extract vTiger Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract vTiger Data": {
+      "main": [
+        [
+          {
+            "node": "If Account",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Account": {
+      "main": [
+        [
+          {
+            "node": "Upsert to Supabase - Clients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Lead": {
+      "main": [
+        [
+          {
+            "node": "Upsert to Supabase - Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert to Supabase - Clients": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Sync Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert to Supabase - Leads": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Sync Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-11-19T00:00:00.000Z",
+      "updatedAt": "2025-11-19T00:00:00.000Z",
+      "id": "1",
+      "name": "crm-sync"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-11-19T00:00:00.000Z",
+  "versionId": "1"
+}

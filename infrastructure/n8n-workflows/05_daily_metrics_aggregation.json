@@ -1,0 +1,383 @@
+{
+  "name": "Daily Metrics Aggregation & CEO Briefing",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 1 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Daily at 1 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Calculate yesterday's date\nconst yesterday = new Date();\nyesterday.setDate(yesterday.getDate() - 1);\nconst yesterdayStr = yesterday.toISOString().split('T')[0];\n\nreturn [\n  {\n    json: {\n      metric_date: yesterdayStr,\n      date_start: yesterdayStr + 'T00:00:00Z',\n      date_end: yesterdayStr + 'T23:59:59Z'\n    }\n  }\n];"
+      },
+      "name": "Set Yesterday Date",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "get",
+        "tableId": "leads",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "created_at",
+              "value": "={{ $json.date_start }}",
+              "condition": "greaterThan"
+            },
+            {
+              "keyName": "created_at",
+              "value": "={{ $json.date_end }}",
+              "condition": "lessThan"
+            }
+          ]
+        }
+      },
+      "name": "Count New Leads",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [650, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "get",
+        "tableId": "opportunities",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "stage",
+              "value": "closed-won",
+              "condition": "equals"
+            },
+            {
+              "keyName": "actual_close_date",
+              "value": "={{ $('Set Yesterday Date').item.json.metric_date }}",
+              "condition": "equals"
+            }
+          ]
+        }
+      },
+      "name": "Count Deals Closed",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "get",
+        "tableId": "revenue_tracking",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "transaction_date",
+              "value": "={{ $('Set Yesterday Date').item.json.metric_date }}",
+              "condition": "equals"
+            },
+            {
+              "keyName": "payment_status",
+              "value": "paid",
+              "condition": "equals"
+            }
+          ]
+        }
+      },
+      "name": "Sum Revenue",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [650, 400],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "get",
+        "tableId": "master_tasks",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "completed_at",
+              "value": "={{ $('Set Yesterday Date').item.json.date_start }}",
+              "condition": "greaterThan"
+            },
+            {
+              "keyName": "completed_at",
+              "value": "={{ $('Set Yesterday Date').item.json.date_end }}",
+              "condition": "lessThan"
+            },
+            {
+              "keyName": "status",
+              "value": "S4",
+              "condition": "equals"
+            }
+          ]
+        }
+      },
+      "name": "Count Tasks Completed",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [650, 500],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "get",
+        "tableId": "ceo_time_log",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "log_date",
+              "value": "={{ $('Set Yesterday Date').item.json.metric_date }}",
+              "condition": "equals"
+            },
+            {
+              "keyName": "activity_type",
+              "value": "family",
+              "condition": "equals"
+            }
+          ]
+        }
+      },
+      "name": "Sum Family Time",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [650, 600],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Aggregate all metrics\nconst metricsData = {};\n\n// Get metric date\nmetricsData.metric_date = $('Set Yesterday Date').item.json.metric_date;\n\n// Count new leads\nconst leads = $('Count New Leads').all();\nmetricsData.new_leads = leads.length;\nmetricsData.qualified_leads = leads.filter(l => l.json.lead_status === 'qualified').length;\n\n// Count deals\nconst deals = $('Count Deals Closed').all();\nmetricsData.deals_closed = deals.length;\nmetricsData.revenue_closed = deals.reduce((sum, d) => sum + (parseFloat(d.json.estimated_value) || 0), 0);\n\n// Sum revenue\nconst revenue = $('Sum Revenue').all();\nmetricsData.daily_revenue = revenue.reduce((sum, r) => sum + (parseFloat(r.json.amount) || 0), 0);\n\n// Count tasks\nconst tasks = $('Count Tasks Completed').all();\nmetricsData.tasks_completed = tasks.length;\nmetricsData.pomodoros_completed = tasks.reduce((sum, t) => sum + (t.json.pomodoros_completed || 0), 0);\n\n// Sum family time\nconst familyTime = $('Sum Family Time').all();\nmetricsData.family_time_minutes = familyTime.reduce((sum, f) => sum + (f.json.duration_minutes || 0), 0);\n\n// Calculate productive hours (rough estimate from pomodoros)\nmetricsData.ceo_productive_hours = Math.round((metricsData.pomodoros_completed * 25) / 60 * 10) / 10;\n\nreturn [{ json: metricsData }];"
+      },
+      "name": "Aggregate Metrics",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceRole",
+        "operation": "insert",
+        "tableId": "daily_metrics",
+        "fieldsToSend": "autoMapInputData"
+      },
+      "name": "Insert Daily Metrics",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1050, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase - ASI360"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "options": {},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $env.AUTHORIZED_USER_ID }}"
+            },
+            {
+              "name": "text",
+              "value": "=🌅 *Good Morning! Yesterday's Metrics*\\n\\n📊 *Business:*\\n• New Leads: {{ $json.new_leads }}\\n• Qualified: {{ $json.qualified_leads }}\\n• Deals Closed: {{ $json.deals_closed }}\\n• Revenue: ${{ $json.daily_revenue.toFixed(0) }}\\n\\n✅ *Productivity:*\\n• Tasks Completed: {{ $json.tasks_completed }}\\n• Pomodoros: {{ $json.pomodoros_completed }}\\n• Productive Hours: {{ $json.ceo_productive_hours }}\\n\\n👨‍👧 *Family:*\\n• Time with Ashé: {{ Math.floor($json.family_time_minutes / 60) }}h {{ $json.family_time_minutes % 60 }}m\\n\\n_Use /dashboard for full details_"
+            },
+            {
+              "name": "parse_mode",
+              "value": "Markdown"
+            }
+          ]
+        }
+      },
+      "name": "Send Telegram Briefing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Daily at 1 AM": {
+      "main": [
+        [
+          {
+            "node": "Set Yesterday Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Yesterday Date": {
+      "main": [
+        [
+          {
+            "node": "Count New Leads",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Count Deals Closed",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sum Revenue",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Count Tasks Completed",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sum Family Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count New Leads": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Deals Closed": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sum Revenue": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Tasks Completed": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sum Family Time": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Metrics": {
+      "main": [
+        [
+          {
+            "node": "Insert Daily Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Daily Metrics": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "id": "5",
+      "name": "daily-metrics"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-11-19T00:00:00.000Z",
+  "versionId": "1"
+}

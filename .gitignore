@@ -59,8 +59,9 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 
-# API Keys & Credentials (extra safety)
+# API Keys & Credentials (extra safety, but allow templates)
 *credentials*.json
+!*credentials-template.json
 *secrets*.json
 *api*keys*.txt
 *.pem
