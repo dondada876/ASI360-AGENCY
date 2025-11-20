@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 ASI 360 Agency Portal</h1>
+            <p>Multi-Client WordPress Hosting & Automation Platform</p>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/clients">Clients</a></li>
+                <li><a href="/automation">Automation</a></li>
+                <li><a href="/monitoring">Monitoring</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section class="stats">
+                <div class="stat-card">
+                    <h3>Active Clients</h3>
+                    <p class="stat-number" id="client-count">-</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Running Sites</h3>
+                    <p class="stat-number" id="site-count">-</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Uptime</h3>
+                    <p class="stat-number" id="uptime">99.9%</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Traffic</h3>
+                    <p class="stat-number" id="traffic">-</p>
+                </div>
+            </section>
+
+            <section class="clients-section">
+                <h2>Client Sites</h2>
+                <div id="clients-list">
+                    <p>Loading clients...</p>
+                </div>
+            </section>
+
+            <section class="quick-actions">
+                <h2>Quick Actions</h2>
+                <button onclick="addNewClient()">➕ Add New Client</button>
+                <button onclick="viewLogs()">📊 View Logs</button>
+                <button onclick="runBackup()">💾 Run Backup</button>
+                <button onclick="generateContent()">🤖 AI Content</button>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 ASI 360 Agency - Allied Systems Integrations</p>
+        </footer>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
