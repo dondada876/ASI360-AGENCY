@@ -45,10 +45,10 @@ load_dotenv()
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
-ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "8312243265"))
+ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "0"))
 MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", "/opt/asi360-field-bot/media"))
 GDRIVE_SA_KEY = os.getenv("GDRIVE_SA_KEY_PATH", "")
-GDRIVE_FOLDER_ID = os.getenv("GDRIVE_FOLDER_ID", "")  # loaded from vault
+GDRIVE_FOLDER_ID = ""  # populated from Vault at startup
 
 # ── Prometheus ────────────────────────────────────────────────────────────────
 prom_photos = Counter("field_bot_photos_total", "Photos received", ["mode"])
@@ -65,10 +65,27 @@ def load_secrets() -> dict:
         "airtable_api_key",
         "airtable_base_id",
         "gdrive_folder_id",
+        "field_bot_allowed_chats",
     ]}).execute()
     secrets = {s["name"]: s["secret"] for s in (result.data or [])}
+    # Never log secret values — only names
     log.info("Vault secrets loaded: %s", list(secrets.keys()))
     return secrets
+
+
+# ── Authorization ────────────────────────────────────────────────────────────
+def get_allowed_chats(secrets: dict) -> set[int]:
+    """Return set of authorized chat IDs. Falls back to ADMIN_CHAT_ID only."""
+    raw = secrets.get("field_bot_allowed_chats", "")
+    ids = set()
+    if raw:
+        for part in raw.split(","):
+            part = part.strip()
+            if part.isdigit():
+                ids.add(int(part))
+    if ADMIN_CHAT_ID:
+        ids.add(ADMIN_CHAT_ID)
+    return ids
 
 
 # ── Google Drive Helper ───────────────────────────────────────────────────────
@@ -293,9 +310,24 @@ def format_mode_status(mode: str) -> str:
     return f"{emoji} *{label} Mode*\n_{desc}_"
 
 
+# ── Auth Check ────────────────────────────────────────────────────────────────
+
+def is_authorized(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    allowed = context.bot_data.get("allowed_chats", set())
+    chat_id = update.effective_chat.id
+    if chat_id not in allowed:
+        log.warning("Unauthorized access attempt from chat_id=%s user=%s",
+                     chat_id, getattr(update.effective_user, 'full_name', '?'))
+        return False
+    return True
+
+
 # ── Handlers ──────────────────────────────────────────────────────────────────
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update, context):
+        await update.message.reply_text("Not authorized. Contact admin.")
+        return
     sb: Client = context.bot_data["supabase"]
     chat_id = update.effective_chat.id
     user_name = update.effective_user.full_name or ""
@@ -381,9 +413,15 @@ async def cmd_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Usage: /search <term>")
         return
     term = " ".join(context.args)
+    # Sanitize: strip special chars that could interfere with PostgREST filters
+    import re as _re
+    safe_term = _re.sub(r"[^\w\s\-]", "", term).strip()[:100]
+    if not safe_term:
+        await update.message.reply_text("Invalid search term.")
+        return
     result = sb.table("field_captures").select("id,mode,ai_summary,ai_tags,created_at").or_(
-        f"ai_summary.ilike.%{term}%,raw_text.ilike.%{term}%,caption.ilike.%{term}%"
-    ).order("created_at", desc=True).limit(10).execute()
+        f"ai_summary.ilike.%{safe_term}%,raw_text.ilike.%{safe_term}%,caption.ilike.%{safe_term}%"
+    ).eq("chat_id", update.effective_chat.id).order("created_at", desc=True).limit(10).execute()
 
     if not result.data:
         await update.message.reply_text(f"No captures matching: _{term}_", parse_mode="Markdown")
@@ -650,7 +688,7 @@ async def handle_task_callback(update: Update, context: ContextTypes.DEFAULT_TYP
             )
         except Exception as e:
             log.error("Task add error: %s", e)
-            await query.edit_message_text(f"❌ Error: {e}")
+            await query.edit_message_text("Task save failed. Check logs.")
     else:
         await query.edit_message_text(f"❌ Skipped — _{t.get('title', '')[:40]}_", parse_mode="Markdown")
 
@@ -658,6 +696,9 @@ async def handle_task_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 # ── Photo Handler (main) ─────────────────────────────────────────────────────
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update, context):
+        await update.message.reply_text("Not authorized.")
+        return
     sb: Client = context.bot_data["supabase"]
     secrets = context.bot_data["secrets"]
     chat_id = update.effective_chat.id
@@ -870,17 +911,19 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         log.error("AI JSON parse error: %s", e)
         sb.table("field_captures").update({"status": "failed"}).eq("id", capture_id).execute()
         prom_errors.labels(mode=mode).inc()
-        await status_msg.edit_text(f"❌ AI parse error. Photo saved but extraction failed.\n`{str(e)[:100]}`", parse_mode="Markdown")
+        await status_msg.edit_text("Photo saved but AI extraction failed. Try again or check /recent.")
     except Exception as e:
         log.error("Photo processing error: %s", e)
         sb.table("field_captures").update({"status": "failed"}).eq("id", capture_id).execute()
         prom_errors.labels(mode=mode).inc()
-        await status_msg.edit_text(f"❌ Processing error: {str(e)[:100]}\nPhoto saved to disk.")
+        await status_msg.edit_text("Processing error. Photo saved to disk. Check logs or try again.")
 
 
 # ── Text Handler ──────────────────────────────────────────────────────────────
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update, context):
+        return  # silently ignore unauthorized text
     sb: Client = context.bot_data["supabase"]
     chat_id = update.effective_chat.id
     session = get_or_create_session(sb, chat_id)
@@ -920,8 +963,18 @@ def main():
         log.error("asi360_field_bot_token not found in vault!")
         sys.exit(1)
 
+    allowed_chats = get_allowed_chats(secrets)
+    if not allowed_chats:
+        log.error("No allowed chat IDs configured! Set ADMIN_CHAT_ID or field_bot_allowed_chats in Vault.")
+        sys.exit(1)
+    log.info("Authorized chat IDs: %s", allowed_chats)
+
     # Ensure media dir exists
     MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+
+    # Populate GDRIVE_FOLDER_ID from Vault
+    global GDRIVE_FOLDER_ID
+    GDRIVE_FOLDER_ID = secrets.get("gdrive_folder_id", "")
 
     # Start Prometheus metrics server
     try:
@@ -931,7 +984,7 @@ def main():
         log.warning("Prometheus start failed: %s", e)
 
     app = Application.builder().token(token).build()
-    app.bot_data.update({"secrets": secrets, "supabase": sb})
+    app.bot_data.update({"secrets": secrets, "supabase": sb, "allowed_chats": allowed_chats})
 
     # Commands
     app.add_handler(CommandHandler("start", cmd_start))

@@ -3,7 +3,7 @@
 # Run from the repo root: bash services/asi360-field-bot/deploy.sh
 set -euo pipefail
 
-REMOTE="root@104.248.69.86"
+REMOTE="${DEPLOY_HOST:-root@104.248.69.86}"
 DEST="/opt/asi360-field-bot"
 SVC="asi360-field-bot"
 
@@ -51,4 +51,4 @@ ssh "$REMOTE" "systemctl status $SVC --no-pager -l" || true
 echo ""
 echo "=== Deploy complete ==="
 echo "Logs:  ssh $REMOTE journalctl -u $SVC -f"
-echo "Metrics: http://104.248.69.86:9510/metrics"
+echo "Metrics: http://${DEPLOY_HOST#*@}:9510/metrics"
