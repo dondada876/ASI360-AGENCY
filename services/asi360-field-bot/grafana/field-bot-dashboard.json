@@ -30,7 +30,7 @@
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Whether the Telegram bot is connected and receiving updates",
       "fieldConfig": {
         "defaults": {
@@ -63,7 +63,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "field_bot_telegram_up",
           "legendFormat": "Bot Status",
           "refId": "A"
@@ -73,7 +73,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "How long the bot process has been running",
       "fieldConfig": {
         "defaults": {
@@ -103,7 +103,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "field_bot_uptime_seconds",
           "legendFormat": "Uptime",
           "refId": "A"
@@ -113,7 +113,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Whether the bot is paused (1 = paused, 0 = running)",
       "fieldConfig": {
         "defaults": {
@@ -146,7 +146,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "field_bot_paused",
           "legendFormat": "Paused",
           "refId": "A"
@@ -156,7 +156,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Number of distinct users who have interacted recently",
       "fieldConfig": {
         "defaults": {
@@ -185,7 +185,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "field_bot_active_users",
           "legendFormat": "Active Users",
           "refId": "A"
@@ -195,7 +195,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Number of captures waiting to be processed. Non-zero means items may be stuck.",
       "fieldConfig": {
         "defaults": {
@@ -225,7 +225,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "field_bot_pending_captures",
           "legendFormat": "Pending",
           "refId": "A"
@@ -235,7 +235,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Resident memory usage of the field bot process",
       "fieldConfig": {
         "defaults": {
@@ -268,7 +268,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "process_resident_memory_bytes{job=\"field_bot\"}",
           "legendFormat": "Memory",
           "refId": "A"
@@ -285,7 +285,7 @@
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Rate of incoming messages per minute, broken down by type (photo, text, command)",
       "fieldConfig": {
         "defaults": {
@@ -324,7 +324,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "rate(field_bot_messages_total[5m]) * 60",
           "legendFormat": "{{type}}",
           "refId": "A"
@@ -334,7 +334,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Photo processing rate per minute, split by capture mode",
       "fieldConfig": {
         "defaults": {
@@ -373,7 +373,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "rate(field_bot_photos_total[5m]) * 60",
           "legendFormat": "{{mode}}",
           "refId": "A"
@@ -383,7 +383,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Command usage over the last hour",
       "fieldConfig": {
         "defaults": {
@@ -415,7 +415,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_commands_total[1h])",
           "legendFormat": "/{{command}}",
           "refId": "A"
@@ -425,7 +425,7 @@
       "type": "bargauge"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Total photos processed in the last 24 hours",
       "fieldConfig": {
         "defaults": {
@@ -455,7 +455,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_photos_total[24h])",
           "legendFormat": "Photos Today",
           "refId": "A"
@@ -472,7 +472,7 @@
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "95th percentile AI processing latency over the last 15 minutes",
       "fieldConfig": {
         "defaults": {
@@ -504,7 +504,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "histogram_quantile(0.95, rate(field_bot_ai_duration_seconds_bucket[15m]))",
           "legendFormat": "p95",
           "refId": "A"
@@ -514,7 +514,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "AI processing latency percentiles over time (p50, p95, p99)",
       "fieldConfig": {
         "defaults": {
@@ -561,19 +561,19 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "histogram_quantile(0.50, rate(field_bot_ai_duration_seconds_bucket[15m]))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "histogram_quantile(0.95, rate(field_bot_ai_duration_seconds_bucket[15m]))",
           "legendFormat": "p95",
           "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "histogram_quantile(0.99, rate(field_bot_ai_duration_seconds_bucket[15m]))",
           "legendFormat": "p99",
           "refId": "C"
@@ -583,7 +583,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Token consumption rate per minute, split by input/output and mode",
       "fieldConfig": {
         "defaults": {
@@ -622,13 +622,13 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "rate(field_bot_ai_tokens_input_total[5m]) * 60",
           "legendFormat": "input - {{mode}}",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "rate(field_bot_ai_tokens_output_total[5m]) * 60",
           "legendFormat": "output - {{mode}}",
           "refId": "B"
@@ -638,7 +638,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Total AI API cost accrued in the last 24 hours",
       "fieldConfig": {
         "defaults": {
@@ -670,7 +670,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_ai_cost_usd_total[24h])",
           "legendFormat": "Cost Today",
           "refId": "A"
@@ -680,7 +680,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Hourly AI cost over time",
       "fieldConfig": {
         "defaults": {
@@ -719,7 +719,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_ai_cost_usd_total[1h])",
           "legendFormat": "Hourly Cost",
           "refId": "A"
@@ -736,7 +736,7 @@
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Number of AI request timeouts in the last hour",
       "fieldConfig": {
         "defaults": {
@@ -767,7 +767,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_ai_timeouts_total[1h])",
           "legendFormat": "Timeouts",
           "refId": "A"
@@ -777,7 +777,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Percentage of processed items that resulted in errors",
       "fieldConfig": {
         "defaults": {
@@ -811,7 +811,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "rate(field_bot_errors_total[5m]) / (rate(field_bot_processed_total[5m]) + rate(field_bot_errors_total[5m])) * 100",
           "legendFormat": "Error Rate",
           "refId": "A"
@@ -821,7 +821,7 @@
       "type": "gauge"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Errors broken down by type over the last hour",
       "fieldConfig": {
         "defaults": {
@@ -860,7 +860,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_errors_total[1h])",
           "legendFormat": "{{error_type}}",
           "refId": "A"
@@ -870,7 +870,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "AI API errors broken down by HTTP status code",
       "fieldConfig": {
         "defaults": {
@@ -909,7 +909,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_ai_api_errors_total[1h])",
           "legendFormat": "HTTP {{status_code}}",
           "refId": "A"
@@ -919,7 +919,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Detects items stuck in the processing queue for more than 5 minutes after bot startup",
       "fieldConfig": {
         "defaults": {
@@ -952,7 +952,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "(field_bot_pending_captures > 0) and (field_bot_uptime_seconds > 300)",
           "legendFormat": "Stuck",
           "refId": "A"
@@ -969,7 +969,7 @@
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Total tasks extracted by AI in the last 24 hours",
       "fieldConfig": {
         "defaults": {
@@ -999,7 +999,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_tasks_extracted_total[24h])",
           "legendFormat": "Tasks Extracted",
           "refId": "A"
@@ -1009,7 +1009,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Comparison of tasks user accepted (added) vs tasks user skipped in the last 24 hours",
       "fieldConfig": {
         "defaults": {
@@ -1050,13 +1050,13 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_tasks_added_total[24h])",
           "legendFormat": "Added",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_tasks_skipped_total[24h])",
           "legendFormat": "Skipped",
           "refId": "B"
@@ -1066,7 +1066,7 @@
       "type": "bargauge"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Percentage of AI-extracted tasks that the user accepted",
       "fieldConfig": {
         "defaults": {
@@ -1099,7 +1099,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_tasks_added_total[24h]) / (increase(field_bot_tasks_added_total[24h]) + increase(field_bot_tasks_skipped_total[24h])) * 100",
           "legendFormat": "Acceptance Rate",
           "refId": "A"
@@ -1109,7 +1109,7 @@
       "type": "gauge"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Milestones auto-created from field captures in the last 24 hours",
       "fieldConfig": {
         "defaults": {
@@ -1139,7 +1139,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_milestones_created_total[24h])",
           "legendFormat": "Milestones",
           "refId": "A"
@@ -1156,7 +1156,7 @@
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Local disk space used by the field bot for cached photos and data",
       "fieldConfig": {
         "defaults": {
@@ -1188,7 +1188,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "field_bot_disk_usage_bytes",
           "legendFormat": "Disk Usage",
           "refId": "A"
@@ -1198,7 +1198,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Successful Google Drive uploads in the last 24 hours",
       "fieldConfig": {
         "defaults": {
@@ -1228,7 +1228,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_gdrive_uploads_total{status=\"success\"}[24h])",
           "legendFormat": "Uploads",
           "refId": "A"
@@ -1238,7 +1238,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
       "description": "Failed Google Drive uploads in the last 24 hours",
       "fieldConfig": {
         "defaults": {
@@ -1269,7 +1269,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
           "expr": "increase(field_bot_gdrive_uploads_total{status=\"failed\"}[24h])",
           "legendFormat": "Failures",
           "refId": "A"
