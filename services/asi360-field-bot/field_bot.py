@@ -67,7 +67,14 @@ def load_secrets() -> dict:
         "gdrive_folder_id",
         "field_bot_allowed_chats",
     ]}).execute()
-    secrets = {s["name"]: s["secret"] for s in (result.data or [])}
+    raw = result.data or {}
+    # Handle both formats: dict {name: secret} or list [{name:..., secret:...}]
+    if isinstance(raw, dict):
+        secrets = raw
+    elif isinstance(raw, list):
+        secrets = {s["name"]: s["secret"] for s in raw}
+    else:
+        secrets = {}
     # Never log secret values — only names
     log.info("Vault secrets loaded: %s", list(secrets.keys()))
     return secrets
