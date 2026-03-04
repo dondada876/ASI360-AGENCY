@@ -1,0 +1,25 @@
+[Unit]
+Description=ASI360 Field Capture Bot (Telegram)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/asi360-field-bot
+ExecStart=/opt/asi360-field-bot/venv/bin/python field_bot.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=50%
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/asi360-field-bot
+
+[Install]
+WantedBy=multi-user.target
