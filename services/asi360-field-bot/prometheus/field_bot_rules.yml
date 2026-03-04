@@ -1,0 +1,303 @@
+# ==========================================================================
+# ASI360 Field Bot — Prometheus Alert & Recording Rules
+# ==========================================================================
+# Circuit breaker, loop detection, cost runaway, stuck processing
+# Matches the stuck-bot incident pattern: bot receives photo, calls Claude,
+# Claude hangs, bot never returns to idle. These rules catch that.
+# ==========================================================================
+
+groups:
+  # --------------------------------------------------------------------------
+  # Recording Rules — pre-computed for dashboard speed
+  # --------------------------------------------------------------------------
+  - name: field_bot_recording
+    interval: 15s
+    rules:
+      # Message rate per minute (by type)
+      - record: field_bot:msg_rate_5m
+        expr: rate(field_bot_messages_total[5m]) * 60
+
+      # Photo processing rate per minute (by mode)
+      - record: field_bot:photo_rate_5m
+        expr: rate(field_bot_photos_total[5m]) * 60
+
+      # Error rate as percentage (0-100)
+      - record: field_bot:error_rate_pct_5m
+        expr: >
+          (rate(field_bot_errors_total[5m])
+           / clamp_min(rate(field_bot_photos_total[5m]), 0.001)) * 100
+
+      # AI latency percentiles
+      - record: field_bot:ai_latency_p50
+        expr: histogram_quantile(0.50, rate(field_bot_ai_duration_seconds_bucket[15m]))
+
+      - record: field_bot:ai_latency_p95
+        expr: histogram_quantile(0.95, rate(field_bot_ai_duration_seconds_bucket[15m]))
+
+      - record: field_bot:ai_latency_p99
+        expr: histogram_quantile(0.99, rate(field_bot_ai_duration_seconds_bucket[15m]))
+
+      # Hourly cost accumulator
+      - record: field_bot:ai_cost_hourly
+        expr: increase(field_bot_ai_cost_usd_total[1h])
+
+      # Daily cost accumulator
+      - record: field_bot:ai_cost_daily
+        expr: increase(field_bot_ai_cost_usd_total[24h])
+
+      # Task acceptance ratio (0-1)
+      - record: field_bot:task_accept_ratio_24h
+        expr: >
+          increase(field_bot_tasks_added_total[24h])
+          / clamp_min(
+              increase(field_bot_tasks_added_total[24h])
+              + increase(field_bot_tasks_skipped_total[24h]),
+              1)
+
+  # --------------------------------------------------------------------------
+  # Alerting Rules — CIRCUIT BREAKER
+  # --------------------------------------------------------------------------
+  - name: field_bot_circuit_breaker
+    rules:
+
+      # ── THE BIG ONE: Bot is stuck processing ──
+      # This is exactly what happened — photo received, Claude API hangs,
+      # bot never returns to idle. Pending captures stay > 0 for too long.
+      - alert: FieldBotProcessingStuck
+        expr: field_bot_pending_captures > 0
+        for: 5m
+        labels:
+          severity: critical
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "Field Bot has {{ $value }} stuck captures"
+          description: >
+            {{ $value }} captures have been in pending/processing state
+            for more than 5 minutes. The bot may be stuck waiting on
+            a Claude API call with no response. Last time this happened,
+            a Claude API call hung indefinitely. Check:
+            ssh root@104.248.69.86 journalctl -u asi360-field-bot -n 50
+            Restart: systemctl restart asi360-field-bot
+
+      # ── Bot is down ──
+      - alert: FieldBotDown
+        expr: field_bot_telegram_up == 0 or up{job="field_bot"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "Field Bot is DOWN"
+          description: >
+            The ASI360 Field Capture Bot is not responding to Prometheus
+            scrapes or reports Telegram disconnection.
+            Check: systemctl status asi360-field-bot
+
+      # ── AI Timeout Spike — multiple timeouts in short window ──
+      - alert: FieldBotAITimeoutSpike
+        expr: increase(field_bot_ai_timeouts_total[15m]) > 2
+        for: 0m
+        labels:
+          severity: warning
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "{{ $value }} AI timeouts in 15 minutes"
+          description: >
+            The Claude API has timed out {{ $value | printf "%.0f" }} times
+            in 15 minutes. The API may be overloaded or there's a
+            connectivity issue. Photos are saved but not processed.
+
+      # ── Message Flood — too many photos too fast ──
+      # If someone sends 20+ photos in 5 minutes, that's a flood
+      - alert: FieldBotMessageFlood
+        expr: rate(field_bot_photos_total[5m]) * 60 > 4
+        for: 3m
+        labels:
+          severity: warning
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "Photo flood: {{ $value | printf \"%.1f\" }}/min"
+          description: >
+            The bot is receiving more than 4 photos per minute sustained
+            for 3 minutes. Each photo triggers a Claude API call (~$0.01).
+            Consider using /pause to stop processing.
+            Current rate: {{ $value | printf "%.1f" }} photos/min
+
+      # ── Processing Loop Detection ──
+      # If processed count is climbing but pending never drops, something is wrong
+      - alert: FieldBotProcessingLoop
+        expr: >
+          increase(field_bot_processed_total[10m]) > 10
+          and field_bot_pending_captures > 3
+        for: 5m
+        labels:
+          severity: critical
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "Possible processing loop — {{ $value }} processed but queue growing"
+          description: >
+            The bot has processed 10+ photos in 10 minutes but the pending
+            queue keeps growing. This could indicate a reprocessing loop
+            or webhook retry storm.
+
+  # --------------------------------------------------------------------------
+  # Alerting Rules — COST CONTROL
+  # --------------------------------------------------------------------------
+  - name: field_bot_cost_alerts
+    rules:
+
+      # ── Hourly cost spike ──
+      - alert: FieldBotCostHourlyHigh
+        expr: field_bot:ai_cost_hourly > 0.50
+        for: 0m
+        labels:
+          severity: warning
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "AI cost ${{ $value | printf \"%.2f\" }} in the last hour"
+          description: >
+            Claude API spend has exceeded $0.50 in the past hour.
+            Normal rate with Sonnet is ~$0.01 per photo.
+            This means ~50+ photos processed in one hour.
+            Use /pause to stop processing if needed.
+
+      # ── Daily cost high ──
+      - alert: FieldBotCostDailyHigh
+        expr: field_bot:ai_cost_daily > 2.00
+        for: 0m
+        labels:
+          severity: warning
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "AI cost ${{ $value | printf \"%.2f\" }} today"
+          description: >
+            Daily Claude API spend has exceeded $2.00. Normal daily
+            usage should be well under $1 with Sonnet pricing.
+            Consider pausing the bot or reviewing usage patterns.
+
+      # ── Daily cost critical ──
+      - alert: FieldBotCostDailyCritical
+        expr: field_bot:ai_cost_daily > 5.00
+        for: 0m
+        labels:
+          severity: critical
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "AI cost ${{ $value | printf \"%.2f\" }} today — CRITICAL"
+          description: >
+            Daily Claude API spend has exceeded $5.00. This is abnormal.
+            500+ photos would need to be processed to hit this.
+            Investigate immediately — possible abuse or loop.
+
+  # --------------------------------------------------------------------------
+  # Alerting Rules — ERROR RATE
+  # --------------------------------------------------------------------------
+  - name: field_bot_error_alerts
+    rules:
+
+      # ── High error rate ──
+      - alert: FieldBotHighErrorRate
+        expr: field_bot:error_rate_pct_5m > 30
+        for: 5m
+        labels:
+          severity: warning
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "Error rate {{ $value | printf \"%.0f\" }}%"
+          description: >
+            More than 30% of photo processing attempts are failing.
+            Check the error_type label to see if it's timeouts, JSON
+            parse errors, or API errors.
+
+      # ── AI latency degradation ──
+      - alert: FieldBotAILatencyHigh
+        expr: field_bot:ai_latency_p95 > 60
+        for: 10m
+        labels:
+          severity: warning
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "AI p95 latency {{ $value | printf \"%.0f\" }}s"
+          description: >
+            95th percentile Claude API latency is above 60 seconds.
+            The API may be degraded or images are unusually large.
+            Timeout is set at 90 seconds.
+
+      # ── Disk usage high ──
+      - alert: FieldBotDiskHigh
+        expr: field_bot_disk_usage_bytes > 500 * 1024 * 1024
+        for: 5m
+        labels:
+          severity: warning
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "Media disk usage {{ $value | humanize }}"
+          description: >
+            Field bot media directory has exceeded 500MB.
+            Consider cleaning up old photos or enabling GDrive backup.
+
+  # --------------------------------------------------------------------------
+  # Alerting Rules — HEALTH HEARTBEAT
+  # --------------------------------------------------------------------------
+  - name: field_bot_heartbeat
+    rules:
+
+      # ── Bot restarted recently (might indicate crash loop) ──
+      - alert: FieldBotRestarted
+        expr: field_bot_uptime_seconds < 120
+        for: 0m
+        labels:
+          severity: info
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "Field Bot just restarted (uptime {{ $value | printf \"%.0f\" }}s)"
+          description: >
+            The field bot was restarted less than 2 minutes ago.
+            This may be intentional (deploy) or a crash recovery.
+
+      # ── Crash loop (multiple restarts) ──
+      - alert: FieldBotCrashLoop
+        expr: resets(field_bot_uptime_seconds[30m]) > 3
+        for: 0m
+        labels:
+          severity: critical
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "Field Bot crash loop — {{ $value }} restarts in 30 min"
+          description: >
+            The bot has restarted {{ $value | printf "%.0f" }} times
+            in the last 30 minutes. It may be crash-looping.
+            Check: journalctl -u asi360-field-bot --since '30 min ago'
+
+      # ── Return to normal after incident ──
+      # This is the "circuit breaker reset" — confirms bot is back healthy
+      - alert: FieldBotRecovered
+        expr: >
+          field_bot_telegram_up == 1
+          and field_bot_pending_captures == 0
+          and field_bot_uptime_seconds > 300
+          and ALERTS{alertname="FieldBotProcessingStuck", alertstate="firing"} == 0
+        for: 5m
+        labels:
+          severity: info
+          team: infra
+          bot: field_bot
+        annotations:
+          summary: "Field Bot is healthy — circuit breaker reset"
+          description: >
+            The Field Bot has been stable for 5+ minutes after a previous
+            incident. Telegram is connected, no pending captures, uptime
+            above 5 minutes. Operations are normal.
