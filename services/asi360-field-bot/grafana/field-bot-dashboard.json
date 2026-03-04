@@ -269,7 +269,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "process_resident_memory_bytes{job=\"field_bot\"} or vector(0)",
+          "expr": "process_resident_memory_bytes{job=\"field_bot\"}",
           "legendFormat": "Memory",
           "refId": "A"
         }
@@ -1100,7 +1100,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "(increase(field_bot_tasks_added_total[24h]) / clamp_min(increase(field_bot_tasks_added_total[24h]) + increase(field_bot_tasks_skipped_total[24h]), 1) * 100) or vector(0)",
+          "expr": "(sum(increase(field_bot_tasks_added_total[24h])) / clamp_min(sum(increase(field_bot_tasks_added_total[24h])) + sum(increase(field_bot_tasks_skipped_total[24h])), 1) * 100) or vector(0)",
           "legendFormat": "Acceptance Rate",
           "refId": "A"
         }
