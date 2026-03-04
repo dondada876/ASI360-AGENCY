@@ -49,6 +49,7 @@ ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "0"))
 MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", "/opt/asi360-field-bot/media"))
 GDRIVE_SA_KEY = os.getenv("GDRIVE_SA_KEY_PATH", "")
 GDRIVE_FOLDER_ID = ""  # populated from Vault at startup
+PROM_PORT = int(os.getenv("PROM_PORT", "9511"))  # avoid port conflicts
 
 # ── Prometheus ────────────────────────────────────────────────────────────────
 prom_photos = Counter("field_bot_photos_total", "Photos received", ["mode"])
@@ -363,6 +364,8 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "*COMMANDS:*\n"
         "/mode — Switch capture mode\n"
         "/status — Current mode + stats\n"
+        "/pause — Stop AI processing (photos still saved)\n"
+        "/resume — Restart AI processing\n"
         "/search <term> — Search past captures\n"
         "/batch — Show batch queue\n"
         "/process — Process batch queue\n"
@@ -517,7 +520,10 @@ async def cmd_process(update: Update, context: ContextTypes.DEFAULT_TYPE):
             file_bytes = Path(photo_path).read_bytes()
             image_b64 = base64.standard_b64encode(file_bytes).decode()
 
-            client = anthropic.Anthropic(api_key=secrets.get("anthropic_api_key", ""))
+            client = anthropic.Anthropic(
+                api_key=secrets.get("anthropic_api_key", ""),
+                timeout=httpx.Timeout(90.0, connect=10.0),
+            )
             ai_msg = client.messages.create(
                 model="claude-sonnet-4-20250514",
                 max_tokens=4096,
@@ -700,6 +706,31 @@ async def handle_task_callback(update: Update, context: ContextTypes.DEFAULT_TYP
         await query.edit_message_text(f"❌ Skipped — _{t.get('title', '')[:40]}_", parse_mode="Markdown")
 
 
+# ── Pause / Resume ───────────────────────────────────────────────────────────
+
+async def cmd_pause(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update, context):
+        return
+    context.bot_data["paused"] = True
+    log.info("Bot PAUSED by %s (chat_id=%s)", update.effective_user.full_name, update.effective_chat.id)
+    await update.message.reply_text(
+        "⏸️ *Bot paused*\n\nPhotos will be saved to disk but NOT sent to AI.\n"
+        "Use /resume to restart processing.",
+        parse_mode="Markdown",
+    )
+
+
+async def cmd_resume(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update, context):
+        return
+    context.bot_data["paused"] = False
+    log.info("Bot RESUMED by %s (chat_id=%s)", update.effective_user.full_name, update.effective_chat.id)
+    await update.message.reply_text(
+        "▶️ *Bot resumed*\n\nPhotos will be processed by AI again.",
+        parse_mode="Markdown",
+    )
+
+
 # ── Photo Handler (main) ─────────────────────────────────────────────────────
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -761,6 +792,14 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
+    # Pause check: save photo but skip AI processing
+    if context.bot_data.get("paused", False):
+        await update.message.reply_text(
+            f"⏸️ Paused — photo saved to disk.\n"
+            f"Use /resume to restart AI processing, or /process to batch-process saved photos.",
+        )
+        return
+
     # All other modes: process immediately
     status_msg = await update.message.reply_text(f"⚙️ Processing in {MODE_INFO.get(mode, ('📌',))[0]} {MODE_INFO.get(mode, ('','mode'))[1]} mode...")
 
@@ -770,9 +809,12 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if caption:
             prompt += f"\n\nUser caption/context: {caption}"
 
-        ai_client = anthropic.Anthropic(api_key=secrets.get("anthropic_api_key", ""))
-        # Use Opus for task mode (complex extraction), Sonnet for others
-        model = "claude-opus-4-6" if mode == "task" else "claude-sonnet-4-20250514"
+        ai_client = anthropic.Anthropic(
+            api_key=secrets.get("anthropic_api_key", ""),
+            timeout=httpx.Timeout(90.0, connect=10.0),  # 90s total, 10s connect
+        )
+        # Sonnet for all modes (cost-effective, Opus was ~10x more expensive)
+        model = "claude-sonnet-4-20250514"
 
         ai_msg = ai_client.messages.create(
             model=model,
@@ -914,11 +956,21 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode="Markdown",
             )
 
+    except httpx.TimeoutException:
+        log.error("Claude API timeout for capture %s (mode=%s)", capture_id, mode)
+        sb.table("field_captures").update({"status": "pending"}).eq("id", capture_id).execute()
+        prom_errors.labels(mode=mode).inc()
+        await status_msg.edit_text("⏱️ AI timed out. Photo saved — try /process later or send again.")
     except json.JSONDecodeError as e:
         log.error("AI JSON parse error: %s", e)
         sb.table("field_captures").update({"status": "failed"}).eq("id", capture_id).execute()
         prom_errors.labels(mode=mode).inc()
         await status_msg.edit_text("Photo saved but AI extraction failed. Try again or check /recent.")
+    except anthropic.APIError as e:
+        log.error("Claude API error: %s", e)
+        sb.table("field_captures").update({"status": "pending"}).eq("id", capture_id).execute()
+        prom_errors.labels(mode=mode).inc()
+        await status_msg.edit_text("⚠️ AI service error. Photo saved — try again shortly.")
     except Exception as e:
         log.error("Photo processing error: %s", e)
         sb.table("field_captures").update({"status": "failed"}).eq("id", capture_id).execute()
@@ -985,13 +1037,13 @@ def main():
 
     # Start Prometheus metrics server
     try:
-        start_http_server(9510)
-        log.info("Prometheus metrics on :9510")
+        start_http_server(PROM_PORT)
+        log.info("Prometheus metrics on :%d", PROM_PORT)
     except Exception as e:
-        log.warning("Prometheus start failed: %s", e)
+        log.warning("Prometheus start failed (port %d): %s", PROM_PORT, e)
 
     app = Application.builder().token(token).build()
-    app.bot_data.update({"secrets": secrets, "supabase": sb, "allowed_chats": allowed_chats})
+    app.bot_data.update({"secrets": secrets, "supabase": sb, "allowed_chats": allowed_chats, "paused": False})
 
     # Commands
     app.add_handler(CommandHandler("start", cmd_start))
@@ -1002,6 +1054,8 @@ def main():
     app.add_handler(CommandHandler("recent", cmd_recent))
     app.add_handler(CommandHandler("batch", cmd_batch))
     app.add_handler(CommandHandler("process", cmd_process))
+    app.add_handler(CommandHandler("pause", cmd_pause))
+    app.add_handler(CommandHandler("resume", cmd_resume))
 
     # Callbacks
     app.add_handler(CallbackQueryHandler(handle_mode_callback, pattern=r"^mode:"))
