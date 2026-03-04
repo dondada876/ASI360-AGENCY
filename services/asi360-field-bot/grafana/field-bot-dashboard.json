@@ -269,7 +269,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "process_resident_memory_bytes{job=\"field_bot\"}",
+          "expr": "process_resident_memory_bytes{job=\"field_bot\"} or vector(0)",
           "legendFormat": "Memory",
           "refId": "A"
         }
@@ -456,7 +456,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_photos_total[24h])",
+          "expr": "sum(increase(field_bot_photos_total[24h])) or vector(0)",
           "legendFormat": "Photos Today",
           "refId": "A"
         }
@@ -505,7 +505,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "histogram_quantile(0.95, rate(field_bot_ai_duration_seconds_bucket[15m]))",
+          "expr": "histogram_quantile(0.95, rate(field_bot_ai_duration_seconds_bucket[1h]))",
           "legendFormat": "p95",
           "refId": "A"
         }
@@ -562,19 +562,19 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "histogram_quantile(0.50, rate(field_bot_ai_duration_seconds_bucket[15m]))",
+          "expr": "histogram_quantile(0.50, rate(field_bot_ai_duration_seconds_bucket[1h]))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "histogram_quantile(0.95, rate(field_bot_ai_duration_seconds_bucket[15m]))",
+          "expr": "histogram_quantile(0.95, rate(field_bot_ai_duration_seconds_bucket[1h]))",
           "legendFormat": "p95",
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "histogram_quantile(0.99, rate(field_bot_ai_duration_seconds_bucket[15m]))",
+          "expr": "histogram_quantile(0.99, rate(field_bot_ai_duration_seconds_bucket[1h]))",
           "legendFormat": "p99",
           "refId": "C"
         }
@@ -671,7 +671,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_ai_cost_usd_total[24h])",
+          "expr": "sum(increase(field_bot_ai_cost_usd_total[24h])) or vector(0)",
           "legendFormat": "Cost Today",
           "refId": "A"
         }
@@ -768,7 +768,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_ai_timeouts_total[1h])",
+          "expr": "increase(field_bot_ai_timeouts_total[1h]) or vector(0)",
           "legendFormat": "Timeouts",
           "refId": "A"
         }
@@ -812,7 +812,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "rate(field_bot_errors_total[5m]) / (rate(field_bot_processed_total[5m]) + rate(field_bot_errors_total[5m])) * 100",
+          "expr": "(rate(field_bot_errors_total[5m]) / (rate(field_bot_processed_total[5m]) + rate(field_bot_errors_total[5m])) * 100) or vector(0)",
           "legendFormat": "Error Rate",
           "refId": "A"
         }
@@ -861,7 +861,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_errors_total[1h])",
+          "expr": "increase(field_bot_errors_total[1h]) or vector(0)",
           "legendFormat": "{{error_type}}",
           "refId": "A"
         }
@@ -910,7 +910,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_ai_api_errors_total[1h])",
+          "expr": "increase(field_bot_ai_api_errors_total[1h]) or vector(0)",
           "legendFormat": "HTTP {{status_code}}",
           "refId": "A"
         }
@@ -953,7 +953,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "(field_bot_pending_captures > 0) and (field_bot_uptime_seconds > 300)",
+          "expr": "clamp_min(field_bot_pending_captures, 0)",
           "legendFormat": "Stuck",
           "refId": "A"
         }
@@ -1000,7 +1000,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_tasks_extracted_total[24h])",
+          "expr": "increase(field_bot_tasks_extracted_total[24h]) or vector(0)",
           "legendFormat": "Tasks Extracted",
           "refId": "A"
         }
@@ -1051,13 +1051,13 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_tasks_added_total[24h])",
+          "expr": "increase(field_bot_tasks_added_total[24h]) or vector(0)",
           "legendFormat": "Added",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_tasks_skipped_total[24h])",
+          "expr": "increase(field_bot_tasks_skipped_total[24h]) or vector(0)",
           "legendFormat": "Skipped",
           "refId": "B"
         }
@@ -1100,7 +1100,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_tasks_added_total[24h]) / (increase(field_bot_tasks_added_total[24h]) + increase(field_bot_tasks_skipped_total[24h])) * 100",
+          "expr": "(increase(field_bot_tasks_added_total[24h]) / clamp_min(increase(field_bot_tasks_added_total[24h]) + increase(field_bot_tasks_skipped_total[24h]), 1) * 100) or vector(0)",
           "legendFormat": "Acceptance Rate",
           "refId": "A"
         }
@@ -1140,7 +1140,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_milestones_created_total[24h])",
+          "expr": "increase(field_bot_milestones_created_total[24h]) or vector(0)",
           "legendFormat": "Milestones",
           "refId": "A"
         }
@@ -1229,7 +1229,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_gdrive_uploads_total{status=\"success\"}[24h])",
+          "expr": "increase(field_bot_gdrive_uploads_total{status=\"success\"}[24h]) or vector(0)",
           "legendFormat": "Uploads",
           "refId": "A"
         }
@@ -1270,7 +1270,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "bfdo527pd0lxcd" },
-          "expr": "increase(field_bot_gdrive_uploads_total{status=\"failed\"}[24h])",
+          "expr": "increase(field_bot_gdrive_uploads_total{status=\"failed\"}[24h]) or vector(0)",
           "legendFormat": "Failures",
           "refId": "A"
         }
