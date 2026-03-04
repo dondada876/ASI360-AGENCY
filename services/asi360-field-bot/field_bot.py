@@ -34,7 +34,7 @@ from telegram.ext import (
     Application, CommandHandler, MessageHandler,
     CallbackQueryHandler, filters, ContextTypes,
 )
-from prometheus_client import Counter, Gauge, start_http_server
+import time as _time
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", level=logging.INFO)
@@ -52,10 +52,56 @@ GDRIVE_FOLDER_ID = ""  # populated from Vault at startup
 PROM_PORT = int(os.getenv("PROM_PORT", "9511"))  # avoid port conflicts
 
 # ── Prometheus ────────────────────────────────────────────────────────────────
+from prometheus_client import Counter, Gauge, Histogram, Info, start_http_server
+
+# Bot identity
+prom_bot_info = Info("field_bot", "ASI360 Field Capture Bot info")
+prom_bot_info.info({
+    "version": "1.2.0",
+    "service": "asi360-field-bot",
+    "model": "claude-sonnet-4-20250514",
+})
+
+# ── Telegram health ──
+prom_telegram_up = Gauge("field_bot_telegram_up", "1 = connected to Telegram, 0 = disconnected")
+prom_uptime = Gauge("field_bot_uptime_seconds", "Seconds since bot started")
+prom_messages_total = Counter("field_bot_messages_total", "All inbound messages", ["type"])  # photo, text, command
+prom_commands = Counter("field_bot_commands_total", "Commands invoked", ["command"])
+prom_active_users = Gauge("field_bot_active_users", "Distinct chat IDs seen in the last hour")
+prom_paused = Gauge("field_bot_paused", "1 = bot is paused, 0 = running")
+
+# ── Photo processing ──
 prom_photos = Counter("field_bot_photos_total", "Photos received", ["mode"])
 prom_processed = Counter("field_bot_processed_total", "Photos processed", ["mode"])
-prom_errors = Counter("field_bot_errors_total", "Processing errors", ["mode"])
+prom_errors = Counter("field_bot_errors_total", "Processing errors", ["mode", "error_type"])
 prom_active_batch = Gauge("field_bot_active_batch_size", "Photos in active batch")
+prom_pending = Gauge("field_bot_pending_captures", "Captures in pending/processing state")
+
+# ── AI / Claude metrics ──
+prom_ai_duration = Histogram(
+    "field_bot_ai_duration_seconds", "Claude API call latency",
+    ["mode"], buckets=[1, 2, 5, 10, 20, 30, 60, 90, 120],
+)
+prom_ai_tokens_in = Counter("field_bot_ai_tokens_input_total", "Claude input tokens", ["mode"])
+prom_ai_tokens_out = Counter("field_bot_ai_tokens_output_total", "Claude output tokens", ["mode"])
+prom_ai_cost_usd = Counter("field_bot_ai_cost_usd_total", "Estimated Claude API cost in USD", ["mode"])
+prom_ai_timeouts = Counter("field_bot_ai_timeouts_total", "Claude API timeouts")
+prom_ai_api_errors = Counter("field_bot_ai_api_errors_total", "Claude API errors", ["status_code"])
+
+# ── Storage ──
+prom_disk_usage_bytes = Gauge("field_bot_disk_usage_bytes", "Total disk usage of media dir")
+prom_gdrive_uploads = Counter("field_bot_gdrive_uploads_total", "Google Drive upload count", ["status"])  # success, failed
+
+# ── Task extraction (task mode) ──
+prom_tasks_extracted = Counter("field_bot_tasks_extracted_total", "Tasks extracted from photos")
+prom_tasks_added = Counter("field_bot_tasks_added_total", "Tasks accepted by user")
+prom_tasks_skipped = Counter("field_bot_tasks_skipped_total", "Tasks skipped by user")
+prom_milestones_created = Counter("field_bot_milestones_created_total", "CEO milestones created")
+
+# Sonnet pricing (per M tokens)
+SONNET_INPUT_PRICE = 3.00 / 1_000_000
+SONNET_OUTPUT_PRICE = 15.00 / 1_000_000
+_boot_time = None  # set in main()
 
 # ── Vault Bootstrap ───────────────────────────────────────────────────────────
 def load_secrets() -> dict:
@@ -130,9 +176,11 @@ def upload_to_gdrive(local_path: str, folder_id: str, filename: str) -> Optional
         file_meta = {"name": filename, "parents": [folder_id]}
         result = svc.files().create(body=file_meta, media_body=media, fields="id,webViewLink").execute()
         log.info("Uploaded to GDrive: %s → %s", filename, result.get("id"))
+        prom_gdrive_uploads.labels(status="success").inc()
         return result
     except Exception as e:
         log.error("GDrive upload failed: %s", e)
+        prom_gdrive_uploads.labels(status="failed").inc()
         return None
 
 
@@ -320,6 +368,8 @@ def format_mode_status(mode: str) -> str:
 
 # ── Auth Check ────────────────────────────────────────────────────────────────
 
+_recent_chats: dict[int, float] = {}  # chat_id → last_seen_timestamp
+
 def is_authorized(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     allowed = context.bot_data.get("allowed_chats", set())
     chat_id = update.effective_chat.id
@@ -327,6 +377,12 @@ def is_authorized(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
         log.warning("Unauthorized access attempt from chat_id=%s user=%s",
                      chat_id, getattr(update.effective_user, 'full_name', '?'))
         return False
+    # Track active users for Prometheus
+    _recent_chats[chat_id] = _time.time()
+    # Prune chats older than 1 hour, update gauge
+    cutoff = _time.time() - 3600
+    active = {cid for cid, ts in _recent_chats.items() if ts > cutoff}
+    prom_active_users.set(len(active))
     return True
 
 
@@ -524,6 +580,7 @@ async def cmd_process(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 api_key=secrets.get("anthropic_api_key", ""),
                 timeout=httpx.Timeout(90.0, connect=10.0),
             )
+            t0 = _time.monotonic()
             ai_msg = client.messages.create(
                 model="claude-sonnet-4-20250514",
                 max_tokens=4096,
@@ -532,6 +589,16 @@ async def cmd_process(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     {"type": "text", "text": NOTE_PROMPT},
                 ]}],
             )
+            ai_elapsed = _time.monotonic() - t0
+
+            # ── Batch AI metrics ──
+            prom_ai_duration.labels(mode="batch").observe(ai_elapsed)
+            in_tok = getattr(ai_msg.usage, "input_tokens", 0)
+            out_tok = getattr(ai_msg.usage, "output_tokens", 0)
+            prom_ai_tokens_in.labels(mode="batch").inc(in_tok)
+            prom_ai_tokens_out.labels(mode="batch").inc(out_tok)
+            cost = in_tok * SONNET_INPUT_PRICE + out_tok * SONNET_OUTPUT_PRICE
+            prom_ai_cost_usd.labels(mode="batch").inc(cost)
 
             extracted = parse_ai_json(ai_msg.content[0].text)
             sb.table("field_captures").update({
@@ -545,9 +612,17 @@ async def cmd_process(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             all_items.append(extracted)
             processed += 1
+            prom_processed.labels(mode="batch").inc()
+        except httpx.TimeoutException:
+            log.error("Batch AI timeout for %s", capture["id"])
+            sb.table("field_captures").update({"status": "pending"}).eq("id", capture["id"]).execute()
+            prom_ai_timeouts.inc()
+            prom_errors.labels(mode="batch", error_type="timeout").inc()
+            errors += 1
         except Exception as e:
             log.error("Batch process error for %s: %s", capture["id"], e)
             sb.table("field_captures").update({"status": "failed"}).eq("id", capture["id"]).execute()
+            prom_errors.labels(mode="batch", error_type="unknown").inc()
             errors += 1
 
     await msg.edit_text(
@@ -694,6 +769,7 @@ async def handle_task_callback(update: Update, context: ContextTypes.DEFAULT_TYP
                     "Notes": t.get("notes", ""),
                 })
 
+            prom_tasks_added.inc()
             scope = derive_scope(t.get("department_code"))
             await query.edit_message_text(
                 f"✅ Added — `{t.get('task_identifier', '?')}` [{scope}]\n_{t.get('title', '')[:40]}_",
@@ -703,6 +779,7 @@ async def handle_task_callback(update: Update, context: ContextTypes.DEFAULT_TYP
             log.error("Task add error: %s", e)
             await query.edit_message_text("Task save failed. Check logs.")
     else:
+        prom_tasks_skipped.inc()
         await query.edit_message_text(f"❌ Skipped — _{t.get('title', '')[:40]}_", parse_mode="Markdown")
 
 
@@ -712,6 +789,7 @@ async def cmd_pause(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update, context):
         return
     context.bot_data["paused"] = True
+    prom_paused.set(1)
     log.info("Bot PAUSED by %s (chat_id=%s)", update.effective_user.full_name, update.effective_chat.id)
     await update.message.reply_text(
         "⏸️ *Bot paused*\n\nPhotos will be saved to disk but NOT sent to AI.\n"
@@ -724,6 +802,7 @@ async def cmd_resume(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_authorized(update, context):
         return
     context.bot_data["paused"] = False
+    prom_paused.set(0)
     log.info("Bot RESUMED by %s (chat_id=%s)", update.effective_user.full_name, update.effective_chat.id)
     await update.message.reply_text(
         "▶️ *Bot resumed*\n\nPhotos will be processed by AI again.",
@@ -734,6 +813,7 @@ async def cmd_resume(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ── Photo Handler (main) ─────────────────────────────────────────────────────
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    prom_messages_total.labels(type="photo").inc()
     if not is_authorized(update, context):
         await update.message.reply_text("Not authorized.")
         return
@@ -816,6 +896,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Sonnet for all modes (cost-effective, Opus was ~10x more expensive)
         model = "claude-sonnet-4-20250514"
 
+        t0 = _time.monotonic()
         ai_msg = ai_client.messages.create(
             model=model,
             max_tokens=4096,
@@ -824,6 +905,17 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 {"type": "text", "text": prompt},
             ]}],
         )
+        ai_elapsed = _time.monotonic() - t0
+
+        # ── Record AI metrics ──
+        prom_ai_duration.labels(mode=mode).observe(ai_elapsed)
+        in_tok = getattr(ai_msg.usage, "input_tokens", 0)
+        out_tok = getattr(ai_msg.usage, "output_tokens", 0)
+        prom_ai_tokens_in.labels(mode=mode).inc(in_tok)
+        prom_ai_tokens_out.labels(mode=mode).inc(out_tok)
+        cost = in_tok * SONNET_INPUT_PRICE + out_tok * SONNET_OUTPUT_PRICE
+        prom_ai_cost_usd.labels(mode=mode).inc(cost)
+        log.info("AI done in %.1fs  tokens=%d/%d  cost=$%.4f", ai_elapsed, in_tok, out_tok, cost)
 
         extracted = parse_ai_json(ai_msg.content[0].text)
 
@@ -874,6 +966,9 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             tasks = extracted.get("tasks", [])
             milestones = extracted.get("milestones", [])
 
+            # Track task extraction count
+            prom_tasks_extracted.inc(len(tasks))
+
             # Insert milestones immediately
             for m in milestones:
                 try:
@@ -885,6 +980,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         "target_date": m.get("target_date"),
                         "impact_score": m.get("impact_score", 7),
                     }).execute()
+                    prom_milestones_created.inc()
                 except Exception as e:
                     log.warning("Milestone insert error: %s", e)
 
@@ -959,28 +1055,31 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except httpx.TimeoutException:
         log.error("Claude API timeout for capture %s (mode=%s)", capture_id, mode)
         sb.table("field_captures").update({"status": "pending"}).eq("id", capture_id).execute()
-        prom_errors.labels(mode=mode).inc()
+        prom_errors.labels(mode=mode, error_type="timeout").inc()
+        prom_ai_timeouts.inc()
         await status_msg.edit_text("⏱️ AI timed out. Photo saved — try /process later or send again.")
     except json.JSONDecodeError as e:
         log.error("AI JSON parse error: %s", e)
         sb.table("field_captures").update({"status": "failed"}).eq("id", capture_id).execute()
-        prom_errors.labels(mode=mode).inc()
+        prom_errors.labels(mode=mode, error_type="json_parse").inc()
         await status_msg.edit_text("Photo saved but AI extraction failed. Try again or check /recent.")
     except anthropic.APIError as e:
         log.error("Claude API error: %s", e)
         sb.table("field_captures").update({"status": "pending"}).eq("id", capture_id).execute()
-        prom_errors.labels(mode=mode).inc()
+        prom_errors.labels(mode=mode, error_type="api_error").inc()
+        prom_ai_api_errors.labels(status_code=str(getattr(e, "status_code", "unknown"))).inc()
         await status_msg.edit_text("⚠️ AI service error. Photo saved — try again shortly.")
     except Exception as e:
         log.error("Photo processing error: %s", e)
         sb.table("field_captures").update({"status": "failed"}).eq("id", capture_id).execute()
-        prom_errors.labels(mode=mode).inc()
+        prom_errors.labels(mode=mode, error_type="unknown").inc()
         await status_msg.edit_text("Processing error. Photo saved to disk. Check logs or try again.")
 
 
 # ── Text Handler ──────────────────────────────────────────────────────────────
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    prom_messages_total.labels(type="text").inc()
     if not is_authorized(update, context):
         return  # silently ignore unauthorized text
     sb: Client = context.bot_data["supabase"]
@@ -1042,20 +1141,56 @@ def main():
     except Exception as e:
         log.warning("Prometheus start failed (port %d): %s", PROM_PORT, e)
 
+    global _boot_time
+    _boot_time = _time.time()
+    prom_telegram_up.set(1)
+    prom_paused.set(0)
+
+    # Background thread for uptime + disk usage gauges
+    import threading
+
+    def _metrics_updater():
+        while True:
+            try:
+                prom_uptime.set(_time.time() - _boot_time)
+                # Disk usage
+                total_bytes = sum(f.stat().st_size for f in MEDIA_ROOT.rglob("*") if f.is_file())
+                prom_disk_usage_bytes.set(total_bytes)
+                # Pending captures count
+                try:
+                    pc = sb.table("field_captures").select("id", count="exact").in_("status", ["pending", "processing"]).execute()
+                    prom_pending.set(pc.count or 0)
+                except Exception:
+                    pass
+            except Exception:
+                pass
+            _time.sleep(30)
+
+    t = threading.Thread(target=_metrics_updater, daemon=True)
+    t.start()
+
     app = Application.builder().token(token).build()
     app.bot_data.update({"secrets": secrets, "supabase": sb, "allowed_chats": allowed_chats, "paused": False})
 
-    # Commands
-    app.add_handler(CommandHandler("start", cmd_start))
-    app.add_handler(CommandHandler("help", cmd_help))
-    app.add_handler(CommandHandler("mode", cmd_mode))
-    app.add_handler(CommandHandler("status", cmd_status))
-    app.add_handler(CommandHandler("search", cmd_search))
-    app.add_handler(CommandHandler("recent", cmd_recent))
-    app.add_handler(CommandHandler("batch", cmd_batch))
-    app.add_handler(CommandHandler("process", cmd_process))
-    app.add_handler(CommandHandler("pause", cmd_pause))
-    app.add_handler(CommandHandler("resume", cmd_resume))
+    # Commands — with Prometheus tracking wrapper
+    def _tracked(cmd_name, handler_fn):
+        """Wrap a command handler to count invocations."""
+        async def _wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            prom_commands.labels(command=cmd_name).inc()
+            prom_messages_total.labels(type="command").inc()
+            return await handler_fn(update, context)
+        return _wrapper
+
+    app.add_handler(CommandHandler("start", _tracked("start", cmd_start)))
+    app.add_handler(CommandHandler("help", _tracked("help", cmd_help)))
+    app.add_handler(CommandHandler("mode", _tracked("mode", cmd_mode)))
+    app.add_handler(CommandHandler("status", _tracked("status", cmd_status)))
+    app.add_handler(CommandHandler("search", _tracked("search", cmd_search)))
+    app.add_handler(CommandHandler("recent", _tracked("recent", cmd_recent)))
+    app.add_handler(CommandHandler("batch", _tracked("batch", cmd_batch)))
+    app.add_handler(CommandHandler("process", _tracked("process", cmd_process)))
+    app.add_handler(CommandHandler("pause", _tracked("pause", cmd_pause)))
+    app.add_handler(CommandHandler("resume", _tracked("resume", cmd_resume)))
 
     # Callbacks
     app.add_handler(CallbackQueryHandler(handle_mode_callback, pattern=r"^mode:"))
