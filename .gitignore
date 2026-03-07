@@ -67,6 +67,9 @@ package-lock.json
 *.key
 *.cert
 
+# Resource ZIPs (licensed plugins/themes — too large for git)
+resources/**/*.zip
+
 # Database dumps
 *.sql
 *.sqlite

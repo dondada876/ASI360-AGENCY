@@ -1,0 +1,81 @@
+# ASI 360 — Security Integration Client Brief
+# Template: electrician-company (sandbox)
+
+brand:
+  name: "Allied Systems Integrations 360"
+  short_name: "ASI 360"
+  tagline: "One Company.. Unlimited Solutions.."
+  industry: "security systems integration"
+  phone: "(510) 288-0994"
+  email: "ops@asi360.co"
+  website: "https://asi360.co"
+  address: "San Francisco Bay Area, CA"
+
+services:
+  # 3 categories × 2 sub-items each = maps to template's service grid structure
+  - name: "Access Control"
+    description: "Enterprise-grade access control solutions including card readers, biometric systems, and cloud-managed credentials for commercial and government facilities."
+    icon: shield
+    sub_items:
+      - "Card Reader Installation"
+      - "Biometric Access Systems"
+
+  - name: "Video Surveillance"
+    description: "High-definition IP camera systems with AI-powered analytics, remote monitoring, and 24/7 recording for complete situational awareness."
+    icon: camera
+    sub_items:
+      - "IP Camera Systems"
+      - "AI Video Analytics"
+
+  - name: "Alarm & Detection"
+    description: "Commercial alarm systems with real-time monitoring, automated dispatch, and integration with existing security infrastructure."
+    icon: bell
+    sub_items:
+      - "Intrusion Detection"
+      - "Fire & Life Safety"
+
+  - name: "Structured Cabling"
+    description: "Professional low-voltage cabling infrastructure for data, voice, and security systems — Cat6A, fiber optic, and pathway design."
+    icon: cable
+
+  - name: "System Integration"
+    description: "Unified security platform integration connecting access control, video, alarms, and building management into a single pane of glass."
+    icon: layers
+
+  - name: "Emergency Response"
+    description: "Rapid-response security system repair and emergency restoration services with guaranteed response times for critical infrastructure."
+    icon: alert
+
+hero:
+  headline: "Protecting What Matters Most"
+
+buttons:
+  - "Get a Free Quote"
+  - "Schedule Consultation"
+  - "View Our Work"
+  - "Contact Us Today"
+  - "Learn More"
+  - "Request Estimate"
+  - "Call Now"
+  - "See All Services"
+  - "Book Assessment"
+
+faq:
+  - question: "What types of security systems do you install?"
+  - question: "How long does a typical installation take?"
+  - question: "Do you offer 24/7 monitoring services?"
+  - question: "What areas do you serve?"
+  - question: "Do you provide maintenance contracts?"
+  - question: "Can you integrate with our existing systems?"
+
+# Images section — fill in paths when assets are ready
+# images:
+#   hero: ~/client-assets/asi360/hero-office.jpg
+#   logo: ~/client-assets/asi360/logo.png
+#   team:
+#     - ~/client-assets/asi360/team-1.jpg
+#     - ~/client-assets/asi360/team-2.jpg
+#   services:
+#     - ~/client-assets/asi360/access-control.jpg
+#     - ~/client-assets/asi360/surveillance.jpg
+#     - ~/client-assets/asi360/alarm.jpg
