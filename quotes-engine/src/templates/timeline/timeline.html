@@ -77,11 +77,32 @@
   .footer { margin-top: 10px; padding: 5px 4px; border-top: 1px solid #ccc; display: flex; justify-content: space-between; font-size: 7px; color: #888; }
   .footer .confidential { font-weight: 600; color: #B71C1C; }
 
+  /* ─── TOOLTIP POPUP ─── */
+  .tooltip-popup {
+    display: none; position: fixed; z-index: 1000;
+    background: #1a1a2e; color: #eee; border-radius: 6px;
+    padding: 10px 14px; min-width: 220px; max-width: 320px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35); font-size: 11px; line-height: 1.5;
+    pointer-events: none; border: 1px solid rgba(255,255,255,0.08);
+  }
+  .tooltip-popup.visible { display: block; }
+  .tooltip-popup .tt-title { font-weight: 700; font-size: 12px; color: #fff; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 5px; }
+  .tooltip-popup .tt-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+  .tooltip-popup .tt-label { color: #8899aa; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .tooltip-popup .tt-value { color: #fff; font-weight: 600; font-size: 10.5px; }
+  .tooltip-popup .tt-notes { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); color: #bcc; font-size: 10px; font-style: italic; }
+  .tooltip-popup .tt-milestone { display: inline-block; background: #0B5394; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-top: 4px; letter-spacing: 0.3px; }
+
+  /* Gantt bar hover effect */
+  .gantt-bar[data-tooltip] { cursor: pointer; transition: filter 0.15s; }
+  .gantt-bar[data-tooltip]:hover { filter: brightness(1.2); }
+
   /* Print optimization */
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .header { break-after: avoid; }
     table.gantt { break-inside: avoid; }
+    .tooltip-popup { display: none !important; }
   }
 </style>
 </head>
@@ -148,7 +169,7 @@
       {% for i in range(total_days) %}
       <td class="day-cell">
         {% if i >= task.bar_start and i <= task.bar_end and task.bar_start >= 0 %}
-        <div class="gantt-bar" style="background: {{ task.bar_color }};{% if i == task.bar_start and i == task.bar_end %}left:2px;right:2px;{% elif i == task.bar_start %}left:2px;right:-1px;border-radius:3px 0 0 3px;{% elif i == task.bar_end %}left:-1px;right:2px;border-radius:0 3px 3px 0;{% else %}left:-1px;right:-1px;border-radius:0;{% endif %}">
+        <div class="gantt-bar" style="background: {{ task.bar_color }};{% if i == task.bar_start and i == task.bar_end %}left:2px;right:2px;{% elif i == task.bar_start %}left:2px;right:-1px;border-radius:3px 0 0 3px;{% elif i == task.bar_end %}left:-1px;right:2px;border-radius:0 3px 3px 0;{% else %}left:-1px;right:-1px;border-radius:0;{% endif %}"{% if i == task.bar_start and task.tooltip_notes is defined %} data-tooltip="1" data-name="{{ task.name }}" data-duration="{{ task.tooltip_duration | default('') }}" data-status="{{ task.tooltip_status | default('scheduled') }}" data-notes="{{ task.tooltip_notes | default('') }}" data-milestone="{{ 'true' if task.is_milestone else 'false' }}"{% endif %}>
           {% if i == task.bar_start %}{{ task.bar_label }}{% endif %}
         </div>
         {% endif %}
@@ -183,6 +204,61 @@
   <div class="confidential">CONFIDENTIAL — {{ company.name }}</div>
   <div>Generated {{ generated_date }} | {{ company.short }} Project Management System</div>
 </div>
+
+<!-- TOOLTIP POPUP -->
+<div class="tooltip-popup" id="ganttTooltip"></div>
+
+<script>
+(function() {
+  var tip = document.getElementById('ganttTooltip');
+  var bars = document.querySelectorAll('.gantt-bar[data-tooltip]');
+  var visible = false;
+
+  function showTip(e) {
+    var el = e.currentTarget;
+    var name = el.getAttribute('data-name') || '';
+    var dur = el.getAttribute('data-duration') || '';
+    var status = el.getAttribute('data-status') || '';
+    var notes = el.getAttribute('data-notes') || '';
+    var ms = el.getAttribute('data-milestone') === 'true';
+
+    var html = '<div class="tt-title">' + name + '</div>';
+    if (dur) html += '<div class="tt-row"><span class="tt-label">Duration</span><span class="tt-value">' + dur + '</span></div>';
+    if (status) html += '<div class="tt-row"><span class="tt-label">Status</span><span class="tt-value">' + status.charAt(0).toUpperCase() + status.slice(1) + '</span></div>';
+    if (notes) html += '<div class="tt-notes">' + notes + '</div>';
+    if (ms) html += '<div class="tt-milestone">MILESTONE</div>';
+
+    tip.innerHTML = html;
+    tip.classList.add('visible');
+    visible = true;
+    positionTip(e);
+  }
+
+  function positionTip(e) {
+    if (!visible) return;
+    var x = e.clientX + 12;
+    var y = e.clientY - 10;
+    var tw = tip.offsetWidth;
+    var th = tip.offsetHeight;
+    if (x + tw > window.innerWidth - 8) x = e.clientX - tw - 12;
+    if (y + th > window.innerHeight - 8) y = window.innerHeight - th - 8;
+    if (y < 4) y = 4;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  }
+
+  function hideTip() {
+    tip.classList.remove('visible');
+    visible = false;
+  }
+
+  for (var i = 0; i < bars.length; i++) {
+    bars[i].addEventListener('mouseenter', showTip);
+    bars[i].addEventListener('mousemove', positionTip);
+    bars[i].addEventListener('mouseleave', hideTip);
+  }
+})();
+</script>
 
 </body>
 </html>

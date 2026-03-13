@@ -244,6 +244,7 @@ def _transform_supabase(proj: dict, tasks: list, durations: dict, dependencies: 
                 "bar_label": bar_label,
                 "is_milestone": t.get("is_milestone", False),
                 "status": t.get("status", "open"),
+                "notes": t.get("notes", ""),
             })
 
         phase_data.append({
@@ -310,9 +311,11 @@ def _build_notes(proj: dict, total_days: int = 0, has_deps: bool = False) -> lis
 
     # Project info card
     info_items = [f"Project: <span class='highlight'>{proj.get('project_no', '')}</span>"]
-    if proj.get("client_name"):
-        info_items.append(f"Client: {proj['client_name']}")
-    if proj.get("description"):
+    if proj.get("client_name") or proj.get("client"):
+        info_items.append(f"Client: {proj.get('client_name') or proj.get('client')}")
+    if proj.get("scope_summary"):
+        info_items.append(proj["scope_summary"])
+    elif proj.get("description"):
         info_items.append(proj["description"])
     if proj.get("site_address"):
         info_items.append(f"Site: {proj['site_address']}")
@@ -323,9 +326,17 @@ def _build_notes(proj: dict, total_days: int = 0, has_deps: bool = False) -> lis
         info_items.append(f"Schedule: {sched_type}")
     notes.append({"title": "Project Details", "color": "#0B5394", "bullet_items": info_items})
 
-    # Financial card (if data exists)
+    # Financial card — use custom payment object if available, else generic 50/50
     fin_items = []
-    if proj.get("contract_value"):
+    payment = proj.get("payment")
+    if payment:
+        val = proj.get("contract_value", 0)
+        fin_items.append(f"Contract value: <span class='highlight'>${val:,.2f}</span>")
+        fin_items.append(f"{payment.get('deposit_label', 'Deposit')}: <span class='highlight'>${payment['deposit']:,.2f}</span>")
+        fin_items.append(f"{payment.get('balance_label', 'Balance')}: <span class='highlight'>${payment['balance']:,.2f}</span>")
+        if payment.get("deposit_status"):
+            fin_items.append(f"Status: {payment['deposit_status']}")
+    elif proj.get("contract_value"):
         val = proj["contract_value"]
         fin_items.append(f"Contract value: <span class='highlight'>${val:,.2f}</span>")
         deposit = val * 0.5
@@ -384,6 +395,7 @@ def build_template_data(project: dict) -> dict:
 
         # Sub-task rows
         for task in phase_tasks:
+            duration = task.get("bar_end", 0) - task.get("bar_start", 0) + 1 if task.get("bar_start", -1) >= 0 else 0
             tasks.append({
                 "phase_num": "",
                 "phase_rowspan": 0,
@@ -396,6 +408,9 @@ def build_template_data(project: dict) -> dict:
                 "bar_end": task.get("bar_end", -1),
                 "bar_color": task.get("bar_color", phase_color),
                 "bar_label": task.get("bar_label", ""),
+                "tooltip_notes": task.get("notes", ""),
+                "tooltip_duration": f"{duration} day{'s' if duration != 1 else ''}",
+                "tooltip_status": task.get("status", "scheduled"),
             })
 
     days = [{"label": lbl} for lbl in day_labels]
@@ -417,10 +432,48 @@ def build_template_data(project: dict) -> dict:
     }
 
 
+# ─── BRIEF FILE ADAPTER ───
+
+def from_brief(path: str) -> dict:
+    """
+    Load project data from a brief JSON file (briefs/*.json).
+    Runs critical path scheduling from template_overrides.
+    """
+    with open(path) as f:
+        brief = json.load(f)
+
+    # Build project dict compatible with _transform_supabase
+    proj = {
+        "project_no": brief.get("project_no", ""),
+        "project_name": brief.get("title", "Project"),
+        "client_name": brief.get("client", ""),
+        "start_date": brief.get("start_date", date.today().isoformat()),
+        "contract_value": brief.get("contract_value"),
+        "quote_no": brief.get("quote_no", ""),
+        "site_address": brief.get("site_address", ""),
+        "description": brief.get("scope_summary", ""),
+        "scope_summary": brief.get("scope_summary", ""),
+        "payment": brief.get("payment"),
+    }
+
+    # Build tasks list
+    tasks = brief.get("tasks", [])
+
+    # Build durations and dependencies from template_overrides
+    durations = {}
+    dependencies = {}
+    for ovr in brief.get("template_overrides", []):
+        tn = ovr["task_no"]
+        durations[tn] = ovr.get("duration_days", 1)
+        dependencies[tn] = ovr.get("depends_on")
+
+    return _transform_supabase(proj, tasks, durations, dependencies)
+
+
 # ─── JSON FILE ADAPTER ───
 
 def from_json_file(path: str) -> dict:
-    """Load project data from a JSON file."""
+    """Load project data from a JSON file (legacy format with pre-built phases)."""
     with open(path) as f:
         return json.load(f)
 
@@ -537,30 +590,50 @@ def generate_for_project(project_no: str) -> str:
 if __name__ == "__main__":
     args = sys.argv[1:]
 
+    # Resolve brief files relative to script location
+    briefs_dir = Path(__file__).parent.parent / "briefs"
+
     if not args:
-        # Demo mode
-        project_data = goldman_demo()
-        template_data = build_template_data(project_data)
-        html = render_html(template_data)
-        out = OUTPUT_DIR / "Goldman_Law_Firm_Timeline_v2.html"
-        with open(out, "w") as f:
-            f.write(html)
-        print(f"HTML: {out}")
-        print(f"Size: {os.path.getsize(out) / 1024:.1f} KB")
+        # Default: generate from both briefs
+        brief_files = sorted(briefs_dir.glob("*.json"))
+        if not brief_files:
+            print("No brief files found in briefs/ — using legacy demo")
+            project_data = goldman_demo()
+            template_data = build_template_data(project_data)
+            html = render_html(template_data)
+            out = OUTPUT_DIR / "Goldman_Law_Firm_Timeline_v2.html"
+            with open(out, "w") as f:
+                f.write(html)
+            print(f"HTML: {out}")
+        else:
+            for bf in brief_files:
+                project_data = from_brief(str(bf))
+                template_data = build_template_data(project_data)
+                html = render_html(template_data)
+                slug = bf.stem
+                out = OUTPUT_DIR / f"{slug}_Timeline.html"
+                with open(out, "w") as f:
+                    f.write(html)
+                print(f"HTML: {out}  ({os.path.getsize(out) / 1024:.1f} KB)")
     else:
         for arg in args:
             if arg.endswith(".json"):
-                project_data = from_json_file(arg)
+                # Check if it's a brief (has template_overrides) or legacy JSON
+                with open(arg) as f:
+                    data = json.load(f)
+                if "template_overrides" in data:
+                    project_data = from_brief(arg)
+                else:
+                    project_data = from_json_file(arg)
                 template_data = build_template_data(project_data)
                 html = render_html(template_data)
                 slug = Path(arg).stem
                 out = OUTPUT_DIR / f"{slug}_Timeline.html"
                 with open(out, "w") as f:
                     f.write(html)
-                print(f"HTML: {out}")
+                print(f"HTML: {out}  ({os.path.getsize(out) / 1024:.1f} KB)")
             elif arg.startswith("PROJ"):
                 out = generate_for_project(arg)
-                print(f"HTML: {out}")
-                print(f"Size: {os.path.getsize(out) / 1024:.1f} KB")
+                print(f"HTML: {out}  ({os.path.getsize(out) / 1024:.1f} KB)")
             else:
                 print(f"Unknown arg: {arg} (use PROJ### or file.json)")

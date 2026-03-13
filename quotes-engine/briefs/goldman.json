@@ -1,0 +1,168 @@
+{
+  "project_no": "PROJ364",
+  "title": "Goldman Law Firm — Access Control Upgrade",
+  "client": "Goldman Law Firm",
+  "quote_no": "QUO202361 / QUO202368",
+  "proposal_version": "v1.0",
+  "contract_value": 6148.90,
+  "start_date": "2026-03-17",
+  "site_address": "55 Main Street, Tiburon, CA 94920",
+  "scope_summary": "2-door access control upgrade: Keri Systems NXT controller, LAN-520 readers, keypad entry, Doors.NET software on dedicated workstation. Individual fob + PIN credentials for all staff. 90-minute on-site cutover window.",
+  "contact_name": "Zachary Stewart",
+  "contact_title": "Law Firm Administrator",
+  "contact_email": "zstewart@goldmanlawfirm.net",
+  "boldsign_doc_id": "30a8c01c-a9f1-45dd-a284-6c287098e25e",
+  "project_ref": "ASI-GLF-001",
+
+  "payment": {
+    "deposit": 4923.90,
+    "deposit_label": "100% hardware + 50% labor",
+    "balance": 1225.00,
+    "balance_label": "50% labor balance at completion",
+    "deposit_status": "Check mailed 2026-03-10"
+  },
+
+  "tasks": [
+    {
+      "task_no": "1.1",
+      "task_name": "Vendor PO & Equipment Ordering",
+      "phase_no": 1,
+      "phase_name": "Phase 1: Procurement & Staging",
+      "notes": "Submit POs for Keri NXT controller, LAN-520 readers, keypad, fobs, Doors.NET license"
+    },
+    {
+      "task_no": "1.2",
+      "task_name": "Equipment Receiving & Verification",
+      "phase_no": 1,
+      "phase_name": "Phase 1: Procurement & Staging",
+      "notes": "Receive all hardware at ASI 360 shop, verify against BOM, check firmware versions"
+    },
+    {
+      "task_no": "1.3",
+      "task_name": "Controller Pre-Configuration",
+      "phase_no": 1,
+      "phase_name": "Phase 1: Procurement & Staging",
+      "notes": "Pre-program Keri NXT controller: door schedules, access levels, reader assignments"
+    },
+    {
+      "task_no": "1.4",
+      "task_name": "Doors.NET Software Setup",
+      "phase_no": 1,
+      "phase_name": "Phase 1: Procurement & Staging",
+      "notes": "Install Doors.NET on dedicated workstation, configure database, test connection to controller"
+    },
+    {
+      "task_no": "1.5",
+      "task_name": "Shop Pre-Build & Bench Test",
+      "phase_no": 1,
+      "phase_name": "Phase 1: Procurement & Staging",
+      "is_milestone": true,
+      "notes": "Full bench test of controller + readers + keypad at shop, verify all components communicate"
+    },
+
+    {
+      "task_no": "2.1",
+      "task_name": "Site Prep & Cable Routing",
+      "phase_no": 2,
+      "phase_name": "Phase 2: On-Site Installation",
+      "notes": "Route cables from controller location to both door positions, prep mounting points"
+    },
+    {
+      "task_no": "2.2",
+      "task_name": "Controller & Reader Installation",
+      "phase_no": 2,
+      "phase_name": "Phase 2: On-Site Installation",
+      "notes": "Mount NXT controller, install LAN-520 readers at front entry + suite door, wire keypad"
+    },
+    {
+      "task_no": "2.3",
+      "task_name": "Workstation Deployment",
+      "phase_no": 2,
+      "phase_name": "Phase 2: On-Site Installation",
+      "notes": "Deploy dedicated workstation with Doors.NET, connect to office LAN"
+    },
+    {
+      "task_no": "2.4",
+      "task_name": "System Cutover (90-min window)",
+      "phase_no": 2,
+      "phase_name": "Phase 2: On-Site Installation",
+      "is_milestone": true,
+      "notes": "Live cutover: activate access control on both doors, security escort during swap, zero-lockout protocol"
+    },
+
+    {
+      "task_no": "3.1",
+      "task_name": "Software Configuration & Door Schedules",
+      "phase_no": 3,
+      "phase_name": "Phase 3: Programming & System Testing",
+      "notes": "Configure door schedules, access levels, holiday schedules in Doors.NET"
+    },
+    {
+      "task_no": "3.2",
+      "task_name": "Credential Enrollment (Fobs + PINs)",
+      "phase_no": 3,
+      "phase_name": "Phase 3: Programming & System Testing",
+      "notes": "Enroll individual fob + PIN credentials for each staff member, set access levels per person"
+    },
+    {
+      "task_no": "3.3",
+      "task_name": "Integration & End-to-End Testing",
+      "phase_no": 3,
+      "phase_name": "Phase 3: Programming & System Testing",
+      "is_milestone": true,
+      "notes": "Test every credential at every door, verify keypad codes, test lockout scenarios, audit log verification"
+    },
+
+    {
+      "task_no": "4.1",
+      "task_name": "Staff Training Session",
+      "phase_no": 4,
+      "phase_name": "Phase 4: Training, Documentation & Handoff",
+      "notes": "Train Zachary Stewart and staff on fob use, PIN entry, Doors.NET basics, adding/revoking credentials"
+    },
+    {
+      "task_no": "4.2",
+      "task_name": "Documentation & As-Built Delivery",
+      "phase_no": 4,
+      "phase_name": "Phase 4: Training, Documentation & Handoff",
+      "notes": "Deliver: system diagram, credential list, door schedule, emergency procedures, warranty docs"
+    },
+    {
+      "task_no": "4.3",
+      "task_name": "Final Walkthrough & Client Sign-off",
+      "phase_no": 4,
+      "phase_name": "Phase 4: Training, Documentation & Handoff",
+      "is_milestone": true,
+      "notes": "Walk through both doors with client, demonstrate all access modes, obtain project sign-off"
+    },
+    {
+      "task_no": "4.4",
+      "task_name": "Warranty & Support Handoff",
+      "phase_no": 4,
+      "phase_name": "Phase 4: Training, Documentation & Handoff",
+      "notes": "Activate warranty, provide support contact info, old hardware retained 48hrs for rollback"
+    }
+  ],
+
+  "template_overrides": [
+    {"task_no": "1.1", "task_name": "Vendor PO & Equipment Ordering", "phase_no": 1, "phase_name": "Phase 1: Procurement & Staging", "duration_days": 1, "depends_on": null},
+    {"task_no": "1.2", "task_name": "Equipment Receiving & Verification", "phase_no": 1, "phase_name": "Phase 1: Procurement & Staging", "duration_days": 1, "depends_on": "1.1"},
+    {"task_no": "1.3", "task_name": "Controller Pre-Configuration", "phase_no": 1, "phase_name": "Phase 1: Procurement & Staging", "duration_days": 1, "depends_on": "1.2"},
+    {"task_no": "1.4", "task_name": "Doors.NET Software Setup", "phase_no": 1, "phase_name": "Phase 1: Procurement & Staging", "duration_days": 1, "depends_on": "1.2"},
+    {"task_no": "1.5", "task_name": "Shop Pre-Build & Bench Test", "phase_no": 1, "phase_name": "Phase 1: Procurement & Staging", "duration_days": 1, "depends_on": "1.3,1.4"},
+
+    {"task_no": "2.1", "task_name": "Site Prep & Cable Routing", "phase_no": 2, "phase_name": "Phase 2: On-Site Installation", "duration_days": 1, "depends_on": "1.5"},
+    {"task_no": "2.2", "task_name": "Controller & Reader Installation", "phase_no": 2, "phase_name": "Phase 2: On-Site Installation", "duration_days": 1, "depends_on": "2.1"},
+    {"task_no": "2.3", "task_name": "Workstation Deployment", "phase_no": 2, "phase_name": "Phase 2: On-Site Installation", "duration_days": 1, "depends_on": "2.1"},
+    {"task_no": "2.4", "task_name": "System Cutover (90-min window)", "phase_no": 2, "phase_name": "Phase 2: On-Site Installation", "duration_days": 1, "depends_on": "2.2,2.3"},
+
+    {"task_no": "3.1", "task_name": "Software Configuration & Door Schedules", "phase_no": 3, "phase_name": "Phase 3: Programming & System Testing", "duration_days": 1, "depends_on": "2.4"},
+    {"task_no": "3.2", "task_name": "Credential Enrollment (Fobs + PINs)", "phase_no": 3, "phase_name": "Phase 3: Programming & System Testing", "duration_days": 1, "depends_on": "3.1"},
+    {"task_no": "3.3", "task_name": "Integration & End-to-End Testing", "phase_no": 3, "phase_name": "Phase 3: Programming & System Testing", "duration_days": 1, "depends_on": "3.2"},
+
+    {"task_no": "4.1", "task_name": "Staff Training Session", "phase_no": 4, "phase_name": "Phase 4: Training, Documentation & Handoff", "duration_days": 1, "depends_on": "3.3"},
+    {"task_no": "4.2", "task_name": "Documentation & As-Built Delivery", "phase_no": 4, "phase_name": "Phase 4: Training, Documentation & Handoff", "duration_days": 1, "depends_on": "3.3"},
+    {"task_no": "4.3", "task_name": "Final Walkthrough & Client Sign-off", "phase_no": 4, "phase_name": "Phase 4: Training, Documentation & Handoff", "duration_days": 1, "depends_on": "4.1,4.2"},
+    {"task_no": "4.4", "task_name": "Warranty & Support Handoff", "phase_no": 4, "phase_name": "Phase 4: Training, Documentation & Handoff", "duration_days": 1, "depends_on": "4.1,4.2"}
+  ]
+}
