@@ -278,7 +278,7 @@ def _transform_supabase(proj: dict, tasks: list, durations: dict, dependencies: 
     for i in range(total_days):
         while cal_date.weekday() >= 5:  # Skip weekends
             cal_date += timedelta(days=1)
-        day_labels.append(f"{day_names[cal_date.weekday()]}\n{cal_date.strftime('%m/%d')}")
+        day_labels.append(f"{day_names[cal_date.weekday()]}<br>{cal_date.strftime('%m/%d')}")
         cal_date += timedelta(days=1)
 
     # Build period headers (weeks)
@@ -379,6 +379,8 @@ def build_template_data(project: dict) -> dict:
         rowspan = 1 + len(phase_tasks)
 
         # Phase header row
+        _bs = phase.get("bar_start", -1)
+        _be = phase.get("bar_end", -1)
         tasks.append({
             "phase_num": phase_num if phase_num > 0 else "",
             "phase_rowspan": rowspan,
@@ -387,15 +389,20 @@ def build_template_data(project: dict) -> dict:
             "is_phase_row": True,
             "is_milestone": phase.get("is_milestone", False),
             "is_buffer": phase.get("is_buffer", False),
-            "bar_start": phase.get("bar_start", -1),
-            "bar_end": phase.get("bar_end", -1),
+            "bar_start": _bs,
+            "bar_end": _be,
             "bar_color": phase_color,
             "bar_label": phase.get("bar_label", ""),
+            "cells_before": _bs if _bs >= 0 else total_days,
+            "bar_span": max(0, _be - _bs + 1) if _bs >= 0 else 0,
+            "cells_after": max(0, total_days - _be - 1) if _bs >= 0 else 0,
         })
 
         # Sub-task rows
         for task in phase_tasks:
-            duration = task.get("bar_end", 0) - task.get("bar_start", 0) + 1 if task.get("bar_start", -1) >= 0 else 0
+            _bs = task.get("bar_start", -1)
+            _be = task.get("bar_end", -1)
+            duration = _be - _bs + 1 if _bs >= 0 else 0
             tasks.append({
                 "phase_num": "",
                 "phase_rowspan": 0,
@@ -404,10 +411,13 @@ def build_template_data(project: dict) -> dict:
                 "is_phase_row": False,
                 "is_milestone": task.get("is_milestone", False),
                 "is_buffer": phase.get("is_buffer", False),
-                "bar_start": task.get("bar_start", -1),
-                "bar_end": task.get("bar_end", -1),
+                "bar_start": _bs,
+                "bar_end": _be,
                 "bar_color": task.get("bar_color", phase_color),
                 "bar_label": task.get("bar_label", ""),
+                "cells_before": _bs if _bs >= 0 else total_days,
+                "bar_span": max(0, _be - _bs + 1) if _bs >= 0 else 0,
+                "cells_after": max(0, total_days - _be - 1) if _bs >= 0 else 0,
                 "tooltip_notes": task.get("notes", ""),
                 "tooltip_duration": f"{duration} day{'s' if duration != 1 else ''}",
                 "tooltip_status": task.get("status", "scheduled"),

@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Goldman Law Firm — Access Control Upgrade — Project Timeline</title>
+<style>
+  @page { size: landscape; margin: 0.3in; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-size: 8.5px; color: #333; background: #fff; }
+
+  /* ─── HEADER ─── */
+  .header { display: flex; justify-content: space-between; align-items: flex-end; padding: 8px 4px 6px; border-bottom: 3px solid #0B5394; margin-bottom: 8px; }
+  .header-left h1 { font-size: 16px; font-weight: 700; color: #0B5394; letter-spacing: -0.3px; }
+  .header-left .tagline { font-size: 8px; color: #666; margin-top: 1px; }
+  .header-right { text-align: right; font-size: 7.5px; color: #555; }
+  .header-right .brand { font-size: 11px; font-weight: 700; color: #0B5394; }
+
+  /* ─── META GRID ─── */
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; margin-bottom: 10px; padding: 0 4px; border: 1px solid #ddd; border-radius: 3px; overflow: hidden; }
+  .meta-item { font-size: 8px; padding: 6px 10px; border-right: 1px solid #ddd; }
+  .meta-item:last-child { border-right: none; }
+  .meta-item .label { font-weight: 700; color: #555; text-transform: uppercase; font-size: 7px; letter-spacing: 0.5px; }
+  .meta-item .value { color: #222; font-weight: 600; }
+
+  /* ─── GANTT TABLE ─── */
+  .gantt-wrapper { padding: 0 4px; }
+  .gantt-wrapper > div { border: 1px solid #bbb; border-radius: 3px; overflow: hidden; }
+  table.gantt { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  table.gantt col.col-phase { width: 32px; }
+  table.gantt col.col-detail { width: 180px; }
+  table.gantt col.col-end { width: 22px; }
+  table.gantt col.col-day { /* auto distribute */ }
+
+  /* Period header row */
+  table.gantt thead tr.period-header th { background: #555; font-size: 7.5px; font-weight: 700; text-align: center; color: #fff; border: 1px solid #444; padding: 3px 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table.gantt thead tr.period-header th.phase-period { background: #434343; }
+
+  /* Week/Day header row */
+  table.gantt thead tr.week-header th { background: #434343; font-size: 7px; text-align: center; color: #fff; border: 1px solid #555; padding: 2px 1px; font-weight: 600; }
+  table.gantt thead tr.week-header th.phase-header,
+  table.gantt thead tr.week-header th.detail-header { font-size: 7.5px; font-weight: 700; text-align: left; padding-left: 6px; }
+  table.gantt thead tr.week-header th.end-header { writing-mode: vertical-rl; text-orientation: mixed; font-size: 6.5px; font-weight: 700; letter-spacing: 1px; padding: 4px 2px; background: #333; color: #fff; }
+
+  /* Body */
+  table.gantt tbody td { border: 1px solid #e8e8e8; padding: 3px 4px; vertical-align: middle; }
+
+  /* Phase number cell */
+  td.phase-num { text-align: center; font-weight: 800; font-size: 14px; color: #fff; writing-mode: horizontal-tb; border-right: 2px solid #fff; }
+
+  /* Detail cells */
+  td.detail-cell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-right: 2px solid #ccc; }
+  td.detail-cell.phase-name { font-weight: 700; font-size: 9px; color: #222; background: #f9f9f9; padding-left: 8px; }
+  td.detail-cell.sub-task { font-size: 8px; color: #444; padding-left: 10px; background: #fff; }
+
+  /* Day cells */
+  td.day-cell { padding: 0; }
+
+  /* Bar cells (colspan) */
+  td.bar-cell { padding: 1px 1px; }
+
+  /* Gantt bars */
+  .gantt-bar { height: 16px; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 6.5px; font-weight: 600; letter-spacing: 0.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* End marker column */
+  td.end-marker { background: #434343; border-left: 2px solid #333; width: 22px; padding: 0; }
+
+  /* Alternating row backgrounds */
+  tr.task-row:nth-child(even) td.day-cell { background: #f5f5f5; }
+
+  /* Milestone row */
+  tr.milestone-row td { background: #e8f0fe; border-bottom: 2px solid #0B5394; }
+  tr.milestone-row td.detail-cell { font-weight: 800; font-size: 9.5px; color: #0B5394; }
+  tr.milestone-row .gantt-bar { background: #0B5394 !important; border-radius: 3px; font-size: 7px; font-weight: 800; }
+  tr.milestone-row td.end-marker { background: #0B5394; }
+
+  /* Buffer row */
+  tr.buffer-row td { background: #FFF8E1; }
+  tr.buffer-row td.detail-cell.phase-name { font-style: italic; color: #B85B22; }
+
+  /* ─── NOTES SECTION ─── */
+  .notes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; padding: 0 4px; }
+  .note-card { border-radius: 4px; overflow: hidden; border: 1px solid #e0e0e0; }
+  .note-card .note-card-header { padding: 4px 8px; color: #fff; font-size: 8.5px; font-weight: 700; letter-spacing: 0.3px; }
+  .note-card .note-card-body { padding: 5px 8px; font-size: 7.5px; line-height: 1.5; }
+  .note-card .note-card-body li { margin-bottom: 2px; list-style: none; padding-left: 10px; position: relative; }
+  .note-card .note-card-body li::before { content: "\25B8"; position: absolute; left: 0; color: #888; font-size: 8px; }
+  .highlight { font-weight: 700; }
+
+  /* ─── FOOTER ─── */
+  .footer { margin-top: 10px; padding: 5px 4px; border-top: 1px solid #ccc; display: flex; justify-content: space-between; font-size: 7px; color: #888; }
+  .footer .confidential { font-weight: 600; color: #B71C1C; }
+
+  /* ─── TOOLTIP POPUP ─── */
+  .tooltip-popup {
+    display: none; position: fixed; z-index: 1000;
+    background: #1a1a2e; color: #eee; border-radius: 6px;
+    padding: 10px 14px; min-width: 220px; max-width: 320px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35); font-size: 11px; line-height: 1.5;
+    pointer-events: none; border: 1px solid rgba(255,255,255,0.08);
+  }
+  .tooltip-popup.visible { display: block; }
+  .tooltip-popup .tt-title { font-weight: 700; font-size: 12px; color: #fff; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 5px; }
+  .tooltip-popup .tt-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+  .tooltip-popup .tt-label { color: #8899aa; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .tooltip-popup .tt-value { color: #fff; font-weight: 600; font-size: 10.5px; }
+  .tooltip-popup .tt-notes { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); color: #bcc; font-size: 10px; font-style: italic; }
+  .tooltip-popup .tt-milestone { display: inline-block; background: #0B5394; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-top: 4px; letter-spacing: 0.3px; }
+
+  /* Gantt bar hover effect */
+  .gantt-bar[data-tooltip] { cursor: pointer; transition: filter 0.15s; }
+  .gantt-bar[data-tooltip]:hover { filter: brightness(1.2); }
+
+  /* Print optimization */
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .header { break-after: avoid; }
+    table.gantt { break-inside: avoid; }
+    .tooltip-popup { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>PROJECT TIMELINE</h1>
+    <div class="tagline">One Company.. Unlimited Solutions..</div>
+  </div>
+  <div class="header-right">
+    <div class="brand">ASI 360</div>
+    <div>(510) 288-0994 | ops@asi360.co</div>
+  </div>
+</div>
+
+<!-- META GRID -->
+<div class="meta-grid">
+  <div class="meta-item"><span class="label">Project Title</span><br><span class="value">Goldman Law Firm — Access Control Upgrade</span></div>
+  <div class="meta-item"><span class="label">Client</span><br><span class="value">Goldman Law Firm</span></div>
+  <div class="meta-item"><span class="label">Project Manager</span><br><span class="value">Don Bucknor</span></div>
+  <div class="meta-item"><span class="label">Date</span><br><span class="value">2026-03-17</span></div>
+</div>
+
+<!-- GANTT CHART -->
+<div class="gantt-wrapper"><div>
+<table class="gantt">
+  <colgroup>
+    <col class="col-phase">
+    <col class="col-detail">
+    <col class="col-day"><col class="col-day"><col class="col-day"><col class="col-day"><col class="col-day"><col class="col-day"><col class="col-day"><col class="col-day"><col class="col-day"><col class="col-day"><col class="col-day"><col class="col-day">
+    <col class="col-end">
+  </colgroup>
+  <thead>
+    <!-- Period header row -->
+    <tr class="period-header">
+      <th class="phase-period" colspan="2">PROJECT WEEK</th>
+      
+      <th colspan="5">WEEK 1</th>
+      
+      <th colspan="5">WEEK 2</th>
+      
+      <th colspan="2">WEEK 3</th>
+      
+      <th class="phase-period"></th>
+    </tr>
+    <!-- Week/Day header row -->
+    <tr class="week-header">
+      <th class="phase-header">PHASE</th>
+      <th class="detail-header">DETAILS</th>
+      
+      <th>TUE<br>03/17</th>
+      
+      <th>WED<br>03/18</th>
+      
+      <th>THU<br>03/19</th>
+      
+      <th>FRI<br>03/20</th>
+      
+      <th>MON<br>03/23</th>
+      
+      <th>TUE<br>03/24</th>
+      
+      <th>WED<br>03/25</th>
+      
+      <th>THU<br>03/26</th>
+      
+      <th>FRI<br>03/27</th>
+      
+      <th>MON<br>03/30</th>
+      
+      <th>TUE<br>03/31</th>
+      
+      <th>WED<br>04/01</th>
+      
+      <th class="end-header">P R O J E C T &nbsp; E N D</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr class="task-row ">
+      
+      <td class="phase-num" rowspan="6" style="background: #0B5394;">1</td>
+      
+
+      <td class="detail-cell phase-name">Phase 1: Procurement & Staging</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Vendor PO & Equipment Ordering</td>
+
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #0B5394;" data-tooltip="1" data-name="Vendor PO & Equipment Ordering" data-duration="1 day" data-status="open" data-notes="Submit POs for Keri NXT controller, LAN-520 readers, keypad, fobs, Doors.NET license" data-milestone="false">
+          Vendor PO &
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Equipment Receiving & Verification</td>
+
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #0B5394;" data-tooltip="1" data-name="Equipment Receiving & Verification" data-duration="1 day" data-status="open" data-notes="Receive all hardware at ASI 360 shop, verify against BOM, check firmware versions" data-milestone="false">
+          Equipment Receivin..
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Controller Pre-Configuration</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #0B5394;" data-tooltip="1" data-name="Controller Pre-Configuration" data-duration="1 day" data-status="open" data-notes="Pre-program Keri NXT controller: door schedules, access levels, reader assignments" data-milestone="false">
+          Controller Pre-Con..
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Doors.NET Software Setup</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #0B5394;" data-tooltip="1" data-name="Doors.NET Software Setup" data-duration="1 day" data-status="open" data-notes="Install Doors.NET on dedicated workstation, configure database, test connection to controller" data-milestone="false">
+          Doors.NET Software..
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row milestone-row">
+      
+
+      <td class="detail-cell sub-task">- Shop Pre-Build & Bench Test</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #0B5394;" data-tooltip="1" data-name="Shop Pre-Build & Bench Test" data-duration="1 day" data-status="open" data-notes="Full bench test of controller + readers + keypad at shop, verify all components communicate" data-milestone="true">
+          Shop Pre-Build &
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+      <td class="phase-num" rowspan="5" style="background: #45818E;">2</td>
+      
+
+      <td class="detail-cell phase-name">Phase 2: On-Site Installation</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Site Prep & Cable Routing</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #45818E;" data-tooltip="1" data-name="Site Prep & Cable Routing" data-duration="1 day" data-status="open" data-notes="Route cables from controller location to both door positions, prep mounting points" data-milestone="false">
+          Site Prep &
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Controller & Reader Installation</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #45818E;" data-tooltip="1" data-name="Controller & Reader Installation" data-duration="1 day" data-status="open" data-notes="Mount NXT controller, install LAN-520 readers at front entry + suite door, wire keypad" data-milestone="false">
+          Controller & Reader
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Workstation Deployment</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #45818E;" data-tooltip="1" data-name="Workstation Deployment" data-duration="1 day" data-status="open" data-notes="Deploy dedicated workstation with Doors.NET, connect to office LAN" data-milestone="false">
+          Workstation Deploy..
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row milestone-row">
+      
+
+      <td class="detail-cell sub-task">- System Cutover (90-min window)</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #45818E;" data-tooltip="1" data-name="System Cutover (90-min window)" data-duration="1 day" data-status="open" data-notes="Live cutover: activate access control on both doors, security escort during swap, zero-lockout protocol" data-milestone="true">
+          System Cutover (90..
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+      <td class="phase-num" rowspan="4" style="background: #B85B22;">3</td>
+      
+
+      <td class="detail-cell phase-name">Phase 3: Programming & System Testing</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Software Configuration & Door Schedules</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #B85B22;" data-tooltip="1" data-name="Software Configuration & Door Schedules" data-duration="1 day" data-status="open" data-notes="Configure door schedules, access levels, holiday schedules in Doors.NET" data-milestone="false">
+          Software Configura..
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Credential Enrollment (Fobs + PINs)</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #B85B22;" data-tooltip="1" data-name="Credential Enrollment (Fobs + PINs)" data-duration="1 day" data-status="open" data-notes="Enroll individual fob + PIN credentials for each staff member, set access levels per person" data-milestone="false">
+          Credential Enrollm..
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row milestone-row">
+      
+
+      <td class="detail-cell sub-task">- Integration & End-to-End Testing</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #B85B22;" data-tooltip="1" data-name="Integration & End-to-End Testing" data-duration="1 day" data-status="open" data-notes="Test every credential at every door, verify keypad codes, test lockout scenarios, audit log verification" data-milestone="true">
+          Integration & End-..
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+      <td class="phase-num" rowspan="5" style="background: #38761D;">4</td>
+      
+
+      <td class="detail-cell phase-name">Phase 4: Training, Documentation & Handoff</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Staff Training Session</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #38761D;" data-tooltip="1" data-name="Staff Training Session" data-duration="1 day" data-status="open" data-notes="Train Zachary Stewart and staff on fob use, PIN entry, Doors.NET basics, adding/revoking credentials" data-milestone="false">
+          Staff Training Ses..
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Documentation & As-Built Delivery</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #38761D;" data-tooltip="1" data-name="Documentation & As-Built Delivery" data-duration="1 day" data-status="open" data-notes="Deliver: system diagram, credential list, door schedule, emergency procedures, warranty docs" data-milestone="false">
+          Documentation & As..
+        </div>
+      </td>
+      
+
+      
+      <td class="day-cell"></td>
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row milestone-row">
+      
+
+      <td class="detail-cell sub-task">- Final Walkthrough & Client Sign-off</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #38761D;" data-tooltip="1" data-name="Final Walkthrough & Client Sign-off" data-duration="1 day" data-status="open" data-notes="Walk through both doors with client, demonstrate all access modes, obtain project sign-off" data-milestone="true">
+          Final Walkthrough &
+        </div>
+      </td>
+      
+
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row ">
+      
+
+      <td class="detail-cell sub-task">- Warranty & Support Handoff</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #38761D;" data-tooltip="1" data-name="Warranty & Support Handoff" data-duration="1 day" data-status="open" data-notes="Activate warranty, provide support contact info, old hardware retained 48hrs for rollback" data-milestone="false">
+          Warranty & Support
+        </div>
+      </td>
+      
+
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+    <tr class="task-row milestone-row">
+      
+      <td class="phase-num" rowspan="1" style="background: #434343;"></td>
+      
+
+      <td class="detail-cell phase-name">PROJECT COMPLETE</td>
+
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+      <td class="day-cell"></td>
+      
+
+      
+      <td class="bar-cell" colspan="1">
+        <div class="gantt-bar" style="background: #434343;">
+          ✓ COMPLETE
+        </div>
+      </td>
+      
+
+      
+
+      <td class="end-marker"></td>
+    </tr>
+    
+  </tbody>
+</table>
+</div></div>
+
+<!-- NOTES -->
+
+<div class="notes-grid">
+  
+  <div class="note-card">
+    <div class="note-card-header" style="background: #0B5394;">Project Details</div>
+    <div class="note-card-body">
+      <ul>
+        
+        <li>Project: <span class='highlight'>PROJ364</span></li>
+        
+        <li>Client: Goldman Law Firm</li>
+        
+        <li>2-door access control upgrade: Keri Systems NXT controller, LAN-520 readers, keypad entry, Doors.NET software on dedicated workstation. Individual fob + PIN credentials for all staff. 90-minute on-site cutover window.</li>
+        
+        <li>Site: 55 Main Street, Tiburon, CA 94920</li>
+        
+        <li>Duration: <span class='highlight'>12 working days (3 weeks)</span></li>
+        
+        <li>Schedule: Critical path</li>
+        
+      </ul>
+    </div>
+  </div>
+  
+  <div class="note-card">
+    <div class="note-card-header" style="background: #38761D;">Payment Milestones</div>
+    <div class="note-card-body">
+      <ul>
+        
+        <li>Contract value: <span class='highlight'>$6,148.90</span></li>
+        
+        <li>100% hardware + 50% labor: <span class='highlight'>$4,923.90</span></li>
+        
+        <li>50% labor balance at completion: <span class='highlight'>$1,225.00</span></li>
+        
+        <li>Status: Check mailed 2026-03-10</li>
+        
+        <li>Quote ref: QUO202361 / QUO202368</li>
+        
+      </ul>
+    </div>
+  </div>
+  
+  <div class="note-card">
+    <div class="note-card-header" style="background: #B85B22;">Delivery Strategy</div>
+    <div class="note-card-body">
+      <ul>
+        
+        <li>Pre-build all equipment at ASI 360 shop</li>
+        
+        <li>Minimize on-site disruption window</li>
+        
+        <li>Zero-lockout protocol during cutover</li>
+        
+        <li>Old hardware retained 48hrs for rollback</li>
+        
+      </ul>
+    </div>
+  </div>
+  
+</div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="confidential">CONFIDENTIAL — Allied Systems Integrations 360</div>
+  <div>Generated March 12, 2026 | ASI 360 Project Management System</div>
+</div>
+
+<!-- TOOLTIP POPUP -->
+<div class="tooltip-popup" id="ganttTooltip"></div>
+
+<script>
+(function() {
+  var tip = document.getElementById('ganttTooltip');
+  var bars = document.querySelectorAll('.gantt-bar[data-tooltip]');
+  var visible = false;
+
+  function showTip(e) {
+    var el = e.currentTarget;
+    var name = el.getAttribute('data-name') || '';
+    var dur = el.getAttribute('data-duration') || '';
+    var status = el.getAttribute('data-status') || '';
+    var notes = el.getAttribute('data-notes') || '';
+    var ms = el.getAttribute('data-milestone') === 'true';
+
+    var html = '<div class="tt-title">' + name + '</div>';
+    if (dur) html += '<div class="tt-row"><span class="tt-label">Duration</span><span class="tt-value">' + dur + '</span></div>';
+    if (status) html += '<div class="tt-row"><span class="tt-label">Status</span><span class="tt-value">' + status.charAt(0).toUpperCase() + status.slice(1) + '</span></div>';
+    if (notes) html += '<div class="tt-notes">' + notes + '</div>';
+    if (ms) html += '<div class="tt-milestone">MILESTONE</div>';
+
+    tip.innerHTML = html;
+    tip.classList.add('visible');
+    visible = true;
+    positionTip(e);
+  }
+
+  function positionTip(e) {
+    if (!visible) return;
+    var x = e.clientX + 12;
+    var y = e.clientY - 10;
+    var tw = tip.offsetWidth;
+    var th = tip.offsetHeight;
+    if (x + tw > window.innerWidth - 8) x = e.clientX - tw - 12;
+    if (y + th > window.innerHeight - 8) y = window.innerHeight - th - 8;
+    if (y < 4) y = 4;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  }
+
+  function hideTip() {
+    tip.classList.remove('visible');
+    visible = false;
+  }
+
+  for (var i = 0; i < bars.length; i++) {
+    bars[i].addEventListener('mouseenter', showTip);
+    bars[i].addEventListener('mousemove', positionTip);
+    bars[i].addEventListener('mouseleave', hideTip);
+  }
+})();
+</script>
+
+</body>
+</html>
