@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>123Security — Business Model & Platform Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #0a0e1a; color: #e2e8f0; line-height: 1.6; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  .hero { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); padding: 60px 0 50px; border-bottom: 3px solid #10b981; }
+  .hero h1 { font-size: 48px; font-weight: 900; background: linear-gradient(135deg, #10b981, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px; }
+  .hero .sub { font-size: 20px; color: #94a3b8; margin-top: 8px; font-weight: 300; }
+  .hero .powered { display: inline-block; margin-top: 16px; padding: 6px 16px; border: 1px solid #334155; border-radius: 20px; font-size: 13px; color: #64748b; }
+  .hero .powered span { color: #10b981; font-weight: 600; }
+
+  /* Section */
+  section { padding: 50px 0; border-bottom: 1px solid #1e293b; }
+  section:last-child { border-bottom: none; }
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: #10b981; font-weight: 700; margin-bottom: 8px; }
+  .section-title { font-size: 32px; font-weight: 800; color: #f1f5f9; margin-bottom: 24px; letter-spacing: -0.5px; }
+
+  /* Two-Brand Architecture */
+  .brand-grid { display: grid; grid-template-columns: 1fr 60px 1fr; gap: 0; align-items: stretch; margin-bottom: 30px; }
+  .brand-card { background: #111827; border-radius: 16px; padding: 32px; border: 1px solid #1e293b; }
+  .brand-card.primary { border-color: #10b981; box-shadow: 0 0 30px rgba(16,185,129,0.1); }
+  .brand-card.secondary { border-color: #3b82f6; box-shadow: 0 0 30px rgba(59,130,246,0.1); }
+  .brand-card h3 { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+  .brand-card.primary h3 { color: #10b981; }
+  .brand-card.secondary h3 { color: #3b82f6; }
+  .brand-card .tagline { font-size: 14px; color: #64748b; margin-bottom: 16px; font-style: italic; }
+  .brand-card .target { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+  .brand-card.primary .target { background: rgba(16,185,129,0.15); color: #10b981; }
+  .brand-card.secondary .target { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .brand-card ul { list-style: none; padding: 0; }
+  .brand-card ul li { padding: 6px 0; font-size: 14px; color: #cbd5e1; border-bottom: 1px solid #1e293b; }
+  .brand-card ul li:last-child { border-bottom: none; }
+  .brand-card ul li::before { content: "→ "; color: #64748b; }
+  .brand-connector { display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .brand-connector .line { width: 2px; flex: 1; background: linear-gradient(to bottom, #10b981, #3b82f6); }
+  .brand-connector .badge { background: #1e293b; border: 2px solid #334155; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #94a3b8; text-align: center; line-height: 1.1; }
+  .infra-badge { text-align: center; margin-top: 16px; padding: 12px 24px; background: #1e293b; border-radius: 12px; border: 1px dashed #334155; }
+  .infra-badge span { font-size: 13px; color: #94a3b8; }
+  .infra-badge strong { color: #f1f5f9; }
+
+  /* Revenue Streams */
+  .revenue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .rev-card { background: #111827; border-radius: 14px; padding: 24px; border: 1px solid #1e293b; position: relative; overflow: hidden; }
+  .rev-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .rev-card.hw::before { background: #10b981; }
+  .rev-card.assess::before { background: #06b6d4; }
+  .rev-card.labor::before { background: #f59e0b; }
+  .rev-card.mrr::before { background: #8b5cf6; }
+  .rev-card.content::before { background: #ec4899; }
+  .rev-card .rev-icon { font-size: 28px; margin-bottom: 12px; }
+  .rev-card h4 { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+  .rev-card .margin { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+  .rev-card.hw .margin { color: #10b981; }
+  .rev-card.assess .margin { color: #06b6d4; }
+  .rev-card.labor .margin { color: #f59e0b; }
+  .rev-card.mrr .margin { color: #8b5cf6; }
+  .rev-card.content .margin { color: #ec4899; }
+  .rev-card p { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+
+  /* User Journey */
+  .journey { position: relative; padding-left: 40px; }
+  .journey::before { content: ''; position: absolute; left: 16px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, #10b981, #06b6d4, #f59e0b, #8b5cf6, #10b981); }
+  .j-step { position: relative; margin-bottom: 24px; background: #111827; border-radius: 14px; padding: 24px; border: 1px solid #1e293b; }
+  .j-step::before { content: ''; position: absolute; left: -32px; top: 28px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid #0a0e1a; }
+  .j-step:nth-child(1)::before { background: #10b981; }
+  .j-step:nth-child(2)::before { background: #06b6d4; }
+  .j-step:nth-child(3)::before { background: #f59e0b; }
+  .j-step:nth-child(4)::before { background: #8b5cf6; }
+  .j-step:nth-child(5)::before { background: #ec4899; }
+  .j-step:nth-child(6)::before { background: #10b981; }
+  .j-step .step-num { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+  .j-step:nth-child(1) .step-num { color: #10b981; }
+  .j-step:nth-child(2) .step-num { color: #06b6d4; }
+  .j-step:nth-child(3) .step-num { color: #f59e0b; }
+  .j-step:nth-child(4) .step-num { color: #8b5cf6; }
+  .j-step:nth-child(5) .step-num { color: #ec4899; }
+  .j-step:nth-child(6) .step-num { color: #10b981; }
+  .j-step h4 { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
+  .j-step p { font-size: 14px; color: #94a3b8; }
+  .j-step .detail { margin-top: 12px; padding: 12px 16px; background: #0f172a; border-radius: 8px; font-size: 13px; color: #cbd5e1; border-left: 3px solid #334155; }
+
+  /* Site Map */
+  .sitemap { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .sm-group { background: #111827; border-radius: 14px; padding: 20px; border: 1px solid #1e293b; }
+  .sm-group h4 { font-size: 14px; font-weight: 700; color: #10b981; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #1e293b; }
+  .sm-group ul { list-style: none; padding: 0; }
+  .sm-group ul li { font-size: 13px; color: #94a3b8; padding: 4px 0; }
+  .sm-group ul li::before { content: "/ "; color: #334155; font-weight: 600; }
+
+  /* Tech Stack */
+  .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .stack-item { background: #111827; border-radius: 10px; padding: 16px; border: 1px solid #1e293b; text-align: center; }
+  .stack-item .layer { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #64748b; font-weight: 600; }
+  .stack-item .tech { font-size: 16px; font-weight: 700; color: #f1f5f9; margin: 4px 0; }
+  .stack-item .note { font-size: 12px; color: #64748b; }
+
+  /* Key Metrics */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 24px; }
+  .metric { background: #111827; border-radius: 14px; padding: 24px; text-align: center; border: 1px solid #1e293b; }
+  .metric .val { font-size: 36px; font-weight: 900; background: linear-gradient(135deg, #10b981, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .metric .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  /* DoorDash Model */
+  .dd-flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+  .dd-card { background: #111827; border-radius: 14px; padding: 24px; border: 1px solid #1e293b; text-align: center; }
+  .dd-card .dd-icon { font-size: 36px; margin-bottom: 12px; }
+  .dd-card h4 { font-size: 15px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
+  .dd-card p { font-size: 13px; color: #94a3b8; }
+  .dd-arrow { display: flex; align-items: center; justify-content: center; font-size: 24px; color: #334155; }
+
+  /* Competitive Table */
+  .comp-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; margin-top: 16px; }
+  .comp-table th { background: #1e293b; padding: 12px 16px; font-size: 13px; font-weight: 700; color: #94a3b8; text-align: left; text-transform: uppercase; letter-spacing: 1px; }
+  .comp-table th.highlight { color: #10b981; }
+  .comp-table td { padding: 12px 16px; font-size: 14px; color: #cbd5e1; border-bottom: 1px solid #1e293b; background: #111827; }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table td:first-child { font-weight: 600; color: #94a3b8; }
+  .comp-table td.win { color: #10b981; font-weight: 600; }
+
+  @media (max-width: 768px) {
+    .brand-grid { grid-template-columns: 1fr; }
+    .brand-connector { display: none; }
+    .dd-flow { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <h1>123Security</h1>
+    <div class="sub">Consumer Security Marketplace + Virtual Assessment + Labor Network</div>
+    <div class="powered">Powered by <span>ASI 360</span> Infrastructure</div>
+  </div>
+</div>
+
+<!-- TWO-BRAND ARCHITECTURE -->
+<section>
+  <div class="container">
+    <div class="section-label">Brand Architecture</div>
+    <div class="section-title">Two Brands, One Infrastructure</div>
+
+    <div class="brand-grid">
+      <div class="brand-card primary">
+        <h3>123Security</h3>
+        <div class="tagline">Simple security for everyone</div>
+        <div class="target">Consumer / Prosumer / Small Business</div>
+        <ul>
+          <li>Security tips, DIY guides, crime reports</li>
+          <li>Equipment marketplace (self-service)</li>
+          <li>Virtual 360 assessment service</li>
+          <li>Contractor dispatch network</li>
+          <li>Community forum & security map</li>
+          <li>Monthly monitoring packages</li>
+          <li>iGUIDE 360 scan-by-mail service</li>
+        </ul>
+      </div>
+
+      <div class="brand-connector">
+        <div class="line"></div>
+        <div class="badge">Same<br>Infra</div>
+        <div class="line"></div>
+      </div>
+
+      <div class="brand-card secondary">
+        <h3>ASI 360</h3>
+        <div class="tagline">Allied Systems Integrations</div>
+        <div class="target">Commercial / Enterprise / Government</div>
+        <ul>
+          <li>Custom system design & engineering</li>
+          <li>Full installation services</li>
+          <li>AI-powered managed monitoring (RRMS)</li>
+          <li>ASI 360 Hub hardware deployment</li>
+          <li>Access control (Keri Systems)</li>
+          <li>Phone/PBX/Audio systems</li>
+          <li>Consulting & compliance</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="infra-badge">
+      <span>Shared backend: <strong>WooCommerce</strong> + <strong>Supabase</strong> + <strong>Luminys Pricebook (268 SKUs)</strong> + <strong>RRMS Monitoring</strong> + <strong>Keri Access Control</strong> + <strong>Stripe Payments</strong></span>
+    </div>
+  </div>
+</section>
+
+<!-- THE 360 ASSESSMENT MODEL -->
+<section>
+  <div class="container">
+    <div class="section-label">Core Innovation</div>
+    <div class="section-title">The Virtual 360 Assessment Pipeline</div>
+
+    <div class="journey">
+      <div class="j-step">
+        <div class="step-num">Step 1 — Discover</div>
+        <h4>Customer Finds 123Security</h4>
+        <p>Through SEO content (security tips, crime reports, DIY guides), Google Business, or referral. They explore the free security resources, browse the equipment marketplace, check their neighborhood crime map.</p>
+        <div class="detail">Revenue: $0 (lead generation). Content marketing drives organic traffic. Free crime report integration pulls from local PD APIs and builds trust.</div>
+      </div>
+
+      <div class="j-step">
+        <div class="step-num">Step 2 — Assess</div>
+        <h4>Book a Virtual 360 Assessment</h4>
+        <p>Customer books online. Two options: (A) Self-scan — we ship a 360 camera, they walk the property on a video call with our team, then ship back. (B) iGUIDE scan — we ship the iGUIDE 360 device, customer scans the entire facility getting precise measurements, floor plans, and 3D mapping, then returns the box.</p>
+        <div class="detail">Revenue: Assessment fee ($199-499 depending on property size). Refundable against project purchase. iGUIDE scan provides architectural-grade floor plans that become the digital twin for system design.</div>
+      </div>
+
+      <div class="j-step">
+        <div class="step-num">Step 3 — Design</div>
+        <h4>ASI 360 Creates the Security Plan</h4>
+        <p>Using the 360 scan data, our team designs a complete security solution: camera placement, access control points, NVR sizing, monitoring zones. The digital scan means we never need to visit the site for the design phase.</p>
+        <div class="detail">The 360 scan is the secret weapon. We now have measurements, sight lines, entry points, and a virtual walkthrough. We can design remotely for ANY location — SF, Vegas, Jamaica, anywhere.</div>
+      </div>
+
+      <div class="j-step">
+        <div class="step-num">Step 4 — Purchase</div>
+        <h4>Customer Buys the Package</h4>
+        <p>Hardware package ships direct from ADI/distributor to the job site. Luminys cameras, Keri access control, networking, ASI 360 Hub — all pre-configured based on the 360 scan design. Customer sees exact pricing upfront.</p>
+        <div class="detail">Revenue: Hardware sales at 50-56% margin. Package includes everything needed for installation. Pre-configured means faster install, fewer truck rolls, fewer callbacks.</div>
+      </div>
+
+      <div class="j-step">
+        <div class="step-num">Step 5 — Install</div>
+        <h4>Dispatch Local Contractors</h4>
+        <p>"DoorDash for security labor." We dispatch vetted local electricians and low-voltage contractors. They get the 360 scan digital twin with exact placement coordinates, wiring paths, and install instructions. They do the physical work; we manage the project remotely.</p>
+        <div class="detail">Revenue: 30% margin on labor. Contractor gets 70%, ASI 360 gets 30% for project management, QA, and the digital twin that makes the install straightforward. Contractors love it — we bring them jobs with pre-engineered plans.</div>
+      </div>
+
+      <div class="j-step">
+        <div class="step-num">Step 6 — Monitor</div>
+        <h4>Activate Managed Monitoring</h4>
+        <p>ASI 360 Hub goes live. RRMS Triangulum AI begins automated monitoring. Customer gets mobile alerts, video verification, and 24/7 human backup. Monthly recurring revenue begins.</p>
+        <div class="detail">Revenue: $50-200/site/month MRR. This is where enterprise value is built. 100 monitored sites at $100/mo = $120K/year recurring. Compounds every month as new installs complete.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOORDASH FOR LABOR -->
+<section>
+  <div class="container">
+    <div class="section-label">Labor Marketplace</div>
+    <div class="section-title">DoorDash Model: Digital Twin + Dispatched Labor</div>
+    <p style="color:#94a3b8; margin-bottom:24px; font-size:15px;">The 360 scan creates a digital twin that decouples design from installation. ASI 360 owns the customer relationship, the design, and the hardware. Contractors provide the hands.</p>
+
+    <div class="dd-flow">
+      <div class="dd-card">
+        <div class="dd-icon">📐</div>
+        <h4>ASI 360 Designs</h4>
+        <p>Remote security design using 360 scan. Camera placement, access points, wiring paths, NVR sizing. All done from the digital twin — no site visit needed.</p>
+      </div>
+      <div class="dd-card">
+        <div class="dd-icon">📦</div>
+        <h4>Hardware Ships Direct</h4>
+        <p>Pre-configured packages from ADI/distributors straight to job site. Labeled, inventoried, and matched to the install plan. 50%+ margin retained.</p>
+      </div>
+      <div class="dd-card">
+        <div class="dd-icon">🔧</div>
+        <h4>Local Crew Installs</h4>
+        <p>Vetted electricians/contractors dispatched with the digital twin plan. They mount, wire, and terminate. ASI 360 commissions remotely. 30% labor margin.</p>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><div class="val">50%+</div><div class="label">Hardware Margin</div></div>
+      <div class="metric"><div class="val">30%</div><div class="label">Labor Margin</div></div>
+      <div class="metric"><div class="val">$0</div><div class="label">Truck Roll Cost</div></div>
+      <div class="metric"><div class="val">100%</div><div class="label">Remote Design</div></div>
+      <div class="metric"><div class="val">$50-200</div><div class="label">Monthly MRR/Site</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- REVENUE STREAMS -->
+<section>
+  <div class="container">
+    <div class="section-label">Revenue Model</div>
+    <div class="section-title">Five Revenue Streams, One Platform</div>
+
+    <div class="revenue-grid">
+      <div class="rev-card hw">
+        <div class="rev-icon">📷</div>
+        <h4>Equipment Sales</h4>
+        <div class="margin">50-56%</div>
+        <p>Luminys cameras, Keri access control, NVRs, networking gear. Drop-ship from ADI. Self-service marketplace for DIY buyers + designed packages for assessed customers.</p>
+      </div>
+      <div class="rev-card assess">
+        <div class="rev-icon">🔄</div>
+        <h4>360 Assessments</h4>
+        <div class="margin">$199-499</div>
+        <p>Virtual security assessment via shipped 360 camera or iGUIDE device. Customer scans, returns device, gets professional security plan. Fee refundable against project purchase.</p>
+      </div>
+      <div class="rev-card labor">
+        <div class="rev-icon">🔧</div>
+        <h4>Labor Dispatch</h4>
+        <div class="margin">30%</div>
+        <p>DoorDash model — local electricians/contractors dispatched with digital twin install plans. ASI 360 takes 30% for project management, QA, and the engineering work.</p>
+      </div>
+      <div class="rev-card mrr">
+        <div class="rev-icon">📡</div>
+        <h4>Managed Monitoring</h4>
+        <div class="margin">$50-200/mo</div>
+        <p>ASI 360 Hub + RRMS AI monitoring. Monthly recurring revenue per site. Compounds as install base grows. The long-term enterprise value play.</p>
+      </div>
+      <div class="rev-card content">
+        <div class="rev-icon">📊</div>
+        <h4>Content & Leads</h4>
+        <div class="margin">Affiliate + Ads</div>
+        <p>Security blog, crime reports, DIY guides drive organic traffic. Affiliate revenue on recommended products. Lead gen for assessment bookings. Community builds trust.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SITE MAP -->
+<section>
+  <div class="container">
+    <div class="section-label">Site Architecture</div>
+    <div class="section-title">123Security.com — Page Structure</div>
+
+    <div class="sitemap">
+      <div class="sm-group">
+        <h4>Home & Discovery</h4>
+        <ul>
+          <li>Homepage (hero + value prop)</li>
+          <li>Security Map (crime data)</li>
+          <li>Free Crime Report</li>
+          <li>About / Why 123Security</li>
+          <li>Contact / Get Started</li>
+        </ul>
+      </div>
+      <div class="sm-group">
+        <h4>Learn (Content Hub)</h4>
+        <ul>
+          <li>Blog / Security News</li>
+          <li>DIY Security Guides</li>
+          <li>Top Tips & Best Practices</li>
+          <li>Security Glossary</li>
+          <li>Video Tutorials</li>
+          <li>Product Reviews</li>
+        </ul>
+      </div>
+      <div class="sm-group">
+        <h4>Shop (Marketplace)</h4>
+        <ul>
+          <li>Cameras (Luminys catalog)</li>
+          <li>NVRs & Storage</li>
+          <li>Access Control Kits</li>
+          <li>DIY Bundles</li>
+          <li>Accessories & Cables</li>
+          <li>ASI 360 Hub</li>
+        </ul>
+      </div>
+      <div class="sm-group">
+        <h4>Assess (360 Service)</h4>
+        <ul>
+          <li>How It Works</li>
+          <li>Book Assessment</li>
+          <li>iGUIDE 360 Scan</li>
+          <li>Virtual Walkthrough</li>
+          <li>Pricing & Packages</li>
+          <li>Sample Reports</li>
+        </ul>
+      </div>
+      <div class="sm-group">
+        <h4>Community</h4>
+        <ul>
+          <li>Neighborhood Watch</li>
+          <li>Forum / Q&A</li>
+          <li>Contractor Network</li>
+          <li>Partner with Us</li>
+          <li>Installer Sign-Up</li>
+          <li>Reviews & Testimonials</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPETITIVE POSITIONING -->
+<section>
+  <div class="container">
+    <div class="section-label">Market Position</div>
+    <div class="section-title">123Security vs. Existing Models</div>
+
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th class="highlight">123Security</th>
+          <th>SimpliSafe</th>
+          <th>Ring / Blink</th>
+          <th>ADT</th>
+          <th>Local Integrator</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Professional Design</td>
+          <td class="win">Virtual 360 Scan</td>
+          <td>Self-configure</td>
+          <td>Self-configure</td>
+          <td>In-home visit</td>
+          <td>In-person visit</td>
+        </tr>
+        <tr>
+          <td>Equipment Quality</td>
+          <td class="win">Commercial-grade (Luminys)</td>
+          <td>Consumer</td>
+          <td>Consumer</td>
+          <td>Proprietary</td>
+          <td>Varies</td>
+        </tr>
+        <tr>
+          <td>Professional Install</td>
+          <td class="win">Dispatched local pros</td>
+          <td>DIY only</td>
+          <td>DIY only</td>
+          <td>In-house (expensive)</td>
+          <td>In-house</td>
+        </tr>
+        <tr>
+          <td>AI Monitoring</td>
+          <td class="win">RRMS Triangulum AI</td>
+          <td>Basic alerts</td>
+          <td>Basic alerts</td>
+          <td>Traditional station</td>
+          <td>Usually none</td>
+        </tr>
+        <tr>
+          <td>Contract Length</td>
+          <td class="win">Month-to-month</td>
+          <td>Monthly</td>
+          <td>Monthly</td>
+          <td>3-year lock-in</td>
+          <td>Varies</td>
+        </tr>
+        <tr>
+          <td>Price Point</td>
+          <td class="win">Mid-market</td>
+          <td>Budget</td>
+          <td>Budget</td>
+          <td>Premium</td>
+          <td>Premium</td>
+        </tr>
+        <tr>
+          <td>Scalable to Commercial</td>
+          <td class="win">Yes (ASI 360 upgrade)</td>
+          <td>No</td>
+          <td>No</td>
+          <td>Separate division</td>
+          <td>Maybe</td>
+        </tr>
+        <tr>
+          <td>Community / Content</td>
+          <td class="win">Full platform</td>
+          <td>Blog only</td>
+          <td>Neighbors app</td>
+          <td>Minimal</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section>
+  <div class="container">
+    <div class="section-label">Infrastructure</div>
+    <div class="section-title">Shared Technology Stack</div>
+
+    <div class="stack-grid">
+      <div class="stack-item"><div class="layer">Storefront</div><div class="tech">WooCommerce</div><div class="note">268 SKUs + bundles</div></div>
+      <div class="stack-item"><div class="layer">CMS</div><div class="tech">WordPress</div><div class="note">Astra + Spectra Pro</div></div>
+      <div class="stack-item"><div class="layer">Payments</div><div class="tech">Stripe</div><div class="note">Subscriptions + one-time</div></div>
+      <div class="stack-item"><div class="layer">Database</div><div class="tech">Supabase</div><div class="note">PostgreSQL backbone</div></div>
+      <div class="stack-item"><div class="layer">Monitoring</div><div class="tech">RRMS</div><div class="note">Triangulum AI + 24/7</div></div>
+      <div class="stack-item"><div class="layer">Automation</div><div class="tech">N8N</div><div class="note">Workflows + dispatch</div></div>
+      <div class="stack-item"><div class="layer">CRM</div><div class="tech">Airtable</div><div class="note">Leads, contractors, installs</div></div>
+      <div class="stack-item"><div class="layer">Analytics</div><div class="tech">Grafana</div><div class="note">Real-time dashboards</div></div>
+      <div class="stack-item"><div class="layer">Crime Data</div><div class="tech">API Integration</div><div class="note">Local PD + CrimeMapping</div></div>
+      <div class="stack-item"><div class="layer">3D Scans</div><div class="tech">iGUIDE</div><div class="note">Floor plans + measurements</div></div>
+      <div class="stack-item"><div class="layer">Hosting</div><div class="tech">DO Droplet</div><div class="note">Docker + MariaDB + Redis</div></div>
+      <div class="stack-item"><div class="layer">Mobile</div><div class="tech">FluxStore</div><div class="note">Future iOS/Android app</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINANCIAL MODEL -->
+<section>
+  <div class="container">
+    <div class="section-label">Financial Projection</div>
+    <div class="section-title">Path to $3M Annual Revenue</div>
+
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Revenue Stream</th>
+          <th>Year 1</th>
+          <th>Year 2</th>
+          <th>Year 3</th>
+          <th>Margin</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Equipment Sales (123Sec + ASI360)</td>
+          <td>$480K</td>
+          <td>$960K</td>
+          <td>$1.44M</td>
+          <td class="win">50-56%</td>
+        </tr>
+        <tr>
+          <td>360 Assessments</td>
+          <td>$60K</td>
+          <td>$120K</td>
+          <td>$180K</td>
+          <td class="win">80%+</td>
+        </tr>
+        <tr>
+          <td>Labor Dispatch (30% margin)</td>
+          <td>$150K</td>
+          <td>$360K</td>
+          <td>$600K</td>
+          <td class="win">30%</td>
+        </tr>
+        <tr>
+          <td>Monitoring MRR</td>
+          <td>$72K</td>
+          <td>$216K</td>
+          <td>$480K</td>
+          <td class="win">70-80%</td>
+        </tr>
+        <tr>
+          <td>Marketplace / Affiliate / Ads</td>
+          <td>$18K</td>
+          <td>$60K</td>
+          <td>$120K</td>
+          <td class="win">90%+</td>
+        </tr>
+        <tr style="font-weight:800; font-size:16px;">
+          <td style="color:#10b981; font-weight:800;">TOTAL</td>
+          <td style="color:#10b981; font-weight:800;">$780K</td>
+          <td style="color:#10b981; font-weight:800;">$1.72M</td>
+          <td style="color:#10b981; font-weight:800;">$2.82M</td>
+          <td style="color:#10b981; font-weight:800;">~48% blended</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="metrics" style="margin-top: 30px;">
+      <div class="metric"><div class="val">200</div><div class="label">Assessments Year 1</div></div>
+      <div class="metric"><div class="val">120</div><div class="label">Installs Year 1</div></div>
+      <div class="metric"><div class="val">60</div><div class="label">Monitoring Sites Y1</div></div>
+      <div class="metric"><div class="val">$6K</div><div class="label">Monthly MRR by Dec</div></div>
+      <div class="metric"><div class="val">15</div><div class="label">Contractors in Network</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<section style="padding: 40px 0; border-top: 2px solid #10b981; text-align: center;">
+  <div class="container">
+    <p style="color: #64748b; font-size: 13px;">CONFIDENTIAL — ASI 360 / 123Security Strategic Business Model — March 2026</p>
+    <p style="color: #334155; font-size: 12px; margin-top: 8px;">Prepared for internal planning. Not for distribution.</p>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!-- ASI 360 — Case Print Template: Final Case Closure Report -->
+<!-- Module: Cases | VTiger Print Template HTML -->
+<!-- Paste into: Tools > Templates > Print Templates > +Add > Source Code -->
+
+<!-- ============ HEADER ============ -->
+<table style="width:100%; border-bottom:3px solid #1B3A5C; padding-bottom:10px; margin-bottom:15px;">
+  <tr>
+    <td style="width:50%;">
+      <div style="font-size:22px; font-weight:bold; color:#1B3A5C; font-family:Arial,sans-serif;">ALLIED SYSTEMS INTEGRATIONS 360</div>
+      <div style="font-size:11px; color:#666; font-family:Arial,sans-serif;">One Company.. Unlimited Solutions..</div>
+      <div style="font-size:10px; color:#888; font-family:Arial,sans-serif; margin-top:4px;">(510) 288-0994 &nbsp;|&nbsp; ops@asi360.co &nbsp;|&nbsp; asi360.co</div>
+    </td>
+    <td style="width:50%; text-align:right;">
+      <div style="font-size:18px; font-weight:bold; color:#2E7D32; font-family:Arial,sans-serif;">FINAL CASE</div>
+      <div style="font-size:18px; font-weight:bold; color:#2E7D32; font-family:Arial,sans-serif;">CLOSURE REPORT</div>
+      <div style="font-size:10px; color:#888; font-family:Arial,sans-serif; margin-top:6px;">$cases-case_no$ &nbsp;|&nbsp; Closed: $cases-modifiedtime$</div>
+    </td>
+  </tr>
+</table>
+
+<!-- ============ BODY ============ -->
+
+<!-- CASE SUMMARY BANNER -->
+<table class="banner-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif;">
+  <tr>
+    <td style="background:#2E7D32; color:#FFF; padding:12px 16px; font-size:14px; font-weight:bold; text-align:center;">
+      CASE $cases-case_no$ — $cases-casestatus$
+    </td>
+  </tr>
+</table>
+
+<!-- CASE OVERVIEW -->
+<table class="overview-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;" colspan="4">CASE OVERVIEW</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:18%; border:1px solid #DDD;">Case ID</td>
+    <td style="padding:6px 12px; width:32%; border:1px solid #DDD; font-weight:bold;">$cases-case_no$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:18%; border:1px solid #DDD;">Date of Incident</td>
+    <td style="padding:6px 12px; width:32%; border:1px solid #DDD;">$cases-cf_cases_dateofincident$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Case Title</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;" colspan="3">$cases-title$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Contact</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-contact_id$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Organization</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-parent_id$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Company</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-cf_cases_company$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Email</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-email$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Priority</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-casepriority$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Final Status</td>
+    <td style="padding:6px 12px; border:1px solid #DDD; font-weight:bold; color:#2E7D32;">$cases-casestatus$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Problem Division</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-cf_cases_problemdivision$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Problem Type</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-cf_cases_problemtype$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Service Type</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-servicetype$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Channel</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-casechannel$</td>
+  </tr>
+</table>
+
+<!-- ORIGINAL INCIDENT -->
+<table class="incident-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;">ORIGINAL INCIDENT DESCRIPTION</td>
+  </tr>
+  <tr>
+    <td style="padding:12px; border:1px solid #DDD; line-height:1.6; background:#FAFAFA;">$cases-description$</td>
+  </tr>
+</table>
+
+<!-- RESOLUTION -->
+<table class="resolution-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#2E7D32; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;">RESOLUTION</td>
+  </tr>
+  <tr>
+    <td style="padding:12px; border:1px solid #DDD; line-height:1.6;">
+      $cases-resolution$
+      <br/><br/>
+      <strong>Resolution Type:</strong> $cases-resolution_type$
+    </td>
+  </tr>
+</table>
+
+<!-- WORK SUMMARY -->
+<table class="work-summary-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;">COMPLETE WORK SUMMARY</td>
+  </tr>
+  <tr>
+    <td style="padding:12px; border:1px solid #DDD; line-height:1.6;">
+      <em style="color:#888;">Comprehensive summary of all work performed across all visits: initial assessment, remediation steps, parts/materials used, configurations changed, and final testing results.</em>
+      <br/><br/>
+      <strong>Work Location:</strong> $cases-work_location$
+      <br/>
+      <strong>Related To:</strong> $cases-cf_cases_inrelationto$
+    </td>
+  </tr>
+</table>
+
+<!-- FULL CASE METRICS -->
+<table class="metrics-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;" colspan="6">CASE METRICS</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:8px 12px; font-weight:bold; width:16.6%; border:1px solid #DDD; text-align:center;">Case Age</td>
+    <td style="background:#F2F4F7; padding:8px 12px; font-weight:bold; width:16.6%; border:1px solid #DDD; text-align:center;">Total Time</td>
+    <td style="background:#F2F4F7; padding:8px 12px; font-weight:bold; width:16.6%; border:1px solid #DDD; text-align:center;">Billable Time</td>
+    <td style="background:#F2F4F7; padding:8px 12px; font-weight:bold; width:16.6%; border:1px solid #DDD; text-align:center;">Re-Assigns</td>
+    <td style="background:#F2F4F7; padding:8px 12px; font-weight:bold; width:16.6%; border:1px solid #DDD; text-align:center;">Reopens</td>
+    <td style="background:#F2F4F7; padding:8px 12px; font-weight:bold; width:16.6%; border:1px solid #DDD; text-align:center;">Wait Count</td>
+  </tr>
+  <tr>
+    <td style="padding:10px 12px; border:1px solid #DDD; text-align:center; font-size:14px; font-weight:bold; color:#1B3A5C;">$cases-age$<br/><span style="font-size:9px; color:#888; font-weight:normal;">days</span></td>
+    <td style="padding:10px 12px; border:1px solid #DDD; text-align:center; font-size:14px; font-weight:bold; color:#1B3A5C;">$cases-total_time$<br/><span style="font-size:9px; color:#888; font-weight:normal;">mins</span></td>
+    <td style="padding:10px 12px; border:1px solid #DDD; text-align:center; font-size:14px; font-weight:bold; color:#1B3A5C;">$cases-billable_time$<br/><span style="font-size:9px; color:#888; font-weight:normal;">mins</span></td>
+    <td style="padding:10px 12px; border:1px solid #DDD; text-align:center; font-size:14px; font-weight:bold; color:#1B3A5C;">$cases-reassign_count$</td>
+    <td style="padding:10px 12px; border:1px solid #DDD; text-align:center; font-size:14px; font-weight:bold; color:#1B3A5C;">$cases-reopen_count$</td>
+    <td style="padding:10px 12px; border:1px solid #DDD; text-align:center; font-size:14px; font-weight:bold; color:#1B3A5C;">$cases-wait_count$</td>
+  </tr>
+</table>
+
+<!-- SLA PERFORMANCE -->
+<table class="sla-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;" colspan="4">SLA PERFORMANCE</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">SLA Name</td>
+    <td style="padding:6px 12px; width:25%; border:1px solid #DDD;">$cases-slaid$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">SLA Status</td>
+    <td style="padding:6px 12px; width:25%; border:1px solid #DDD; font-weight:bold;">$cases-slastatus$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">First Response Target</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-first_response_expectedon$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">First Response Actual</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-first_response_actualon$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">First Response Status</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-first_response_status$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">SLA Time Elapsed</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-resolution_time$ mins</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Resolution Due</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-sla_closureon$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Resolution Actual</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-sla_actual_closureon$</td>
+  </tr>
+</table>
+
+<!-- BILLING SUMMARY -->
+<table class="billing-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;" colspan="4">BILLING SUMMARY</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">Is Billable</td>
+    <td style="padding:6px 12px; width:25%; border:1px solid #DDD;">#CF|IF|$cases-is_billable$|1|==|Yes|No|CF#</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">Invoiced</td>
+    <td style="padding:6px 12px; width:25%; border:1px solid #DDD;">#CF|IF|$cases-is_billed$|1|==|Yes — Invoiced|Pending|CF#</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Rate</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-rate$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Billable Time</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-billable_time$ mins</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Service</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-billing_service$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Service Contract</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-servicecontract_id$</td>
+  </tr>
+</table>
+
+<!-- CLIENT SATISFACTION -->
+<table class="satisfaction-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;" colspan="2">CLIENT SATISFACTION</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">Rating</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-satisfaction_index$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Feedback</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-satisfaction_feedback$</td>
+  </tr>
+</table>
+
+<!-- SIGNATURES -->
+<table class="signature-section" style="width:100%; border-collapse:collapse; margin-top:30px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="width:33%; padding:10px 0; border-top:2px solid #1B3A5C;">
+      <div style="font-weight:bold; color:#1B3A5C; margin-bottom:4px;">CASE OWNER</div>
+      <div>$cases-assigned_user_id$</div>
+      <div style="color:#888;">ASI 360</div>
+    </td>
+    <td style="width:33%; padding:10px 0; border-top:2px solid #1B3A5C; text-align:center;">
+      <div style="font-weight:bold; color:#1B3A5C; margin-bottom:4px;">APPROVED BY</div>
+      <div style="margin-top:25px; border-bottom:1px solid #333; width:200px; display:inline-block;">&nbsp;</div>
+      <div style="font-size:10px; color:#888;">Manager Signature</div>
+    </td>
+    <td style="width:33%; padding:10px 0; border-top:2px solid #1B3A5C; text-align:right;">
+      <div style="font-weight:bold; color:#1B3A5C; margin-bottom:4px;">CLIENT ACKNOWLEDGMENT</div>
+      <div style="margin-top:25px; border-bottom:1px solid #333; width:200px; display:inline-block;">&nbsp;</div>
+      <div style="font-size:10px; color:#888;">Client Signature &amp; Date</div>
+    </td>
+  </tr>
+</table>
+
+<!-- ============ FOOTER ============ -->
+<div style="text-align:center; font-size:9px; color:#999; margin-top:20px; padding-top:10px; border-top:1px solid #DDD; font-family:Arial,sans-serif;">
+  CONFIDENTIAL — This report contains security system details. Distribution restricted to property owner and authorized personnel.<br/>
+  Allied Systems Integrations 360 &nbsp;|&nbsp; (510) 288-0994 &nbsp;|&nbsp; ops@asi360.co &nbsp;|&nbsp; $cases-case_no$ &nbsp;|&nbsp; Page $special-pageNumber$ of $special-totalPageNumber$
+</div>

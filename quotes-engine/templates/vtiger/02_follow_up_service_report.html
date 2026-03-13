@@ -1,0 +1,201 @@
+<!-- ASI 360 — Case Print Template: Follow-Up / Secondary Service Report -->
+<!-- Module: Cases | VTiger Print Template HTML -->
+<!-- Paste into: Tools > Templates > Print Templates > +Add > Source Code -->
+
+<!-- ============ HEADER ============ -->
+<table style="width:100%; border-bottom:3px solid #1B3A5C; padding-bottom:10px; margin-bottom:15px;">
+  <tr>
+    <td style="width:50%;">
+      <div style="font-size:22px; font-weight:bold; color:#1B3A5C; font-family:Arial,sans-serif;">ALLIED SYSTEMS INTEGRATIONS 360</div>
+      <div style="font-size:11px; color:#666; font-family:Arial,sans-serif;">One Company.. Unlimited Solutions..</div>
+      <div style="font-size:10px; color:#888; font-family:Arial,sans-serif; margin-top:4px;">(510) 288-0994 &nbsp;|&nbsp; ops@asi360.co &nbsp;|&nbsp; asi360.co</div>
+    </td>
+    <td style="width:50%; text-align:right;">
+      <div style="font-size:18px; font-weight:bold; color:#E67E00; font-family:Arial,sans-serif;">FOLLOW-UP SERVICE</div>
+      <div style="font-size:18px; font-weight:bold; color:#E67E00; font-family:Arial,sans-serif;">REPORT</div>
+      <div style="font-size:10px; color:#888; font-family:Arial,sans-serif; margin-top:6px;">$cases-case_no$ &nbsp;|&nbsp; Updated: $cases-modifiedtime$</div>
+    </td>
+  </tr>
+</table>
+
+<!-- ============ BODY ============ -->
+
+<!-- CASE REFERENCE -->
+<table class="case-ref-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;" colspan="4">CASE REFERENCE</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:18%; border:1px solid #DDD;">Case ID</td>
+    <td style="padding:6px 12px; width:32%; border:1px solid #DDD; font-weight:bold; color:#1B3A5C;">$cases-case_no$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:18%; border:1px solid #DDD;">Original Incident</td>
+    <td style="padding:6px 12px; width:32%; border:1px solid #DDD;">$cases-cf_cases_dateofincident$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Case Title</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;" colspan="3">$cases-title$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Current Status</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">
+      <strong>$cases-casestatus$</strong>
+    </td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Priority</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-casepriority$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Contact</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-contact_id$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Organization</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-parent_id$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Problem Division</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-cf_cases_problemdivision$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Problem Type</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-cf_cases_problemtype$</td>
+  </tr>
+</table>
+
+<!-- ORIGINAL INCIDENT SUMMARY -->
+<table class="original-summary-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;">ORIGINAL INCIDENT SUMMARY</td>
+  </tr>
+  <tr>
+    <td style="padding:12px; border:1px solid #DDD; line-height:1.6; background:#FAFAFA;">$cases-description$</td>
+  </tr>
+</table>
+
+<!-- FOLLOW-UP VISIT DETAILS -->
+<table class="followup-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#E67E00; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;">FOLLOW-UP VISIT DETAILS</td>
+  </tr>
+  <tr>
+    <td style="padding:12px; border:1px solid #DDD; line-height:1.6;">
+      <table style="width:100%; border-collapse:collapse;">
+        <tr>
+          <td style="background:#FFF7ED; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">Service Date</td>
+          <td style="padding:6px 12px; width:25%; border:1px solid #DDD;">$cases-cf_cases_servicedate$</td>
+          <td style="background:#FFF7ED; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">Technician</td>
+          <td style="padding:6px 12px; width:25%; border:1px solid #DDD;">$cases-assigned_user_id$</td>
+        </tr>
+        <tr>
+          <td style="background:#FFF7ED; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Work Location</td>
+          <td style="padding:6px 12px; border:1px solid #DDD;" colspan="3">$cases-work_location$</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- WORK PERFORMED -->
+<table class="work-performed-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;">WORK PERFORMED THIS VISIT</td>
+  </tr>
+  <tr>
+    <td style="padding:12px; border:1px solid #DDD; line-height:1.6;">
+      <em style="color:#888;">Detail all work completed during this follow-up visit: repairs, installations, testing, adjustments, parts replaced, and configuration changes.</em>
+    </td>
+  </tr>
+</table>
+
+<!-- PROGRESS ASSESSMENT -->
+<table class="progress-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;">PROGRESS ASSESSMENT</td>
+  </tr>
+  <tr>
+    <td style="padding:12px; border:1px solid #DDD; line-height:1.6;">
+      <em style="color:#888;">Compare current system status to initial visit findings. What has improved, what remains outstanding, and what new issues were discovered.</em>
+      <br/><br/>
+      <strong>In Relation To:</strong> $cases-cf_cases_inrelationto$
+    </td>
+  </tr>
+</table>
+
+<!-- REMAINING ITEMS & NEXT STEPS -->
+<table class="remaining-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#C8102E; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;">REMAINING ITEMS &amp; NEXT STEPS</td>
+  </tr>
+  <tr>
+    <td style="padding:12px; border:1px solid #DDD; line-height:1.8;">
+      <em style="color:#888;">Outstanding action items, additional visits required, parts on order, escalation needs, and estimated completion timeline.</em>
+    </td>
+  </tr>
+</table>
+
+<!-- TIME & BILLING -->
+<table class="time-billing-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;" colspan="4">TIME &amp; BILLING</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">Total Time on Case</td>
+    <td style="padding:6px 12px; width:25%; border:1px solid #DDD;">$cases-total_time$ mins</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">Billable Time</td>
+    <td style="padding:6px 12px; width:25%; border:1px solid #DDD;">$cases-billable_time$ mins</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Is Billable</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">#CF|IF|$cases-is_billable$|1|==|Yes|No|CF#</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Invoiced</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">#CF|IF|$cases-is_billed$|1|==|Yes|No|CF#</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Rate</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-rate$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">SLA Status</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-slastatus$</td>
+  </tr>
+</table>
+
+<!-- SLA TIMELINE -->
+<table class="sla-section" style="width:100%; border-collapse:collapse; margin-bottom:20px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="background:#1B3A5C; color:#FFF; padding:8px 12px; font-weight:bold; font-size:12px;" colspan="4">SLA TIMELINE</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">First Response Target</td>
+    <td style="padding:6px 12px; width:25%; border:1px solid #DDD;">$cases-first_response_expectedon$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; width:25%; border:1px solid #DDD;">First Response Actual</td>
+    <td style="padding:6px 12px; width:25%; border:1px solid #DDD;">$cases-first_response_actualon$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Resolution Due</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-sla_closureon$</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Time in Current State</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-current_state_entry_time$</td>
+  </tr>
+  <tr>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Case Age</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-age$ days</td>
+    <td style="background:#F2F4F7; padding:6px 12px; font-weight:bold; border:1px solid #DDD;">Re-Assign Count</td>
+    <td style="padding:6px 12px; border:1px solid #DDD;">$cases-reassign_count$</td>
+  </tr>
+</table>
+
+<!-- SIGNATURE -->
+<table class="signature-section" style="width:100%; border-collapse:collapse; margin-top:30px; font-family:Arial,sans-serif; font-size:11px;">
+  <tr>
+    <td style="width:50%; padding:10px 0; border-top:2px solid #1B3A5C;">
+      <div style="font-weight:bold; color:#1B3A5C; margin-bottom:4px;">SERVICE TECHNICIAN</div>
+      <div>$cases-assigned_user_id$</div>
+      <div style="color:#888;">Allied Systems Integrations 360</div>
+    </td>
+    <td style="width:50%; padding:10px 0; border-top:2px solid #1B3A5C; text-align:right;">
+      <div style="font-weight:bold; color:#1B3A5C; margin-bottom:4px;">CLIENT ACKNOWLEDGMENT</div>
+      <div style="margin-top:30px; border-bottom:1px solid #333; width:250px; display:inline-block;">&nbsp;</div>
+      <div style="font-size:10px; color:#888;">Client Signature &amp; Date</div>
+    </td>
+  </tr>
+</table>
+
+<!-- ============ FOOTER ============ -->
+<div style="text-align:center; font-size:9px; color:#999; margin-top:20px; padding-top:10px; border-top:1px solid #DDD; font-family:Arial,sans-serif;">
+  CONFIDENTIAL — This report contains security system details. Distribution restricted to property owner and authorized personnel.<br/>
+  Allied Systems Integrations 360 &nbsp;|&nbsp; (510) 288-0994 &nbsp;|&nbsp; ops@asi360.co &nbsp;|&nbsp; $cases-case_no$ &nbsp;|&nbsp; Page $special-pageNumber$ of $special-totalPageNumber$
+</div>

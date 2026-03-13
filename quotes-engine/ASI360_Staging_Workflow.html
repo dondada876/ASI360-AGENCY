@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASI 360 — Staging Environment for Front-End Development</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',sans-serif;background:#0a0a0f;color:#e2e8f0;line-height:1.7}
+  .container{max-width:1100px;margin:0 auto;padding:0 24px}
+  .hero{background:linear-gradient(135deg,#0f0f1a 0%,#0a0a1a 50%,#0f0f1a 100%);padding:50px 0 40px;border-bottom:3px solid #0ea5e9}
+  .hero h1{font-size:36px;font-weight:900;color:#0ea5e9}
+  .hero .sub{font-size:17px;color:#94a3b8;margin-top:6px}
+  section{padding:40px 0;border-bottom:1px solid #1a1a2e}
+  .sl{font-size:11px;text-transform:uppercase;letter-spacing:3px;color:#0ea5e9;font-weight:700;margin-bottom:6px}
+  .st{font-size:26px;font-weight:800;color:#f1f5f9;margin-bottom:16px}
+
+  .rec{background:linear-gradient(135deg,#0a1a12,#111118);border:2px solid #10b981;border-radius:16px;padding:28px;margin-bottom:20px;position:relative}
+  .rec::before{content:'★ RECOMMENDED';position:absolute;top:-12px;left:24px;background:#10b981;color:#0a0a0f;font-size:11px;font-weight:800;padding:3px 14px;border-radius:12px;letter-spacing:1px}
+  .rec h3{font-size:22px;font-weight:800;color:#10b981;margin-bottom:10px;margin-top:8px}
+  .rec p{font-size:14px;color:#94a3b8;margin-bottom:8px}
+
+  .opt{background:#111118;border:1px solid #1e1e30;border-radius:16px;padding:28px;margin-bottom:20px}
+  .opt h3{font-size:20px;font-weight:800;color:#94a3b8;margin-bottom:10px}
+  .opt p{font-size:14px;color:#64748b;margin-bottom:8px}
+
+  .pro-item,.con-item{font-size:13px;padding:8px 14px;border-radius:8px;margin-bottom:6px}
+  .pro-item{background:rgba(16,185,129,0.08);color:#86efac;border-left:3px solid #10b981}
+  .con-item{background:rgba(239,68,68,0.08);color:#fca5a5;border-left:3px solid #ef4444}
+
+  .flow{background:#111118;border-radius:14px;padding:24px;border:1px solid #1e1e30;margin-top:14px;font-family:'Courier New',monospace;font-size:13px;color:#94a3b8;line-height:2.2}
+  .flow .dir{color:#0ea5e9;font-weight:700}
+  .flow .action{color:#10b981;font-weight:700}
+  .flow .warn{color:#ef4444;font-weight:700}
+  .flow .file{color:#f59e0b}
+
+  .steps{counter-reset:step;margin-top:14px}
+  .step{background:#111118;border-radius:14px;padding:24px;border:1px solid #1e1e30;margin-bottom:14px;position:relative;padding-left:72px}
+  .step::before{counter-increment:step;content:counter(step);position:absolute;left:24px;top:24px;width:32px;height:32px;background:#0ea5e9;color:#0a0a0f;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+  .step h4{font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:6px}
+  .step p{font-size:13px;color:#94a3b8}
+  .step code{background:#0a0a14;padding:2px 8px;border-radius:4px;font-size:12px;color:#0ea5e9}
+  .step pre{background:#0a0a14;padding:12px 16px;border-radius:8px;font-size:12px;color:#cbd5e1;margin-top:8px;overflow-x:auto;white-space:pre-wrap}
+
+  .tbl{width:100%;border-collapse:separate;border-spacing:0;border-radius:12px;overflow:hidden;margin-top:14px}
+  .tbl th{background:#1a1a2e;padding:11px 14px;font-size:11px;font-weight:700;color:#64748b;text-align:center;text-transform:uppercase;letter-spacing:1px}
+  .tbl td{padding:10px 14px;font-size:13px;color:#cbd5e1;border-bottom:1px solid #1a1a2e;background:#111118;text-align:center}
+  .tbl td:first-child{text-align:left;font-weight:600;color:#94a3b8}
+  .tbl td.win{color:#10b981;font-weight:700}
+  .tbl td.hot{color:#ef4444;font-weight:700}
+
+  .note{background:#0a1218;border:1px solid #113322;border-radius:10px;padding:16px;font-size:13px;color:#86efac;margin-top:18px}
+  .note strong{color:#10b981}
+  .note.red{background:#1a0a0a;border-color:#2d1111;color:#fca5a5}
+  .note.red strong{color:#ef4444}
+
+  .footer{text-align:center;color:#475569;font-size:12px;padding:30px 0}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <h1>ASI 360 — Staging Environment</h1>
+    <div class="sub">Safe front-end development workflow so DMX never breaks production again</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- THE PROBLEM -->
+<!-- ═══════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="sl">The Problem</div>
+    <div class="st">No Staging = Production Goes Down When Something Breaks</div>
+    <p style="color:#94a3b8;font-size:14px">Right now, changes to asi360.co happen live. If DMX (or anyone) pushes a CSS change that breaks the header, or a JS error that kills the page, customers see it immediately. There's no "undo" button and no safe place to test. The solution is a staging environment — a copy of the site where you can break things freely, and only push to production when it's confirmed working.</p>
+
+    <div class="note red">
+      <strong>What happened last time:</strong> Changes went directly to production → something broke → site went down → had to scramble to fix. This workflow eliminates that risk entirely.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- THREE OPTIONS -->
+<!-- ═══════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="sl">Three Options</div>
+    <div class="st">SiteGround Staging vs. Subdomain Clone vs. GitHub + Local Dev</div>
+
+    <!-- OPTION A: SiteGround Staging -->
+    <div class="rec">
+      <h3>Option A — SiteGround Built-In Staging (Fastest, Easiest, Free)</h3>
+      <p>SiteGround has a one-click staging tool built into Site Tools. It creates an exact copy of your WordPress site at a staging URL. DMX works on the staging copy. When everything looks good, you push staging → production with one click. If anything breaks on staging, production is untouched.</p>
+
+      <div class="pro-item">One-click create: exact clone of asi360.co with all plugins, themes, content</div>
+      <div class="pro-item">Free — included in your SiteGround plan</div>
+      <div class="pro-item">Same server, same PHP, same environment — no "works on my machine" issues</div>
+      <div class="pro-item">One-click merge staging → production when ready</div>
+      <div class="pro-item">Password-protected by default — customers can't see the staging site</div>
+      <div class="pro-item">DMX gets full wp-admin access on staging without touching production</div>
+      <div class="pro-item">Can push just files, just database, or both</div>
+      <div class="con-item">Only 1 staging copy at a time (can't have 2 designers on 2 different versions)</div>
+      <div class="con-item">No Git history — changes aren't version-controlled</div>
+
+      <div class="note">
+        <strong>This is the move for right now.</strong> SiteGround staging takes 5 minutes to set up, costs nothing, and gives DMX a safe playground. You don't need Git or a complex CI/CD pipeline for front-end design work. Just click "Create Staging" and hand DMX the login.
+      </div>
+    </div>
+
+    <!-- OPTION B: Subdomain Clone -->
+    <div class="opt">
+      <h3>Option B — Manual Subdomain Clone (dev.asi360.co)</h3>
+      <p>Create a subdomain like dev.asi360.co, install a fresh WordPress copy, import the theme/plugins/content, and use it as a permanent dev environment. More control than SiteGround staging but more setup work.</p>
+
+      <div class="pro-item">Permanent dev environment — doesn't need to be recreated each time</div>
+      <div class="pro-item">Can run different plugins/themes for experimentation</div>
+      <div class="pro-item">Separate database — impossible to corrupt production</div>
+      <div class="con-item">Manual setup: install WP, activate licenses, import content</div>
+      <div class="con-item">Uses one of your Astra/Spectra license activations (3/1000 — fine)</div>
+      <div class="con-item">No one-click merge — changes must be manually replicated to production</div>
+      <div class="con-item">Content drift: staging gets out of sync with production over time</div>
+    </div>
+
+    <!-- OPTION C: GitHub + Local + Deploy -->
+    <div class="opt">
+      <h3>Option C — GitHub Repo + Local Dev + Deploy Pipeline (Pro Setup)</h3>
+      <p>Export the theme files and custom code to a GitHub repo. DMX clones locally, makes changes, pushes to GitHub. A deploy script syncs approved changes to production via FTP through the droplet.</p>
+
+      <div class="pro-item">Full Git version control — every change tracked, reviewable, reversible</div>
+      <div class="pro-item">Multiple designers can work on branches simultaneously</div>
+      <div class="pro-item">Code review before anything touches production</div>
+      <div class="pro-item">Professional workflow — scales to a team</div>
+      <div class="con-item">DMX needs to run WordPress locally (Local by Flywheel, MAMP, Docker)</div>
+      <div class="con-item">Setup time: 2-4 hours to get everything working</div>
+      <div class="con-item">Only covers theme files + custom CSS/JS — not Gutenberg block content</div>
+      <div class="con-item">Spectra block designs live in the database, not in files — Git can't track them</div>
+      <div class="con-item">Overkill for front-end design tweaks</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- DECISION -->
+<!-- ═══════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="sl">Decision Matrix</div>
+    <div class="st">Side-by-Side</div>
+
+    <table class="tbl">
+      <tr>
+        <th>Factor</th>
+        <th style="color:#10b981">A: SiteGround Staging ★</th>
+        <th>B: Subdomain Clone</th>
+        <th>C: GitHub + Local</th>
+      </tr>
+      <tr>
+        <td>Setup Time</td>
+        <td class="win">5 minutes</td>
+        <td>1-2 hours</td>
+        <td class="hot">2-4 hours</td>
+      </tr>
+      <tr>
+        <td>Cost</td>
+        <td class="win">$0 (included)</td>
+        <td class="win">$0</td>
+        <td class="win">$0</td>
+      </tr>
+      <tr>
+        <td>Protects Production</td>
+        <td class="win">100%</td>
+        <td class="win">100%</td>
+        <td class="win">100%</td>
+      </tr>
+      <tr>
+        <td>Identical to Production</td>
+        <td class="win">Exact clone</td>
+        <td>Close but manual</td>
+        <td class="hot">Files only, not content</td>
+      </tr>
+      <tr>
+        <td>DMX Skill Level Needed</td>
+        <td class="win">WordPress admin</td>
+        <td>WordPress admin</td>
+        <td class="hot">Git + local WP setup</td>
+      </tr>
+      <tr>
+        <td>One-Click Deploy to Production</td>
+        <td class="win">Yes</td>
+        <td class="hot">No (manual)</td>
+        <td>Semi-auto (script)</td>
+      </tr>
+      <tr>
+        <td>Version Control (Git)</td>
+        <td class="hot">No</td>
+        <td class="hot">No</td>
+        <td class="win">Yes</td>
+      </tr>
+      <tr>
+        <td>Tracks Spectra Block Changes</td>
+        <td class="win">Yes (full DB clone)</td>
+        <td class="win">Yes</td>
+        <td class="hot">No (blocks are in DB)</td>
+      </tr>
+      <tr>
+        <td>Multiple Designers</td>
+        <td class="hot">1 at a time</td>
+        <td>1 per subdomain</td>
+        <td class="win">Unlimited (branches)</td>
+      </tr>
+    </table>
+
+    <div class="note">
+      <strong>The play: Start with Option A (SiteGround Staging) now.</strong> It's the fastest path to protecting production. Later, when you have a team or need Git-tracked theme changes, layer on Option C. They're not mutually exclusive — SiteGround staging for content/design work, GitHub for theme code.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SETUP GUIDE: SITEGROUND STAGING -->
+<!-- ═══════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="sl">Setup Guide</div>
+    <div class="st">Option A — SiteGround Staging in 5 Minutes</div>
+
+    <div class="steps">
+      <div class="step">
+        <h4>Log into SiteGround Site Tools</h4>
+        <p>Go to <code>tools.siteground.com</code> → select asi360.co → Site Tools dashboard</p>
+      </div>
+
+      <div class="step">
+        <h4>Create Staging Copy</h4>
+        <p>Navigate to <strong>WordPress → Staging</strong> in the left sidebar. Click <strong>"Create Staging"</strong>. SiteGround will clone the entire site — files, database, plugins, themes, everything — to a staging URL like <code>stg-asi360co.siteground.cloud</code></p>
+        <p style="margin-top:8px">This takes 1-3 minutes depending on site size.</p>
+      </div>
+
+      <div class="step">
+        <h4>Give DMX Staging Credentials</h4>
+        <p>The staging site has its own wp-admin. Either:</p>
+        <p>a) Share the staging URL + existing admin credentials (they work on staging too), OR</p>
+        <p>b) Log into staging wp-admin → Users → Add New → create a "dmx-designer" account with Editor or Administrator role</p>
+        <p style="margin-top:8px"><strong>DMX can now go wild on staging. Nothing touches production.</strong></p>
+      </div>
+
+      <div class="step">
+        <h4>DMX Makes All Changes on Staging</h4>
+        <p>DMX works exclusively on <code>stg-asi360co.siteground.cloud</code>:</p>
+        <p>— Customizer changes (colors, fonts, header, footer)</p>
+        <p>— Page edits with Spectra blocks</p>
+        <p>— New pages, new layouts</p>
+        <p>— CSS customizations</p>
+        <p>— Menu changes, widget changes</p>
+        <p>— Everything.</p>
+      </div>
+
+      <div class="step">
+        <h4>You Review Staging Before Pushing Live</h4>
+        <p>Visit the staging URL yourself. Check every page. Make sure nothing is broken. Ask DMX to walk you through the changes. Only proceed when you're satisfied.</p>
+      </div>
+
+      <div class="step">
+        <h4>Push Staging → Production (One Click)</h4>
+        <p>Back in SiteGround Site Tools → WordPress → Staging → click <strong>"Push to Live"</strong>.</p>
+        <p style="margin-top:8px">Choose what to push:</p>
+        <p>— <strong>Full Push:</strong> Files + Database (replaces everything)</p>
+        <p>— <strong>Files Only:</strong> Theme, plugins, CSS/JS (keeps production content/orders)</p>
+        <p>— <strong>Database Only:</strong> Content, pages, settings (keeps production files)</p>
+        <p style="margin-top:8px;color:#10b981;font-weight:700">For design changes: "Full Push" is usually correct. For content-only updates: "Database Only".</p>
+      </div>
+
+      <div class="step">
+        <h4>Verify Production</h4>
+        <p>Visit asi360.co and confirm everything looks right. SiteGround automatically creates a backup before pushing, so if anything goes wrong you can restore in 1 click under Site Tools → Security → Backups.</p>
+      </div>
+    </div>
+
+    <div class="note red">
+      <strong>Important:</strong> While staging exists, don't make changes on BOTH staging and production simultaneously. That creates merge conflicts. The rule is: all changes happen on staging, and production only gets updated via the "Push to Live" button.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- DMX WORKFLOW RULES -->
+<!-- ═══════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="sl">DMX Rules of Engagement</div>
+    <div class="st">What DMX Can and Cannot Do</div>
+
+    <table class="tbl">
+      <tr>
+        <th style="color:#10b981">DMX CAN (on staging)</th>
+        <th style="color:#ef4444">DMX CANNOT</th>
+      </tr>
+      <tr>
+        <td class="win" style="text-align:left">Edit any page content using Spectra blocks</td>
+        <td class="hot" style="text-align:left">Log into production wp-admin directly</td>
+      </tr>
+      <tr>
+        <td class="win" style="text-align:left">Change colors, fonts, spacing in Customizer</td>
+        <td class="hot" style="text-align:left">Make changes on asi360.co (only staging)</td>
+      </tr>
+      <tr>
+        <td class="win" style="text-align:left">Redesign header/footer with Astra Builder</td>
+        <td class="hot" style="text-align:left">Install or delete plugins without approval</td>
+      </tr>
+      <tr>
+        <td class="win" style="text-align:left">Create new pages, delete test pages</td>
+        <td class="hot" style="text-align:left">Change WooCommerce payment/shipping settings</td>
+      </tr>
+      <tr>
+        <td class="win" style="text-align:left">Add custom CSS in Customizer → Additional CSS</td>
+        <td class="hot" style="text-align:left">Edit functions.php directly</td>
+      </tr>
+      <tr>
+        <td class="win" style="text-align:left">Upload images and media</td>
+        <td class="hot" style="text-align:left">Push staging to live (only Don does this)</td>
+      </tr>
+      <tr>
+        <td class="win" style="text-align:left">Test mega menus, navigation changes</td>
+        <td class="hot" style="text-align:left">Change user roles or create admin accounts</td>
+      </tr>
+      <tr>
+        <td class="win" style="text-align:left">Break things! That's the whole point</td>
+        <td class="hot" style="text-align:left">Access SiteGround Site Tools (only Don)</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- OPTIONAL: GITHUB LAYER -->
+<!-- ═══════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="sl">Optional: Add Git Later</div>
+    <div class="st">Phase 2 — GitHub Repo for Theme Customizations</div>
+    <p style="color:#94a3b8;font-size:14px;margin-bottom:16px">Once the staging workflow is running smoothly, you can layer on a GitHub repo for tracking custom theme code (child theme CSS, custom JS, mu-plugins). This doesn't replace SiteGround staging — it adds version control on top.</p>
+
+    <div class="flow">
+<span class="dir">GitHub Repo: asi360/asi360-theme</span><br>
+├── <span class="file">style.css</span> — Child theme stylesheet<br>
+├── <span class="file">functions.php</span> — Custom PHP hooks (careful!)<br>
+├── <span class="file">custom.css</span> — Additional CSS overrides<br>
+├── <span class="file">custom.js</span> — Front-end scripts<br>
+├── <span class="file">mu-plugins/</span> — Must-use plugins (mega menu, custom post types)<br>
+├── <span class="file">assets/</span> — Custom icons, images, fonts<br>
+├── <span class="file">.github/workflows/deploy.yml</span> — Auto-deploy on merge to main<br>
+└── <span class="file">README.md</span> — Setup instructions for designers<br>
+<br>
+<span class="action">DMX Workflow with Git:</span><br>
+1. git checkout -b <span class="file">feature/new-header</span><br>
+2. Make CSS/JS changes locally<br>
+3. git push → create Pull Request<br>
+4. Don reviews PR → approves → merges to main<br>
+5. GitHub Action → FTP deploys to SiteGround via droplet<br>
+6. <span class="warn">Only theme files deploy — page content stays in WordPress</span><br>
+<br>
+<span class="warn">IMPORTANT:</span> Spectra block content (page layouts, sections) lives<br>
+in the WordPress database, NOT in files. Git only tracks the theme<br>
+layer (CSS, JS, PHP). For page design changes, use SiteGround staging.
+    </div>
+
+    <div class="note">
+      <strong>When to add Git:</strong> When DMX is writing custom CSS/JS files that you want version-controlled. Not needed for drag-and-drop Spectra block design — that's what staging is for. The two tools serve different purposes: staging = safe content/design changes, Git = tracked code changes.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SUMMARY -->
+<!-- ═══════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="sl">Summary</div>
+    <div class="st">Action Plan</div>
+
+    <table class="tbl">
+      <tr>
+        <th>#</th>
+        <th>Action</th>
+        <th>Who</th>
+        <th>Time</th>
+      </tr>
+      <tr><td>1</td><td style="text-align:left">Create SiteGround staging copy of asi360.co</td><td>Don</td><td class="win">5 min</td></tr>
+      <tr><td>2</td><td style="text-align:left">Create DMX user account on staging wp-admin</td><td>Don</td><td class="win">2 min</td></tr>
+      <tr><td>3</td><td style="text-align:left">Send DMX the staging URL + credentials</td><td>Don</td><td class="win">1 min</td></tr>
+      <tr><td>4</td><td style="text-align:left">DMX designs on staging — breaks stuff freely</td><td>DMX</td><td>Ongoing</td></tr>
+      <tr><td>5</td><td style="text-align:left">DMX notifies Don when ready for review</td><td>DMX</td><td>—</td></tr>
+      <tr><td>6</td><td style="text-align:left">Don reviews staging → pushes to live</td><td>Don</td><td class="win">5 min</td></tr>
+      <tr><td>7</td><td style="text-align:left">(Optional later) Set up GitHub repo for custom CSS/JS</td><td>Don/Claude</td><td>1-2 hrs</td></tr>
+    </table>
+  </div>
+</section>
+
+<div class="footer">
+  ASI 360 &nbsp;|&nbsp; 2342 Shattuck Ave, Berkeley, CA 94704 &nbsp;|&nbsp; info@asi360.co<br>
+  Staging Environment Workflow &nbsp;|&nbsp; March 2026
+</div>
+
+</body>
+</html>

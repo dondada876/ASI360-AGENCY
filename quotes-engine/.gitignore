@@ -1,0 +1,21 @@
+# Client deliverables — never commit client PDFs, DOCX, XLSX to git
+*.pdf
+*.docx
+*.xlsx
+*.pptx
+*.csv
+
+# Generated output
+output/
+dist/
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Node
+node_modules/
+
+# OS
+.DS_Store

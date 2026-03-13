@@ -1,0 +1,105 @@
+{
+  "title": "Goldman Law Firm — Access Control Upgrade",
+  "client": "Goldman Law Firm",
+  "manager": "Don Bucknor",
+  "date": "03/09/2026",
+  "quote_no": "QUO202366 / QUO202368",
+  "contract_value": 7115.00,
+
+  "periods": [
+    {"label": "WEEK 1", "span": 5},
+    {"label": "WEEK 2", "span": 5}
+  ],
+
+  "day_labels": ["MON", "TUE", "WED", "THU", "FRI", "MON", "TUE", "WED", "THU", "FRI"],
+
+  "phases": [
+    {
+      "number": 1,
+      "name": "Site Survey & Data Harvest",
+      "tasks": [
+        {"name": "Door hardware audit & photos", "bar_start": 0, "bar_end": 0, "bar_label": "Door Audit"},
+        {"name": "Credential inventory (fobs/cards)", "bar_start": 0, "bar_end": 0, "bar_label": "Credentials"},
+        {"name": "Network & cable verification", "bar_start": 1, "bar_end": 1, "bar_label": "Cable Verify"}
+      ]
+    },
+    {
+      "number": 2,
+      "name": "Equipment Staging",
+      "is_buffer": true,
+      "tasks": [
+        {"name": "Procurement & delivery", "bar_start": 2, "bar_end": 3, "bar_label": "Procurement", "bar_color": "#78909C"},
+        {"name": "Shop pre-build & programming", "bar_start": 3, "bar_end": 4, "bar_label": "Shop Build", "bar_color": "#78909C"},
+        {"name": "Pre-deployment QA testing", "bar_start": 4, "bar_end": 4, "bar_label": "QA Test", "bar_color": "#78909C"}
+      ]
+    },
+    {
+      "number": 3,
+      "name": "Installation & Cutover",
+      "tasks": [
+        {"name": "Demo existing hardware", "bar_start": 5, "bar_end": 5, "bar_label": "Demo"},
+        {"name": "Mount & wire new controller", "bar_start": 5, "bar_end": 6, "bar_label": "Install Controller"},
+        {"name": "Reader swap & door hardware", "bar_start": 6, "bar_end": 7, "bar_label": "Reader Swap"}
+      ]
+    },
+    {
+      "number": 4,
+      "name": "Programming & Commissioning",
+      "tasks": [
+        {"name": "Software configuration", "bar_start": 7, "bar_end": 8, "bar_label": "SW Config"},
+        {"name": "Credential enrollment & testing", "bar_start": 8, "bar_end": 8, "bar_label": "Enrollment"},
+        {"name": "Integration & system testing", "bar_start": 8, "bar_end": 9, "bar_label": "Integration Test"}
+      ]
+    },
+    {
+      "number": 5,
+      "name": "Training & Closeout",
+      "tasks": [
+        {"name": "Staff training session", "bar_start": 9, "bar_end": 9, "bar_label": "Training"},
+        {"name": "Documentation & as-builts", "bar_start": 9, "bar_end": 9, "bar_label": "As-Builts"},
+        {"name": "Final walkthrough & signoff", "bar_start": 9, "bar_end": 9, "bar_label": "Signoff"}
+      ]
+    },
+    {
+      "number": 0,
+      "name": "PROJECT COMPLETE",
+      "is_milestone": true,
+      "bar_start": 9, "bar_end": 9, "bar_label": "✓ COMPLETE",
+      "tasks": []
+    }
+  ],
+
+  "notes": [
+    {
+      "title": "Delivery Strategy",
+      "color": "#0B5394",
+      "bullet_items": [
+        "Pre-build all equipment at ASI 360 shop",
+        "On-site cutover window: <span class='highlight'>90 minutes</span>",
+        "Zero-lockout protocol — security escort during swap",
+        "Old hardware retained 48 hrs for rollback"
+      ]
+    },
+    {
+      "title": "Payment Milestones",
+      "color": "#38761D",
+      "bullet_items": [
+        "At contract: <span class='highlight'>$5,627.50</span> (100% equipment + 50% labor)",
+        "At completion: <span class='highlight'>$1,487.50</span> (50% labor balance)",
+        "Grand total: <span class='highlight'>$7,115.00</span>",
+        "Quote refs: QUO202366 (Equipment) + QUO202368 (Services)"
+      ]
+    },
+    {
+      "title": "Scope Summary",
+      "color": "#B85B22",
+      "bullet_items": [
+        "Keri Systems NXT controller (on-prem + keypad)",
+        "2-door access control: front entry + suite",
+        "LAN-520 readers with existing fob credentials",
+        "Dedicated workstation + Doors.NET software",
+        "Contact: Zachary Stewart, zstewart@goldmanlawfirm.net"
+      ]
+    }
+  ]
+}
