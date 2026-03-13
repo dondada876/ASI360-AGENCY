@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ project.title }} — Project Timeline</title>
+<style>
+  @page { size: landscape; margin: 0.3in; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-size: 8.5px; color: #333; background: #fff; }
+
+  /* ─── HEADER ─── */
+  .header { display: flex; justify-content: space-between; align-items: flex-end; padding: 8px 4px 6px; border-bottom: 3px solid #0B5394; margin-bottom: 8px; }
+  .header-left h1 { font-size: 16px; font-weight: 700; color: #0B5394; letter-spacing: -0.3px; }
+  .header-left .tagline { font-size: 8px; color: #666; margin-top: 1px; }
+  .header-right { text-align: right; font-size: 7.5px; color: #555; }
+  .header-right .brand { font-size: 11px; font-weight: 700; color: #0B5394; }
+
+  /* ─── META GRID ─── */
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; padding: 0 4px; }
+  .meta-item { font-size: 8px; }
+  .meta-item .label { font-weight: 700; color: #555; text-transform: uppercase; font-size: 7px; letter-spacing: 0.5px; }
+  .meta-item .value { color: #222; font-weight: 600; }
+
+  /* ─── GANTT TABLE ─── */
+  .gantt-wrap { padding: 0 2px; }
+  table.gantt { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  table.gantt col.col-phase { width: 32px; }
+  table.gantt col.col-detail { width: 180px; }
+  table.gantt col.col-day { /* auto distribute */ }
+
+  /* Period header row (Week/Month labels) */
+  table.gantt thead tr.period-row th { background: #f5f5f5; font-size: 7.5px; font-weight: 700; text-align: center; color: #444; border: 1px solid #ddd; padding: 3px 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table.gantt thead tr.period-row th.corner { background: #eee; }
+
+  /* Day header row */
+  table.gantt thead tr.day-row th { background: #fafafa; font-size: 7px; text-align: center; color: #666; border: 1px solid #e0e0e0; padding: 2px 1px; font-weight: 600; }
+  table.gantt thead tr.day-row th.corner { background: #f5f5f5; font-size: 7.5px; font-weight: 700; color: #444; text-align: left; padding-left: 6px; }
+
+  /* Body */
+  table.gantt tbody td { border: 1px solid #e8e8e8; padding: 3px 4px; vertical-align: middle; }
+
+  /* Phase number cell */
+  td.phase-num { text-align: center; font-weight: 800; font-size: 14px; color: #fff; writing-mode: horizontal-tb; border-right: 2px solid #fff; }
+
+  /* Detail cell — phase header */
+  td.detail-phase { font-weight: 700; font-size: 9px; color: #222; background: #f9f9f9; padding-left: 8px; }
+
+  /* Detail cell — task */
+  td.detail-task { font-size: 8px; color: #444; padding-left: 16px; background: #fff; }
+  td.detail-task::before { content: "• "; color: #999; }
+
+  /* Day cells */
+  td.day-cell { padding: 0; position: relative; min-height: 18px; }
+
+  /* Gantt bars */
+  .gantt-bar { position: absolute; top: 2px; bottom: 2px; left: 1px; right: 1px; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 6.5px; font-weight: 600; letter-spacing: 0.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Milestone row */
+  tr.milestone-row td { border-top: 2px solid #0B5394; border-bottom: 2px solid #0B5394; background: #EBF2FA; }
+  tr.milestone-row td.detail-phase { font-weight: 800; font-size: 9.5px; color: #0B5394; }
+  tr.milestone-row .gantt-bar { background: #0B5394 !important; border-radius: 3px; font-size: 7px; font-weight: 800; }
+
+  /* Buffer row */
+  tr.buffer-row td { background: #FFF8E1; }
+  tr.buffer-row td.detail-phase { font-style: italic; color: #B85B22; }
+
+  /* ─── NOTES SECTION ─── */
+  .notes-section { display: grid; grid-template-columns: repeat({{ notes | length }}, 1fr); gap: 8px; margin-top: 10px; padding: 0 4px; }
+  .note-card { border-radius: 4px; overflow: hidden; border: 1px solid #e0e0e0; }
+  .note-card .note-header { padding: 4px 8px; color: #fff; font-size: 8.5px; font-weight: 700; letter-spacing: 0.3px; }
+  .note-card .note-body { padding: 5px 8px; font-size: 7.5px; line-height: 1.5; }
+  .note-card .note-body li { margin-bottom: 2px; list-style: none; padding-left: 8px; position: relative; }
+  .note-card .note-body li::before { content: "→"; position: absolute; left: 0; color: #888; font-size: 7px; }
+  .highlight { font-weight: 700; }
+
+  /* ─── FOOTER ─── */
+  .footer { margin-top: 10px; padding: 5px 4px; border-top: 1px solid #ccc; display: flex; justify-content: space-between; font-size: 7px; color: #888; }
+  .footer .confidential { font-weight: 600; color: #B71C1C; }
+
+  /* Print optimization */
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .header { break-after: avoid; }
+    table.gantt { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>PROJECT TIMELINE</h1>
+    <div class="tagline">{{ company.tagline }}</div>
+  </div>
+  <div class="header-right">
+    <div class="brand">{{ company.short }}</div>
+    <div>{{ company.phone }} | {{ company.email }}</div>
+  </div>
+</div>
+
+<!-- META GRID -->
+<div class="meta-grid">
+  <div class="meta-item"><span class="label">Project Title</span><br><span class="value">{{ project.title }}</span></div>
+  <div class="meta-item"><span class="label">Client</span><br><span class="value">{{ project.client }}</span></div>
+  <div class="meta-item"><span class="label">Project Manager</span><br><span class="value">{{ project.manager }}</span></div>
+  <div class="meta-item"><span class="label">Date</span><br><span class="value">{{ project.date }}</span></div>
+</div>
+
+<!-- GANTT CHART -->
+<div class="gantt-wrap">
+<table class="gantt">
+  <colgroup>
+    <col class="col-phase">
+    <col class="col-detail">
+    {% for d in days %}<col class="col-day">{% endfor %}
+  </colgroup>
+  <thead>
+    <!-- Period row (weeks/months) -->
+    <tr class="period-row">
+      <th class="corner" colspan="2">PROJECT WEEK</th>
+      {% for period in periods %}
+      <th colspan="{{ period.span }}">{{ period.label }}</th>
+      {% endfor %}
+    </tr>
+    <!-- Day row -->
+    <tr class="day-row">
+      <th class="corner">PHASE</th>
+      <th class="corner">DETAILS</th>
+      {% for d in days %}
+      <th>{{ d.label }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for task in tasks %}
+    <tr class="{% if task.is_milestone %}milestone-row{% elif task.is_buffer %}buffer-row{% endif %}">
+      {% if task.phase_rowspan > 0 %}
+      <td class="phase-num" rowspan="{{ task.phase_rowspan }}" style="background: {{ task.phase_color }};">{{ task.phase_num }}</td>
+      {% endif %}
+
+      {% if task.is_phase_row %}
+      <td class="detail-phase">{{ task.name }}</td>
+      {% else %}
+      <td class="detail-task">{{ task.name }}</td>
+      {% endif %}
+
+      {% for i in range(total_days) %}
+      <td class="day-cell">
+        {% if i >= task.bar_start and i <= task.bar_end and task.bar_start >= 0 %}
+        <div class="gantt-bar" style="background: {{ task.bar_color }};{% if i == task.bar_start and i == task.bar_end %}left:2px;right:2px;{% elif i == task.bar_start %}left:2px;right:-1px;border-radius:3px 0 0 3px;{% elif i == task.bar_end %}left:-1px;right:2px;border-radius:0 3px 3px 0;{% else %}left:-1px;right:-1px;border-radius:0;{% endif %}">
+          {% if i == task.bar_start %}{{ task.bar_label }}{% endif %}
+        </div>
+        {% endif %}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<!-- NOTES -->
+{% if notes %}
+<div class="notes-section">
+  {% for note in notes %}
+  <div class="note-card">
+    <div class="note-header" style="background: {{ note.color }};">{{ note.title }}</div>
+    <div class="note-body">
+      <ul>
+        {% for item in note.bullet_items %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="confidential">CONFIDENTIAL — {{ company.name }}</div>
+  <div>Generated {{ generated_date }} | {{ company.short }} Project Management System</div>
+</div>
+
+</body>
+</html>
