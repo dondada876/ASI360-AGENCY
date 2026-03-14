@@ -124,6 +124,28 @@ export function buildTimeline(proj, tasks, durations = {}, dependencies = {}) {
     ? criticalPathSchedule(tasks, durations, dependencies)
     : sequentialSchedule(tasks, durations)
 
+  // Override schedule with manual dates where tasks have explicit start_date/end_date
+  for (const t of tasks) {
+    if (t.start_date || t.end_date) {
+      const manualStart = t.start_date ? skipWeekend(new Date(t.start_date)) : null
+      const manualEnd = t.end_date ? skipWeekend(new Date(t.end_date)) : null
+
+      if (manualStart && manualEnd) {
+        const startDay = businessDaysBetween(startDate, manualStart)
+        const endDay = businessDaysBetween(startDate, manualEnd)
+        schedule[t.task_no] = [startDay, Math.max(startDay, endDay)]
+      } else if (manualStart) {
+        const startDay = businessDaysBetween(startDate, manualStart)
+        const duration = durations[t.task_no] || 2
+        schedule[t.task_no] = [startDay, startDay + duration - 1]
+      } else if (manualEnd) {
+        const endDay = businessDaysBetween(startDate, manualEnd)
+        const duration = durations[t.task_no] || 2
+        schedule[t.task_no] = [Math.max(0, endDay - duration + 1), endDay]
+      }
+    }
+  }
+
   // Group tasks by phase
   const phaseGroups = {}
   const phaseNames = {}
@@ -185,6 +207,7 @@ export function buildTimeline(proj, tasks, durations = {}, dependencies = {}) {
         bar_label: barLabel,
         is_milestone: t.is_milestone || false,
         is_overdue: endDateDay !== null && barEnd >= endDateDay,
+        has_manual_dates: !!(t.start_date || t.end_date),
         status: t.status || 'open',
         progress,
         notes: t.notes || '',
