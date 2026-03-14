@@ -103,6 +103,7 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
           backgroundColor: task.bar_color,
           opacity: task.status === 'completed' ? 0.55 : 1,
           boxShadow: showTooltip ? `0 0 0 2px ${task.bar_color}88, 0 4px 12px ${task.bar_color}40` : 'none',
+          borderLeft: task.has_manual_dates ? '3px solid rgba(255,255,255,0.6)' : 'none',
           outline: task.is_overdue ? '2px solid #ef4444' : 'none',
           outlineOffset: '1px',
         }}
@@ -110,6 +111,12 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
       >
+        {/* Pin icon for manually-dated tasks */}
+        {task.has_manual_dates && (
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0 mr-1" style={{ opacity: 0.9 }}>
+            <path d="M5 1v3M3 4h4l-.5 2.5H3.5L3 4ZM5 6.5V9" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
         {/* Risk indicator dot */}
         {task.risk_level && task.risk_level !== 'normal' && (
           <div
@@ -159,7 +166,7 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
 
           {/* Body */}
           <div className="px-4 py-3 space-y-2.5">
-            <TooltipRow label="Schedule" value={`${formatDate(startLabel)} \u2192 ${formatDate(endLabel)}`} />
+            <TooltipRow label="Schedule" value={`${formatDate(startLabel)} \u2192 ${formatDate(endLabel)}${task.has_manual_dates ? ' \uD83D\uDCCC' : ''}`} />
             <TooltipRow label="Duration" value={`${duration} day${duration !== 1 ? 's' : ''} \u00B7 ${estimatedHours}h est.`} />
             <TooltipRow label="Assigned" custom>
               {task.assigned_to ? (
