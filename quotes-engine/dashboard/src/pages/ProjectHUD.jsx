@@ -20,6 +20,7 @@ import PMTriangle from '../components/PMTriangle'
 import OnTargetIndicator from '../components/OnTargetIndicator'
 import ThemeToggle from '../components/ThemeToggle'
 import HelpButton from '../components/HelpButton'
+import StatusButton from '../components/StatusButton'
 import { PhaseBadge, PhaseProgressBar } from '../components/PhaseBadge'
 import { SkeletonHUD } from '../components/Skeleton'
 
@@ -268,6 +269,7 @@ export default function ProjectHUD() {
                 <path d="M13 2v3h-3M3 14v-3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
+            <StatusButton />
             <HelpButton />
             <ThemeToggle />
           </div>

@@ -6,6 +6,7 @@ import { getHealthStatus } from '../lib/evm'
 import OnTargetIndicator from '../components/OnTargetIndicator'
 import ThemeToggle from '../components/ThemeToggle'
 import HelpButton from '../components/HelpButton'
+import StatusButton from '../components/StatusButton'
 import { SkeletonProjectList } from '../components/Skeleton'
 
 const STATUS_DOTS = {
@@ -77,6 +78,7 @@ export default function ProjectList() {
             >
               Refresh
             </button>
+            <StatusButton />
             <HelpButton />
             <ThemeToggle />
           </div>
