@@ -18,8 +18,15 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
   const [editCostActual, setEditCostActual] = useState(task?.cost_actual || '')
   const [editRiskLevel, setEditRiskLevel] = useState(task?.risk_level || 'normal')
   const [editDeps, setEditDeps] = useState((task?.dependencies || []).join(', '))
+  const [editStartDate, setEditStartDate] = useState(task?.start_date ? task.start_date.slice(0, 10) : '')
+  const [editEndDate, setEditEndDate] = useState(task?.end_date ? task.end_date.slice(0, 10) : '')
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState(null)
+
+  // Project date constraints for min/max on date pickers
+  const projectStartDate = project?.start_date ? project.start_date.slice(0, 10) : ''
+  const projectEndDate = project?.target_close_date ? project.target_close_date.slice(0, 10) : ''
+  const hasManualDates = !!(editStartDate || editEndDate)
 
   async function handleSaveDetails() {
     if (!task?.id) return
@@ -34,6 +41,8 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
         cost_actual: editCostActual ? Number(editCostActual) : 0,
         risk_level: editRiskLevel,
         dependencies: editDeps ? editDeps.split(',').map(s => s.trim()).filter(Boolean) : [],
+        start_date: editStartDate || null,
+        end_date: editEndDate || null,
       }
       await updateTaskDetails(task.id, updates)
       setSaveMsg('Saved')
@@ -127,11 +136,70 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
           {/* Schedule Section */}
           <Section title="Schedule" icon="calendar">
             <div className="grid grid-cols-2 gap-3">
-              <DetailCard label="Start Date" value={formatDate(startLabel)} />
-              <DetailCard label="End Date" value={formatDate(endLabel)} />
+              <DetailCard label="Scheduled Start" value={formatDate(startLabel)} />
+              <DetailCard label="Scheduled End" value={formatDate(endLabel)} />
               <DetailCard label="Duration" value={`${duration} business day${duration !== 1 ? 's' : ''}`} />
               <DetailCard label="Est. Hours" value={`${estimatedHours}h`} />
             </div>
+
+            {/* Manual Date Overrides */}
+            <div className="mt-3 p-3 rounded-lg border" style={{ backgroundColor: 'var(--bg-card-hover)', borderColor: hasManualDates ? 'var(--accent-blue, #3b82f6)' : 'var(--border-primary)' }}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  {hasManualDates && (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ color: 'var(--accent-blue, #3b82f6)' }}>
+                      <path d="M6 1v5l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/>
+                    </svg>
+                  )}
+                  <p className="text-[10px] uppercase tracking-wide font-medium" style={{ color: hasManualDates ? 'var(--accent-blue, #3b82f6)' : 'var(--text-muted)' }}>
+                    {hasManualDates ? 'Manually Scheduled' : 'Set Manual Dates'}
+                  </p>
+                </div>
+                {hasManualDates && (
+                  <button
+                    onClick={() => { setEditStartDate(''); setEditEndDate('') }}
+                    className="text-[10px] px-2 py-0.5 rounded transition-colors"
+                    style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-card)' }}
+                    title="Clear manual dates — task reverts to auto-scheduled position"
+                  >
+                    Clear dates
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] uppercase tracking-wide block mb-1" style={{ color: 'var(--text-muted)' }}>Start Date</label>
+                  <input
+                    type="date"
+                    value={editStartDate}
+                    onChange={e => setEditStartDate(e.target.value)}
+                    min={projectStartDate || undefined}
+                    max={editEndDate || projectEndDate || undefined}
+                    className="w-full bg-transparent text-sm font-medium outline-none border-b transition-colors focus:border-blue-500"
+                    style={{ color: 'var(--text-primary)', borderColor: 'var(--border-primary)', colorScheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light' }}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase tracking-wide block mb-1" style={{ color: 'var(--text-muted)' }}>End Date</label>
+                  <input
+                    type="date"
+                    value={editEndDate}
+                    onChange={e => setEditEndDate(e.target.value)}
+                    min={editStartDate || projectStartDate || undefined}
+                    max={projectEndDate || undefined}
+                    className="w-full bg-transparent text-sm font-medium outline-none border-b transition-colors focus:border-blue-500"
+                    style={{ color: 'var(--text-primary)', borderColor: 'var(--border-primary)', colorScheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light' }}
+                  />
+                </div>
+              </div>
+              {projectStartDate && projectEndDate && (
+                <p className="text-[9px] mt-2" style={{ color: 'var(--text-muted)' }}>
+                  Contract window: {formatDate(projectStartDate)} — {formatDate(projectEndDate)}
+                </p>
+              )}
+            </div>
+
             <div className="mt-3 rounded-full h-2.5 overflow-hidden" style={{ backgroundColor: 'var(--progress-track)' }}>
               <div
                 className="h-full rounded-full transition-all"

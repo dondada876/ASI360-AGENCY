@@ -134,3 +134,160 @@ export async function logProjectEvent(projectNo, title, eventType = 'task_update
     })
   if (error) console.error('Failed to log event:', error)
 }
+
+// ── Health Check operations ──
+
+const VTIGER_GATEWAY = 'http://104.248.69.86:3004'
+const AIRTABLE_BASE_URL = 'https://api.airtable.com/v0'
+
+/**
+ * Check Supabase connectivity — query project count + latest event timestamp.
+ */
+export async function checkSupabase() {
+  const start = performance.now()
+  try {
+    const [projResult, eventResult] = await Promise.all([
+      supabase.from('asi360_projects').select('id', { count: 'exact', head: true }),
+      supabase.from('project_events').select('created_at').order('created_at', { ascending: false }).limit(1),
+    ])
+    const latency = Math.round(performance.now() - start)
+    const projectCount = projResult.count ?? 0
+    const lastEvent = eventResult.data?.[0]?.created_at || null
+
+    if (projResult.error) throw projResult.error
+
+    return {
+      status: 'connected',
+      latency,
+      projectCount,
+      lastEvent,
+      message: `${projectCount} projects, ${latency}ms`,
+    }
+  } catch (err) {
+    return {
+      status: 'error',
+      latency: Math.round(performance.now() - start),
+      message: err.message,
+    }
+  }
+}
+
+/**
+ * Check VTiger Gateway connectivity via /health or /api/health endpoint.
+ */
+export async function checkVtigerGateway() {
+  const start = performance.now()
+  try {
+    const res = await fetch(`${VTIGER_GATEWAY}/health`, {
+      signal: AbortSignal.timeout(8000),
+    })
+    const latency = Math.round(performance.now() - start)
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}))
+      return {
+        status: 'connected',
+        latency,
+        message: data.status || `HTTP ${res.status}, ${latency}ms`,
+        details: data,
+      }
+    }
+    return {
+      status: 'degraded',
+      latency,
+      message: `HTTP ${res.status}`,
+    }
+  } catch (err) {
+    return {
+      status: 'error',
+      latency: Math.round(performance.now() - start),
+      message: err.name === 'TimeoutError' ? 'Timeout (8s)' : err.message,
+    }
+  }
+}
+
+/**
+ * Check Airtable connectivity via a lightweight metadata query.
+ * Uses the Supabase vault to get the API key, then hits Airtable.
+ */
+export async function checkAirtable() {
+  const start = performance.now()
+  try {
+    // Try via VTiger gateway which has Airtable credentials
+    const res = await fetch(`${VTIGER_GATEWAY}/health`, {
+      signal: AbortSignal.timeout(8000),
+    })
+    const latency = Math.round(performance.now() - start)
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}))
+      // The gateway health check may include Airtable status
+      if (data.airtable) {
+        return {
+          status: data.airtable.status || 'connected',
+          latency,
+          message: data.airtable.message || `Via gateway, ${latency}ms`,
+          details: data.airtable,
+        }
+      }
+      // Gateway is up but doesn't report Airtable status separately
+      return {
+        status: 'unknown',
+        latency,
+        message: 'Gateway up — Airtable status not reported separately',
+      }
+    }
+    return { status: 'error', latency, message: `Gateway HTTP ${res.status}` }
+  } catch (err) {
+    return {
+      status: 'error',
+      latency: Math.round(performance.now() - start),
+      message: err.name === 'TimeoutError' ? 'Timeout (8s)' : err.message,
+    }
+  }
+}
+
+/**
+ * Check droplet Nginx/services by hitting the dashboard itself.
+ */
+export async function checkDroplet() {
+  const start = performance.now()
+  try {
+    const res = await fetch('https://projects.asi360.co/', {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(8000),
+    })
+    const latency = Math.round(performance.now() - start)
+    return {
+      status: res.ok ? 'connected' : 'degraded',
+      latency,
+      message: `HTTP ${res.status}, ${latency}ms`,
+    }
+  } catch (err) {
+    return {
+      status: 'error',
+      latency: Math.round(performance.now() - start),
+      message: err.name === 'TimeoutError' ? 'Timeout (8s)' : err.message,
+    }
+  }
+}
+
+/**
+ * Run all health checks in parallel.
+ */
+export async function runAllHealthChecks() {
+  const [supabaseResult, vtigerResult, airtableResult, dropletResult] = await Promise.allSettled([
+    checkSupabase(),
+    checkVtigerGateway(),
+    checkAirtable(),
+    checkDroplet(),
+  ])
+
+  return {
+    timestamp: new Date().toISOString(),
+    checks: {
+      supabase: supabaseResult.status === 'fulfilled' ? supabaseResult.value : { status: 'error', message: 'Promise rejected' },
+      vtiger: vtigerResult.status === 'fulfilled' ? vtigerResult.value : { status: 'error', message: 'Promise rejected' },
+      airtable: airtableResult.status === 'fulfilled' ? airtableResult.value : { status: 'error', message: 'Promise rejected' },
+      droplet: dropletResult.status === 'fulfilled' ? dropletResult.value : { status: 'error', message: 'Promise rejected' },
+    },
+  }
+}

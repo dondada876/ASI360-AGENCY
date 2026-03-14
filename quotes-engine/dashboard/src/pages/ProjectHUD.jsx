@@ -20,6 +20,7 @@ import PMTriangle from '../components/PMTriangle'
 import OnTargetIndicator from '../components/OnTargetIndicator'
 import ThemeToggle from '../components/ThemeToggle'
 import HelpButton from '../components/HelpButton'
+import StatusButton from '../components/StatusButton'
 import { PhaseBadge, PhaseProgressBar } from '../components/PhaseBadge'
 import { SkeletonHUD } from '../components/Skeleton'
 
@@ -45,6 +46,12 @@ export default function ProjectHUD() {
   const [phaseFilter, setPhaseFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [toast, setToast] = useState(null)
+
+  // ── Project date editing state ──
+  const [editingProjectDates, setEditingProjectDates] = useState(false)
+  const [projStartDate, setProjStartDate] = useState('')
+  const [projEndDate, setProjEndDate] = useState('')
+  const [savingDates, setSavingDates] = useState(false)
 
   // ── Health persistence ref (must be before early returns) ──
   const lastPersistedScore = useRef(null)
@@ -82,6 +89,14 @@ export default function ProjectHUD() {
 
   useEffect(() => { loadData() }, [loadData])
 
+  // Sync project date state when project loads
+  useEffect(() => {
+    if (project) {
+      setProjStartDate(project.start_date ? project.start_date.slice(0, 10) : '')
+      setProjEndDate(project.target_close_date ? project.target_close_date.slice(0, 10) : '')
+    }
+  }, [project?.id, project?.start_date, project?.target_close_date])
+
   useEffect(() => {
     const interval = setInterval(loadData, AUTO_REFRESH_MS)
     return () => clearInterval(interval)
@@ -102,6 +117,31 @@ export default function ProjectHUD() {
   function showToast(message, type = 'success') {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
+  }
+
+  // ── Save project dates ──
+  async function handleSaveProjectDates() {
+    if (!project?.id) return
+    setSavingDates(true)
+    try {
+      await updateProjectHealth(project.id, {
+        start_date: projStartDate || null,
+        target_close_date: projEndDate || null,
+      })
+      await logProjectEvent(
+        project.project_no,
+        `Project dates updated: ${projStartDate || 'none'} → ${projEndDate || 'none'}`,
+        'project_update',
+        'dashboard'
+      )
+      setEditingProjectDates(false)
+      showToast('Project dates saved')
+      loadData()
+    } catch (err) {
+      showToast(`Failed to save dates: ${err.message}`, 'error')
+    } finally {
+      setSavingDates(false)
+    }
   }
 
   // ── Task click → open detail modal ──
@@ -229,6 +269,7 @@ export default function ProjectHUD() {
                 <path d="M13 2v3h-3M3 14v-3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
+            <StatusButton />
             <HelpButton />
             <ThemeToggle />
           </div>
@@ -343,7 +384,67 @@ export default function ProjectHUD() {
               <PMTriangle evm={evm} health={health} />
 
               <div className="rounded-lg border p-4" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)', boxShadow: 'var(--card-shadow)' }}>
-                <h3 className="text-sm font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--text-secondary)' }}>Details</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Details</h3>
+                  {!editingProjectDates && (
+                    <button
+                      onClick={() => setEditingProjectDates(true)}
+                      className="text-[10px] px-2 py-0.5 rounded transition-colors"
+                      style={{ color: 'var(--text-muted)', backgroundColor: 'var(--bg-card-hover)' }}
+                      title="Edit project dates"
+                    >
+                      Edit dates
+                    </button>
+                  )}
+                </div>
+
+                {editingProjectDates ? (
+                  <div className="space-y-3 mb-3">
+                    <div>
+                      <label className="text-[10px] uppercase tracking-wide block mb-1" style={{ color: 'var(--text-muted)' }}>Project Start</label>
+                      <input
+                        type="date"
+                        value={projStartDate}
+                        onChange={e => setProjStartDate(e.target.value)}
+                        max={projEndDate || undefined}
+                        className="w-full bg-transparent text-xs font-medium outline-none border rounded px-2 py-1.5 transition-colors focus:border-blue-500"
+                        style={{ color: 'var(--text-primary)', borderColor: 'var(--border-primary)', colorScheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase tracking-wide block mb-1" style={{ color: 'var(--text-muted)' }}>Contract End</label>
+                      <input
+                        type="date"
+                        value={projEndDate}
+                        onChange={e => setProjEndDate(e.target.value)}
+                        min={projStartDate || undefined}
+                        className="w-full bg-transparent text-xs font-medium outline-none border rounded px-2 py-1.5 transition-colors focus:border-blue-500"
+                        style={{ color: 'var(--text-primary)', borderColor: 'var(--border-primary)', colorScheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light' }}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSaveProjectDates}
+                        disabled={savingDates}
+                        className="flex-1 px-3 py-1.5 rounded text-[11px] font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
+                      >
+                        {savingDates ? 'Saving...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingProjectDates(false)
+                          setProjStartDate(project.start_date ? project.start_date.slice(0, 10) : '')
+                          setProjEndDate(project.target_close_date ? project.target_close_date.slice(0, 10) : '')
+                        }}
+                        className="px-3 py-1.5 rounded text-[11px] font-medium transition-colors"
+                        style={{ backgroundColor: 'var(--bg-card-hover)', color: 'var(--text-secondary)' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
                 <dl className="space-y-2 text-xs">
                   {project.start_date && (
                     <div className="flex justify-between">
@@ -385,6 +486,12 @@ export default function ProjectHUD() {
                     </div>
                   )}
                 </dl>
+
+                {!project.start_date && !project.target_close_date && !editingProjectDates && (
+                  <div className="mt-3 p-2 rounded text-center text-[10px] border border-dashed" style={{ borderColor: 'var(--border-secondary)', color: 'var(--text-muted)' }}>
+                    No project dates set — <button onClick={() => setEditingProjectDates(true)} className="underline" style={{ color: 'var(--accent-blue, #3b82f6)' }}>add dates</button>
+                  </div>
+                )}
               </div>
 
               {events.length > 0 && (
