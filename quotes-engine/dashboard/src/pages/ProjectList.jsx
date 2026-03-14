@@ -5,6 +5,7 @@ import { calcCompletion, getCurrentPhase, getPhaseColor } from '../lib/scheduler
 import { getHealthStatus } from '../lib/evm'
 import OnTargetIndicator from '../components/OnTargetIndicator'
 import ThemeToggle from '../components/ThemeToggle'
+import HelpButton from '../components/HelpButton'
 import { SkeletonProjectList } from '../components/Skeleton'
 
 const STATUS_DOTS = {
@@ -76,6 +77,7 @@ export default function ProjectList() {
             >
               Refresh
             </button>
+            <HelpButton />
             <ThemeToggle />
           </div>
         </div>

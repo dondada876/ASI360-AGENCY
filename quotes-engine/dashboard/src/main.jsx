@@ -5,6 +5,7 @@ import { ThemeProvider } from './lib/ThemeContext'
 import './index.css'
 import ProjectList from './pages/ProjectList'
 import ProjectHUD from './pages/ProjectHUD'
+import HelpPage from './pages/HelpPage'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -12,6 +13,7 @@ createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<ProjectList />} />
+          <Route path="/help" element={<HelpPage />} />
           <Route path="/:slugHUD" element={<ProjectHUD />} />
         </Routes>
       </BrowserRouter>
