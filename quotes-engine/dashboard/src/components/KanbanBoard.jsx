@@ -191,9 +191,23 @@ function KanbanCard({ task, isDragging, isSelected, onDragStart, onDragEnd, onTo
         borderColor: isDragging || isSelected ? undefined : 'var(--border-primary)',
       }}
     >
-      {/* Task number + phase */}
+      {/* Task number + phase + indicators */}
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{task.task_no}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{task.task_no}</span>
+          {task.is_milestone && (
+            <div className="w-3 h-3 rotate-45 shrink-0" style={{ backgroundColor: '#a855f7' }} title="Milestone" />
+          )}
+          {task.risk_level && task.risk_level !== 'normal' && (
+            <div
+              className={`w-2 h-2 rounded-full shrink-0 ${task.risk_level === 'critical' ? 'animate-pulse' : ''}`}
+              style={{
+                backgroundColor: task.risk_level === 'critical' ? '#ef4444' : task.risk_level === 'high' ? '#f97316' : '#eab308',
+              }}
+              title={`Risk: ${task.risk_level}`}
+            />
+          )}
+        </div>
         <span
           className="text-[10px] font-medium px-1.5 py-0.5 rounded"
           style={{ backgroundColor: `${phaseColor}25`, color: phaseColor }}

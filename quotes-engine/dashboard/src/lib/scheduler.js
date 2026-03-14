@@ -47,6 +47,19 @@ function skipWeekend(d) {
 }
 
 /**
+ * Count business days between two dates.
+ */
+function businessDaysBetween(start, end) {
+  let count = 0
+  const d = new Date(start)
+  while (d < end) {
+    d.setDate(d.getDate() + 1)
+    if (d.getDay() !== 0 && d.getDay() !== 6) count++
+  }
+  return count
+}
+
+/**
  * Sequential scheduler — assigns tasks back-to-back by phase order.
  */
 function sequentialSchedule(tasks, durations) {
@@ -123,10 +136,15 @@ export function buildTimeline(proj, tasks, durations = {}, dependencies = {}) {
     phaseGroups[pno].push(t)
   }
 
-  // Find total working days
+  // Parse target close date for enforcement
+  const endDateStr = proj.target_close_date
+  const endDate = endDateStr ? skipWeekend(new Date(endDateStr)) : null
+  const endDateDay = endDate ? businessDaysBetween(startDate, endDate) : null
+
+  // Find total working days (enforce end date boundary if set)
   const allEnds = Object.values(schedule).map(([, end]) => end)
   const maxEndDay = allEnds.length > 0 ? Math.max(...allEnds) : 0
-  const totalDays = maxEndDay + 1
+  const totalDays = endDateDay ? Math.max(maxEndDay + 1, endDateDay) : maxEndDay + 1
 
   // Build phase data
   const phases = []
@@ -149,17 +167,31 @@ export function buildTimeline(proj, tasks, durations = {}, dependencies = {}) {
       let barLabel = words.length > 3 ? words.slice(0, 3).join(' ') : displayName
       if (barLabel.length > 20) barLabel = barLabel.slice(0, 18) + '..'
 
+      // Task progress (0-100)
+      const progress = t.status === 'completed' ? 100
+        : t.status === 'in_progress'
+          ? (t.actual_hours && t.estimated_hours
+              ? Math.min(100, Math.round((Number(t.actual_hours) / Number(t.estimated_hours)) * 100))
+              : 50)
+          : 0
+
       return {
         name: displayName,
         task_no: t.task_no,
+        phase_no: Number(pno),
         bar_start: barStart,
         bar_end: barEnd,
         bar_color: PHASE_COLORS[pno] || '#666',
         bar_label: barLabel,
         is_milestone: t.is_milestone || false,
+        is_overdue: endDateDay !== null && barEnd >= endDateDay,
         status: t.status || 'open',
+        progress,
         notes: t.notes || '',
         assigned_to: t.assigned_to || '',
+        estimated_hours: t.estimated_hours,
+        budget: t.task_budget || t.budget,
+        risk_level: t.risk_level || 'normal',
       }
     })
 
@@ -226,6 +258,9 @@ export function buildTimeline(proj, tasks, durations = {}, dependencies = {}) {
     quote_no: proj.quote_no || '',
     start_date: startDate.toISOString().slice(0, 10),
     delivery_date: deliveryDate.toISOString().slice(0, 10),
+    target_close_date: endDate ? endDate.toISOString().slice(0, 10) : null,
+    end_date_col: endDateDay,
+    has_overdue: phases.some(p => p.tasks.some(t => t.is_overdue)),
     total_days: totalDays,
     total_weeks: totalWeeks,
     periods,

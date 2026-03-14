@@ -1,21 +1,26 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
   fetchProjectBySlug,
   fetchTasksForProject,
   fetchProjectEvents,
   updateTaskStatus,
+  updateProjectHealth,
   logProjectEvent,
 } from '../lib/supabase'
 import { buildTimeline, calcCompletion, getCurrentPhase, getPhaseColor } from '../lib/scheduler'
+import { calculateEVM, calculateHealthScore, getHealthStatus } from '../lib/evm'
 import GanttTimeline from '../components/GanttTimeline'
 import KanbanBoard from '../components/KanbanBoard'
 import TaskListView from '../components/TaskListView'
 import TaskDetailModal from '../components/TaskDetailModal'
 import ViewControls from '../components/ViewControls'
 import NextSteps from '../components/NextSteps'
+import PMTriangle from '../components/PMTriangle'
+import OnTargetIndicator from '../components/OnTargetIndicator'
 import ThemeToggle from '../components/ThemeToggle'
 import { PhaseBadge, PhaseProgressBar } from '../components/PhaseBadge'
+import { SkeletonHUD } from '../components/Skeleton'
 
 const AUTO_REFRESH_MS = 60_000
 
@@ -149,11 +154,7 @@ export default function ProjectHUD() {
 
   // ── Loading / Error states ──
   if (loading && !project) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
-        <div className="animate-pulse" style={{ color: 'var(--text-muted)' }}>Loading project...</div>
-      </div>
-    )
+    return <SkeletonHUD />
   }
 
   if (error) {
@@ -179,6 +180,23 @@ export default function ProjectHUD() {
   const daysUntilDelivery = deliveryDate
     ? Math.ceil((deliveryDate - new Date()) / (1000 * 60 * 60 * 24))
     : null
+
+  // EVM & Health scoring
+  const evm = calculateEVM(project, tasks)
+  const healthScore = calculateHealthScore(evm)
+  const healthStatus = getHealthStatus(healthScore)
+  const health = { score: healthScore, status: healthStatus }
+
+  // Persist health score to Supabase (debounced, skip if unchanged)
+  const lastPersistedScore = useRef(project?.health_score)
+  useEffect(() => {
+    if (!project?.id || healthScore === lastPersistedScore.current) return
+    const timer = setTimeout(() => {
+      updateProjectHealth(project.id, { health_score: healthScore }).catch(() => {})
+      lastPersistedScore.current = healthScore
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [healthScore, project?.id])
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
@@ -247,6 +265,7 @@ export default function ProjectHUD() {
                 <PhaseBadge phase={currentPhase} size="lg" />
                 <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Current</div>
               </div>
+              <OnTargetIndicator health={health} />
               {daysUntilDelivery !== null && (
                 <div className="text-center">
                   <div className={`text-xl sm:text-2xl font-bold ${daysUntilDelivery > 7 ? '' : daysUntilDelivery > 0 ? 'text-yellow-400' : 'text-green-400'}`} style={daysUntilDelivery > 7 ? { color: 'var(--text-primary)' } : {}}>
@@ -316,6 +335,8 @@ export default function ProjectHUD() {
             <div className="space-y-4 sm:space-y-6">
               <NextSteps tasks={tasks} />
 
+              <PMTriangle evm={evm} health={health} />
+
               <div className="rounded-lg border p-4" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
                 <h3 className="text-sm font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--text-secondary)' }}>Details</h3>
                 <dl className="space-y-2 text-xs">
@@ -329,6 +350,15 @@ export default function ProjectHUD() {
                     <div className="flex justify-between">
                       <dt style={{ color: 'var(--text-muted)' }}>Est. Delivery</dt>
                       <dd style={{ color: 'var(--text-secondary)' }}>{timeline.delivery_date}</dd>
+                    </div>
+                  )}
+                  {timeline?.target_close_date && (
+                    <div className="flex justify-between">
+                      <dt style={{ color: 'var(--text-muted)' }}>Target End</dt>
+                      <dd style={{ color: timeline.has_overdue ? '#ef4444' : 'var(--text-secondary)' }}>
+                        {timeline.target_close_date}
+                        {timeline.has_overdue && <span className="ml-1 text-[10px]">OVERDUE</span>}
+                      </dd>
                     </div>
                   )}
                   {timeline?.total_days && (
@@ -384,6 +414,7 @@ export default function ProjectHUD() {
           dayLabels={timeline?.day_labels || []}
           onClose={() => setSelectedTask(null)}
           onStatusChange={handleStatusChange}
+          onTaskUpdate={loadData}
         />
       )}
 

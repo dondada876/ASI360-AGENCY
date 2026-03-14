@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchProjects } from '../lib/supabase'
 import { calcCompletion, getCurrentPhase, getPhaseColor } from '../lib/scheduler'
+import { getHealthStatus } from '../lib/evm'
+import OnTargetIndicator from '../components/OnTargetIndicator'
 import ThemeToggle from '../components/ThemeToggle'
+import { SkeletonProjectList } from '../components/Skeleton'
 
 const STATUS_DOTS = {
   initiated: 'bg-gray-400',
@@ -34,11 +37,7 @@ export default function ProjectList() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
-        <div className="animate-pulse" style={{ color: 'var(--text-muted)' }}>Loading projects...</div>
-      </div>
-    )
+    return <SkeletonProjectList />
   }
 
   if (error) {
@@ -130,6 +129,12 @@ export default function ProjectList() {
                   )}
                   {proj.business_type && (
                     <span className="capitalize">{proj.business_type.replace(/_/g, ' ')}</span>
+                  )}
+                  {proj.health_score !== null && proj.health_score !== undefined && (
+                    <OnTargetIndicator
+                      health={{ score: proj.health_score, status: getHealthStatus(proj.health_score) }}
+                      compact
+                    />
                   )}
                 </div>
 

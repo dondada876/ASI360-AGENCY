@@ -7,7 +7,7 @@ import GanttBar from './GanttBar'
 export default function GanttTimeline({ timeline, onTaskClick, searchQuery }) {
   if (!timeline) return null
 
-  const { periods, day_labels, phases, total_days } = timeline
+  const { periods, day_labels, phases, total_days, end_date_col } = timeline
 
   // Filter tasks by search query while preserving phase structure
   const filteredPhases = searchQuery
@@ -24,6 +24,9 @@ export default function GanttTimeline({ timeline, onTaskClick, searchQuery }) {
   // Today marker position
   const todayStr = new Date().toISOString().slice(0, 10)
   const todayIndex = day_labels.findIndex(d => d.full === todayStr)
+
+  // End date boundary position (for target close date enforcement)
+  const endDateIndex = typeof end_date_col === 'number' ? end_date_col : -1
 
   return (
     <div className="rounded-lg border overflow-x-auto" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
@@ -56,14 +59,28 @@ export default function GanttTimeline({ timeline, onTaskClick, searchQuery }) {
                 className="text-center text-[10px] py-1 border-r"
                 style={{
                   borderColor: 'color-mix(in srgb, var(--border-primary) 30%, transparent)',
-                  backgroundColor: i === todayIndex ? 'var(--gantt-today-bg)' : 'transparent',
-                  color: i === todayIndex ? '#3b82f6' : 'var(--text-muted)',
+                  backgroundColor: i === todayIndex ? 'var(--gantt-today-bg)' : i === endDateIndex ? 'rgba(239,68,68,0.08)' : 'transparent',
+                  color: i === todayIndex ? '#3b82f6' : i === endDateIndex ? '#ef4444' : 'var(--text-muted)',
                 }}
               >
                 <div className="font-medium">{d.day}</div>
                 <div>{d.date}</div>
               </div>
             ))}
+            {/* End-date boundary marker */}
+            {endDateIndex >= 0 && (
+              <div
+                className="absolute top-0 bottom-0 w-0.5 z-10 pointer-events-none"
+                style={{
+                  left: `${((endDateIndex + 0.5) / total_days) * 100}%`,
+                  background: 'repeating-linear-gradient(180deg, #ef4444 0px, #ef4444 4px, transparent 4px, transparent 8px)',
+                }}
+              >
+                <div className="absolute -top-0 left-1 whitespace-nowrap text-[8px] font-bold text-red-500 uppercase tracking-wider">
+                  TARGET END
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -92,6 +109,15 @@ export default function GanttTimeline({ timeline, onTaskClick, searchQuery }) {
                       style={{ left: `${((todayIndex + 0.5) / total_days) * 100}%`, backgroundColor: 'var(--gantt-today-line)' }}
                     />
                   )}
+                  {endDateIndex >= 0 && (
+                    <div
+                      className="absolute top-0 bottom-0 w-0.5 pointer-events-none"
+                      style={{
+                        left: `${((endDateIndex + 0.5) / total_days) * 100}%`,
+                        background: 'repeating-linear-gradient(180deg, #ef4444 0px, #ef4444 4px, transparent 4px, transparent 8px)',
+                      }}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -116,6 +142,15 @@ export default function GanttTimeline({ timeline, onTaskClick, searchQuery }) {
                       <div
                         className="absolute top-0 bottom-0 w-px pointer-events-none z-0"
                         style={{ left: `${((todayIndex + 0.5) / total_days) * 100}%`, backgroundColor: 'color-mix(in srgb, var(--gantt-today-line) 60%, transparent)' }}
+                      />
+                    )}
+                    {endDateIndex >= 0 && (
+                      <div
+                        className="absolute top-0 bottom-0 w-0.5 pointer-events-none z-0"
+                        style={{
+                          left: `${((endDateIndex + 0.5) / total_days) * 100}%`,
+                          background: 'repeating-linear-gradient(180deg, rgba(239,68,68,0.5) 0px, rgba(239,68,68,0.5) 4px, transparent 4px, transparent 8px)',
+                        }}
                       />
                     )}
                     <GanttBar task={task} totalDays={total_days} dayLabels={day_labels} onTaskClick={onTaskClick} />

@@ -103,7 +103,19 @@ export default function TaskListView({ tasks, onTaskClick, searchQuery, dayLabel
                 onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-card-hover)'}
                 onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <td className="px-4 py-2.5 font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{task.task_no}</td>
+                <td className="px-4 py-2.5 font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
+                  <div className="flex items-center gap-1.5">
+                    {task.task_no}
+                    {task.is_milestone && <div className="w-2.5 h-2.5 rotate-45 shrink-0" style={{ backgroundColor: '#a855f7' }} title="Milestone" />}
+                    {task.risk_level && task.risk_level !== 'normal' && (
+                      <div
+                        className={`w-2 h-2 rounded-full shrink-0 ${task.risk_level === 'critical' ? 'animate-pulse' : ''}`}
+                        style={{ backgroundColor: task.risk_level === 'critical' ? '#ef4444' : task.risk_level === 'high' ? '#f97316' : '#eab308' }}
+                        title={`Risk: ${task.risk_level}`}
+                      />
+                    )}
+                  </div>
+                </td>
                 <td className="px-4 py-2.5">
                   <span style={{ color: 'var(--text-primary)' }}>{task.task_name}</span>
                 </td>

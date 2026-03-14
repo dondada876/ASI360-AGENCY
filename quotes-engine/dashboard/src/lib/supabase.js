@@ -89,6 +89,38 @@ export async function updateTaskAssignment(taskId, assignedTo) {
 }
 
 /**
+ * Update task details (milestones, hours, budget, risk, dependencies).
+ */
+export async function updateTaskDetails(taskId, updates) {
+  const { data, error } = await supabase
+    .from('asi360_project_tasks')
+    .update({
+      ...updates,
+      modified_source: 'dashboard',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', taskId)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update project health metrics.
+ */
+export async function updateProjectHealth(projectId, healthData) {
+  const { data, error } = await supabase
+    .from('asi360_projects')
+    .update(healthData)
+    .eq('id', projectId)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
  * Log an event to the project_events table.
  */
 export async function logProjectEvent(projectNo, title, eventType = 'task_update', source = 'dashboard') {

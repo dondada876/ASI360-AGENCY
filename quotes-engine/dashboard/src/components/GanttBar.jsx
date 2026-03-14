@@ -110,6 +110,15 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
       >
+        {/* Risk indicator dot */}
+        {task.risk_level && task.risk_level !== 'normal' && (
+          <div
+            className={`w-2 h-2 rounded-full shrink-0 mr-1 ${task.risk_level === 'critical' ? 'animate-pulse' : ''}`}
+            style={{
+              backgroundColor: task.risk_level === 'critical' ? '#ef4444' : task.risk_level === 'high' ? '#f97316' : '#eab308',
+            }}
+          />
+        )}
         {statusIcon && <span className="mr-1 text-sm">{statusIcon}</span>}
         {colSpan >= 2 ? task.bar_label : ''}
 

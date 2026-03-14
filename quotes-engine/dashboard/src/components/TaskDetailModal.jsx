@@ -1,13 +1,50 @@
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { StatusBadge, PhaseBadge } from './PhaseBadge'
 import { getPhaseColor } from '../lib/scheduler'
+import { updateTaskDetails } from '../lib/supabase'
 
 /**
  * TaskDetailModal v3 — Slide-over drawer with theme support.
  */
-export default function TaskDetailModal({ task, project, dayLabels, onClose, onStatusChange }) {
+export default function TaskDetailModal({ task, project, dayLabels, onClose, onStatusChange, onTaskUpdate }) {
   const overlayRef = useRef(null)
   const panelRef = useRef(null)
+
+  // Editable fields state
+  const [editIsMilestone, setEditIsMilestone] = useState(task?.is_milestone || false)
+  const [editEstHours, setEditEstHours] = useState(task?.estimated_hours || '')
+  const [editActHours, setEditActHours] = useState(task?.actual_hours || '')
+  const [editTaskBudget, setEditTaskBudget] = useState(task?.task_budget || task?.budget || '')
+  const [editCostActual, setEditCostActual] = useState(task?.cost_actual || '')
+  const [editRiskLevel, setEditRiskLevel] = useState(task?.risk_level || 'normal')
+  const [editDeps, setEditDeps] = useState((task?.dependencies || []).join(', '))
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState(null)
+
+  async function handleSaveDetails() {
+    if (!task?.id) return
+    setSaving(true)
+    setSaveMsg(null)
+    try {
+      const updates = {
+        is_milestone: editIsMilestone,
+        estimated_hours: editEstHours ? Number(editEstHours) : null,
+        actual_hours: editActHours ? Number(editActHours) : 0,
+        task_budget: editTaskBudget ? Number(editTaskBudget) : null,
+        cost_actual: editCostActual ? Number(editCostActual) : 0,
+        risk_level: editRiskLevel,
+        dependencies: editDeps ? editDeps.split(',').map(s => s.trim()).filter(Boolean) : [],
+      }
+      await updateTaskDetails(task.id, updates)
+      setSaveMsg('Saved')
+      onTaskUpdate?.()
+      setTimeout(() => setSaveMsg(null), 2000)
+    } catch (err) {
+      setSaveMsg(`Error: ${err.message}`)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -137,27 +174,128 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
             </div>
           </Section>
 
-          {/* Budget & Cost */}
+          {/* Budget & Time — Editable */}
           <Section title="Budget & Time" icon="dollar">
             <div className="grid grid-cols-2 gap-3">
-              <DetailCard
-                label="Task Budget"
-                value={taskBudget ? `$${Number(taskBudget).toLocaleString()}` : '\u2014'}
-              />
-              <DetailCard
-                label="Contract Value"
-                value={project?.contract_value ? `$${Number(project.contract_value).toLocaleString()}` : '\u2014'}
-              />
-              <DetailCard
-                label="Hours Scheduled"
-                value={`${estimatedHours}h`}
-              />
-              <DetailCard
-                label="Rate"
-                value={taskBudget && estimatedHours ? `$${Math.round(taskBudget / estimatedHours)}/hr` : '\u2014'}
+              <EditableField label="Est. Hours" value={editEstHours} onChange={setEditEstHours} type="number" placeholder="0" />
+              <EditableField label="Actual Hours" value={editActHours} onChange={setEditActHours} type="number" placeholder="0" />
+              <EditableField label="Task Budget ($)" value={editTaskBudget} onChange={setEditTaskBudget} type="number" placeholder="0" />
+              <EditableField label="Cost Actual ($)" value={editCostActual} onChange={setEditCostActual} type="number" placeholder="0" />
+            </div>
+            {editEstHours > 0 && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Hours Progress</span>
+                  <span className="text-[10px] font-bold" style={{ color: 'var(--text-secondary)' }}>
+                    {editActHours || 0} / {editEstHours}h ({Math.min(100, Math.round(((editActHours || 0) / editEstHours) * 100))}%)
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--progress-track)' }}>
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(100, Math.round(((editActHours || 0) / editEstHours) * 100))}%`,
+                      backgroundColor: ((editActHours || 0) / editEstHours) > 1 ? '#ef4444' : phaseColor,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            {editTaskBudget > 0 && (
+              <div className="mt-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Budget Burn</span>
+                  <span className="text-[10px] font-bold" style={{ color: 'var(--text-secondary)' }}>
+                    ${Number(editCostActual || 0).toLocaleString()} / ${Number(editTaskBudget).toLocaleString()}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--progress-track)' }}>
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(100, Math.round(((editCostActual || 0) / editTaskBudget) * 100))}%`,
+                      backgroundColor: ((editCostActual || 0) / editTaskBudget) > 1 ? '#ef4444' : '#3b82f6',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </Section>
+
+          {/* Risk & Milestone — Editable */}
+          <Section title="Risk & Milestone" icon="status">
+            <div className="space-y-3">
+              {/* Milestone toggle */}
+              <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
+                <div>
+                  <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>Milestone</p>
+                  <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Mark as project milestone</p>
+                </div>
+                <button
+                  onClick={() => setEditIsMilestone(v => !v)}
+                  className={`w-10 h-5 rounded-full transition-colors relative ${editIsMilestone ? 'bg-purple-500' : ''}`}
+                  style={!editIsMilestone ? { backgroundColor: 'var(--progress-track)' } : {}}
+                >
+                  <div
+                    className="w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all shadow-sm"
+                    style={{ left: editIsMilestone ? '22px' : '2px' }}
+                  />
+                </button>
+              </div>
+
+              {/* Risk level */}
+              <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
+                <p className="text-[10px] uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>Risk Level</p>
+                <div className="flex gap-2">
+                  {['normal', 'medium', 'high', 'critical'].map(level => (
+                    <button
+                      key={level}
+                      onClick={() => setEditRiskLevel(level)}
+                      className={`px-2.5 py-1 rounded text-xs font-medium border transition-all capitalize ${editRiskLevel === level ? 'ring-1' : ''}`}
+                      style={{
+                        backgroundColor: editRiskLevel === level
+                          ? level === 'critical' ? 'rgba(239,68,68,0.15)' : level === 'high' ? 'rgba(249,115,22,0.15)' : level === 'medium' ? 'rgba(234,179,8,0.15)' : 'rgba(34,197,94,0.15)'
+                          : 'var(--bg-card)',
+                        color: editRiskLevel === level
+                          ? level === 'critical' ? '#ef4444' : level === 'high' ? '#f97316' : level === 'medium' ? '#eab308' : '#22c55e'
+                          : 'var(--text-muted)',
+                        borderColor: editRiskLevel === level
+                          ? level === 'critical' ? '#ef4444' : level === 'high' ? '#f97316' : level === 'medium' ? '#eab308' : '#22c55e'
+                          : 'var(--border-primary)',
+                        ...(editRiskLevel === level ? { '--tw-ring-color': level === 'critical' ? '#ef444440' : level === 'high' ? '#f9731640' : level === 'medium' ? '#eab30840' : '#22c55e40' } : {}),
+                      }}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dependencies */}
+              <EditableField
+                label="Dependencies (comma-separated task numbers)"
+                value={editDeps}
+                onChange={setEditDeps}
+                placeholder="e.g. 1.1, 1.2"
               />
             </div>
           </Section>
+
+          {/* Save button for editable fields */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSaveDetails}
+              disabled={saving}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+            {saveMsg && (
+              <span className={`text-xs font-medium ${saveMsg.startsWith('Error') ? 'text-red-400' : 'text-green-400'}`}>
+                {saveMsg}
+              </span>
+            )}
+          </div>
 
           {/* Resources */}
           <Section title="Resources" icon="box">
@@ -298,6 +436,22 @@ function DetailRow({ label, value, mono }) {
       <span className={`text-right max-w-[60%] truncate ${mono ? 'font-mono' : ''}`} style={{ color: 'var(--text-secondary)' }}>
         {value || '\u2014'}
       </span>
+    </div>
+  )
+}
+
+function EditableField({ label, value, onChange, type = 'text', placeholder = '' }) {
+  return (
+    <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
+      <label className="text-[10px] uppercase tracking-wide block mb-1" style={{ color: 'var(--text-muted)' }}>{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full bg-transparent text-sm font-medium outline-none border-b transition-colors focus:border-blue-500"
+        style={{ color: 'var(--text-primary)', borderColor: 'var(--border-primary)' }}
+      />
     </div>
   )
 }
