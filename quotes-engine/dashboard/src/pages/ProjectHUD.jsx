@@ -45,6 +45,9 @@ export default function ProjectHUD() {
   const [statusFilter, setStatusFilter] = useState('')
   const [toast, setToast] = useState(null)
 
+  // ── Health persistence ref (must be before early returns) ──
+  const lastPersistedScore = useRef(null)
+
   // ── Data loading ──
   const loadData = useCallback(async () => {
     if (!slug) return
@@ -82,6 +85,17 @@ export default function ProjectHUD() {
     const interval = setInterval(loadData, AUTO_REFRESH_MS)
     return () => clearInterval(interval)
   }, [loadData])
+
+  // ── Persist health score (debounced, must be before early returns) ──
+  const healthScoreForEffect = project ? calculateHealthScore(calculateEVM(project, tasks)) : null
+  useEffect(() => {
+    if (!project?.id || healthScoreForEffect === null || healthScoreForEffect === lastPersistedScore.current) return
+    const timer = setTimeout(() => {
+      updateProjectHealth(project.id, { health_score: healthScoreForEffect }).catch(() => {})
+      lastPersistedScore.current = healthScoreForEffect
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [healthScoreForEffect, project?.id])
 
   // ── Toast helper ──
   function showToast(message, type = 'success') {
@@ -186,17 +200,6 @@ export default function ProjectHUD() {
   const healthScore = calculateHealthScore(evm)
   const healthStatus = getHealthStatus(healthScore)
   const health = { score: healthScore, status: healthStatus }
-
-  // Persist health score to Supabase (debounced, skip if unchanged)
-  const lastPersistedScore = useRef(project?.health_score)
-  useEffect(() => {
-    if (!project?.id || healthScore === lastPersistedScore.current) return
-    const timer = setTimeout(() => {
-      updateProjectHealth(project.id, { health_score: healthScore }).catch(() => {})
-      lastPersistedScore.current = healthScore
-    }, 5000)
-    return () => clearTimeout(timer)
-  }, [healthScore, project?.id])
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
