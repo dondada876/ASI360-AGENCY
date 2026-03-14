@@ -96,7 +96,7 @@ export default function ProjectList() {
                 key={proj.id}
                 to={slug ? `/${slug}-HUD` : '#'}
                 className="group block rounded-xl border transition-all p-5"
-                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}
+                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)', boxShadow: 'var(--card-shadow)' }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-secondary)'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-primary)'}
               >

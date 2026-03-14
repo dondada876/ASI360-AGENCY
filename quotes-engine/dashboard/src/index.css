@@ -5,52 +5,55 @@
    ══════════════════════════════════════════════ */
 
 :root {
-  /* Backgrounds */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
+  /* Backgrounds — gray page bg so white cards "float" */
+  --bg-primary: #f1f5f9;
+  --bg-secondary: #e2e8f0;
   --bg-card: #ffffff;
-  --bg-card-hover: #f3f4f6;
-  --bg-hover: #f3f4f6;
-  --bg-input: #f3f4f6;
+  --bg-card-hover: #f8fafc;
+  --bg-hover: #f1f5f9;
+  --bg-input: #ffffff;
   --bg-overlay: rgba(0, 0, 0, 0.3);
-  --bg-badge: rgba(0, 0, 0, 0.05);
+  --bg-badge: rgba(0, 0, 0, 0.06);
 
-  /* Borders */
-  --border-primary: #e5e7eb;
-  --border-secondary: #d1d5db;
-  --border-input: #d1d5db;
+  /* Borders — stronger for light mode visibility */
+  --border-primary: #cbd5e1;
+  --border-secondary: #94a3b8;
+  --border-input: #94a3b8;
 
   /* Text */
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
-  --text-mono: #6b7280;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-mono: #475569;
 
-  /* Phase colors — light mode (slightly darker for contrast) */
+  /* Phase colors — light mode (darker for white-bg contrast) */
   --phase-1: #1e40af;
   --phase-2: #0f766e;
   --phase-3: #c2410c;
   --phase-4: #15803d;
   --phase-5: #6b21a8;
-  --phase-0: #4b5563;
+  --phase-0: #475569;
 
   /* Gantt-specific */
-  --gantt-today-bg: rgba(59, 130, 246, 0.08);
-  --gantt-today-line: rgba(59, 130, 246, 0.4);
+  --gantt-today-bg: rgba(59, 130, 246, 0.1);
+  --gantt-today-line: rgba(59, 130, 246, 0.5);
   --gantt-end-line: #ef4444;
 
   /* Tooltip / Modal */
   --tooltip-bg: #ffffff;
-  --tooltip-border: #d1d5db;
+  --tooltip-border: #94a3b8;
   --modal-bg: #ffffff;
-  --modal-header-bg: rgba(255, 255, 255, 0.95);
+  --modal-header-bg: rgba(248, 250, 252, 0.97);
 
   /* Scrollbar */
-  --scrollbar-thumb: #d1d5db;
-  --scrollbar-thumb-hover: #9ca3af;
+  --scrollbar-thumb: #94a3b8;
+  --scrollbar-thumb-hover: #64748b;
 
   /* Progress bar track */
-  --progress-track: #e5e7eb;
+  --progress-track: #e2e8f0;
+
+  /* Card shadow (light mode only) */
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .dark {
@@ -63,6 +66,7 @@
   --bg-input: #1f2937;
   --bg-overlay: rgba(0, 0, 0, 0.6);
   --bg-badge: rgba(255, 255, 255, 0.05);
+  --card-shadow: none;
 
   /* Borders */
   --border-primary: #1f2937;
@@ -100,6 +104,12 @@
 
   /* Progress bar track */
   --progress-track: #1f2937;
+}
+
+/* ── Body baseline ── */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* ── Theme transition ── */

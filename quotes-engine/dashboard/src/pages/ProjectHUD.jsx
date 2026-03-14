@@ -232,7 +232,7 @@ export default function ProjectHUD() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* ── Project Header Card ── */}
-        <div className="rounded-xl border p-4 sm:p-6" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
+        <div className="rounded-xl border p-4 sm:p-6" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)', boxShadow: 'var(--card-shadow)' }}>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl font-bold">{project.project_name}</h1>
@@ -337,7 +337,7 @@ export default function ProjectHUD() {
 
               <PMTriangle evm={evm} health={health} />
 
-              <div className="rounded-lg border p-4" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
+              <div className="rounded-lg border p-4" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)', boxShadow: 'var(--card-shadow)' }}>
                 <h3 className="text-sm font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--text-secondary)' }}>Details</h3>
                 <dl className="space-y-2 text-xs">
                   {project.start_date && (
@@ -383,7 +383,7 @@ export default function ProjectHUD() {
               </div>
 
               {events.length > 0 && (
-                <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
+                <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)', boxShadow: 'var(--card-shadow)' }}>
                   <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-primary)' }}>
                     <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Activity</h3>
                   </div>

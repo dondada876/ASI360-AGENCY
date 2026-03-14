@@ -13,7 +13,7 @@ export default function NextSteps({ tasks }) {
   }
 
   return (
-    <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
+    <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)', boxShadow: 'var(--card-shadow)' }}>
       <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-primary)' }}>
         <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Next Steps</h3>
       </div>

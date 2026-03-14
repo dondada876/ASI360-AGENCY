@@ -29,7 +29,7 @@ export default function GanttTimeline({ timeline, onTaskClick, searchQuery }) {
   const endDateIndex = typeof end_date_col === 'number' ? end_date_col : -1
 
   return (
-    <div className="rounded-lg border overflow-x-auto" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
+    <div className="rounded-lg border overflow-x-auto" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)', boxShadow: 'var(--card-shadow)' }}>
       <div className="min-w-[800px]">
         {/* Week period headers */}
         <div className="flex border-b" style={{ borderColor: 'var(--border-primary)' }}>

@@ -5,7 +5,7 @@
 function SkeletonBlock({ className = '', style = {} }) {
   return (
     <div
-      className={`animate-skeleton rounded ${className}`}
+      className={`skeleton rounded ${className}`}
       style={{ backgroundColor: 'var(--progress-track)', ...style }}
     />
   )

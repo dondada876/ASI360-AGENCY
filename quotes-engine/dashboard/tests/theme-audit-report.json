@@ -1,0 +1,270 @@
+{
+  "screenshots": [
+    "01-project-list-dark.png",
+    "02-project-list-light.png"
+  ],
+  "findings": [
+    {
+      "test": "HTML dark class present",
+      "value": true,
+      "expected": true,
+      "pass": true
+    },
+    {
+      "test": "CSS var --bg-primary",
+      "value": "#030712",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --bg-secondary",
+      "value": "#111827",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --bg-card",
+      "value": "#111827",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --bg-card-hover",
+      "value": "#1f2937",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --text-primary",
+      "value": "#ffffff",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --text-secondary",
+      "value": "#9ca3af",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --text-muted",
+      "value": "#6b7280",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --border-primary",
+      "value": "#1f2937",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --border-secondary",
+      "value": "#374151",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --phase-1",
+      "value": "#0B5394",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --phase-2",
+      "value": "#45818E",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --phase-3",
+      "value": "#B85B22",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --phase-4",
+      "value": "#38761D",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --phase-5",
+      "value": "#351C75",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --gantt-today-bg",
+      "value": "rgba(59, 130, 246, 0.1)",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --gantt-today-line",
+      "value": "rgba(59, 130, 246, 0.3)",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --tooltip-bg",
+      "value": "#111827",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --modal-bg",
+      "value": "#111827",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --modal-header-bg",
+      "value": "rgba(17, 24, 39, 0.95)",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --progress-track",
+      "value": "#1f2937",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "CSS var --scrollbar-thumb",
+      "value": "#374151",
+      "pass": true,
+      "issue": null
+    },
+    {
+      "test": "Element: body → backgroundColor",
+      "value": "rgb(3, 7, 18)",
+      "pass": true
+    },
+    {
+      "test": "Element: #root > first-child → backgroundColor",
+      "value": "rgb(3, 7, 18)",
+      "pass": true
+    },
+    {
+      "test": "Element: header → backgroundColor",
+      "value": "rgba(17, 24, 39, 0.95)",
+      "pass": true
+    },
+    {
+      "test": "Element: header → color",
+      "value": "rgb(255, 255, 255)",
+      "pass": true
+    },
+    {
+      "test": "Element: Elements with bg styles (54 total) → white/transparent count",
+      "value": 0,
+      "pass": true
+    },
+    {
+      "test": "Element: ALL TEXT ELEMENTS → invisible (white-on-white) count",
+      "value": 0,
+      "pass": true
+    },
+    {
+      "test": "Stylesheet count",
+      "value": 1,
+      "pass": true
+    },
+    {
+      "test": "Total CSS rules",
+      "value": 88,
+      "pass": true
+    },
+    {
+      "test": ".dark selector found in CSS",
+      "value": true,
+      "expected": true,
+      "pass": true
+    },
+    {
+      "test": "--bg-primary found in CSS",
+      "value": true,
+      "expected": true,
+      "pass": true
+    },
+    {
+      "test": "Light mode --bg-primary",
+      "value": "#f1f5f9",
+      "expected": "#f1f5f9",
+      "pass": true
+    },
+    {
+      "test": "Light mode --text-primary",
+      "value": "#0f172a",
+      "expected": "#0f172a",
+      "pass": true
+    },
+    {
+      "test": "Light mode --bg-card",
+      "value": "#ffffff",
+      "expected": "#ffffff",
+      "pass": true
+    },
+    {
+      "test": "Light mode bg-primary ≠ bg-card (visual hierarchy)",
+      "value": true,
+      "expected": true,
+      "pass": true
+    },
+    {
+      "test": "Dark mode --bg-primary",
+      "value": "#030712",
+      "expected": "#030712",
+      "pass": true
+    },
+    {
+      "test": "Dark mode --text-primary",
+      "value": "#ffffff",
+      "expected": "#ffffff",
+      "pass": true
+    },
+    {
+      "test": "Dark mode --bg-card",
+      "value": "#111827",
+      "expected": "#111827",
+      "pass": true
+    },
+    {
+      "test": "Production CSS (index-BE2DHPwG.css): .dark selector",
+      "value": true,
+      "pass": true
+    },
+    {
+      "test": "Production CSS (index-BE2DHPwG.css): --bg-primary defined",
+      "value": true,
+      "pass": true
+    },
+    {
+      "test": "Production CSS (index-BE2DHPwG.css): light bg-primary (#fff)",
+      "value": false,
+      "pass": true
+    },
+    {
+      "test": "Production CSS (index-BE2DHPwG.css): dark bg-primary (#030712)",
+      "value": true,
+      "pass": true
+    },
+    {
+      "test": "Production CSS: uses @layer",
+      "value": true,
+      "pass": true
+    },
+    {
+      "test": "Production CSS: :root index",
+      "value": 1596,
+      "pass": true
+    },
+    {
+      "test": "Production CSS: .dark index",
+      "value": 31157,
+      "pass": true
+    }
+  ],
+  "errors": []
+}
