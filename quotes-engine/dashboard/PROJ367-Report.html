@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROJ367 — ASI 360 Project HUD Dashboard Report</title>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface-2: #1f2937;
+      --border: #374151;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --green: #22c55e;
+      --green-bg: rgba(34, 197, 94, 0.1);
+      --yellow: #eab308;
+      --yellow-bg: rgba(234, 179, 8, 0.1);
+      --red: #ef4444;
+      --purple: #a855f7;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .header h1 { font-size: 1.8rem; font-weight: 700; }
+    .header h1 span { color: var(--accent-light); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .badge-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+    .badge-blue { background: rgba(59,130,246,0.1); color: var(--accent-light); border: 1px solid rgba(59,130,246,0.3); }
+    .badge-purple { background: rgba(168,85,247,0.1); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .card h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    .card h3 {
+      font-size: 1rem;
+      color: var(--accent-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      text-align: center;
+    }
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .stat-card .label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .kv-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(55,65,81,0.5);
+    }
+    .kv-row:last-child { border-bottom: none; }
+    .kv-row .key { color: var(--text-muted); font-size: 0.85rem; }
+    .kv-row .val { font-weight: 500; font-size: 0.85rem; text-align: right; }
+    .kv-row .val.mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; color: var(--accent-light); }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.85rem;
+    }
+    thead th {
+      background: var(--surface-2);
+      padding: 0.7rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    thead th:first-child { border-radius: 8px 0 0 0; }
+    thead th:last-child { border-radius: 0 8px 0 0; }
+    tbody td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid rgba(55,65,81,0.4);
+      vertical-align: top;
+    }
+    tbody tr:hover { background: rgba(59,130,246,0.04); }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 0.4rem;
+    }
+    .dot-green { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+    .dot-yellow { background: var(--yellow); }
+    .dot-red { background: var(--red); }
+    .dot-blue { background: var(--accent); }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 0.3rem;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--green));
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .creds-box {
+      background: rgba(34,197,94,0.05);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .creds-box code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: rgba(59,130,246,0.1);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--accent-light);
+    }
+
+    .section { margin-bottom: 2rem; }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 1rem;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid rgba(55,65,81,0.3);
+    }
+    .timeline-item:last-child { border-bottom: none; }
+    .timeline-date {
+      min-width: 90px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    .timeline-body { flex: 1; }
+    .timeline-title { font-weight: 600; font-size: 0.85rem; }
+    .timeline-detail { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      body { padding: 1rem; }
+    }
+    @media print {
+      body { background: white; color: #111; padding: 0; }
+      .card, .stat-card, .creds-box { border-color: #ddd; }
+      .header h1 span { color: #2563eb; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <h1><span>PROJ367</span> — ASI 360 Project HUD Dashboard</h1>
+        <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem;">
+          Internal Project Report — Generated 2026-03-13
+        </div>
+      </div>
+      <div style="display:flex;gap:0.5rem;">
+        <span class="badge badge-yellow">In Progress</span>
+        <span class="badge badge-blue">Phase 2</span>
+      </div>
+    </div>
+
+    <!-- Credentials -->
+    <div class="creds-box">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;font-weight:700;">
+        <span style="font-size:1.2rem;">&#128274;</span> Dashboard Access
+      </div>
+      <div class="kv-row">
+        <span class="key">URL</span>
+        <span class="val"><code>https://projects.asi360.co</code></span>
+      </div>
+      <div class="kv-row">
+        <span class="key">Username</span>
+        <span class="val"><code>admin</code></span>
+      </div>
+      <div class="kv-row">
+        <span class="key">Password</span>
+        <span class="val"><code>ASI360projects!</code></span>
+      </div>
+      <div class="kv-row">
+        <span class="key">Auth Type</span>
+        <span class="val">nginx Basic Auth (<code>/etc/nginx/.htpasswd-projects</code>)</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid-3">
+      <div class="stat-card">
+        <div class="value" style="color: var(--accent-light);">30%</div>
+        <div class="label">Overall Progress</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:30%"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="value" style="color: var(--green);">3</div>
+        <div class="label">Tasks Completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" style="color: var(--yellow);">7</div>
+        <div class="label">Tasks Remaining</div>
+      </div>
+    </div>
+
+    <!-- Project Details -->
+    <div class="grid-2">
+      <div class="card">
+        <h2>Project Details</h2>
+        <div class="kv-row"><span class="key">Project No.</span><span class="val mono">PROJ367</span></div>
+        <div class="kv-row"><span class="key">Client</span><span class="val">ASI 360 (Internal)</span></div>
+        <div class="kv-row"><span class="key">Contact</span><span class="val">Dawit Bucknor</span></div>
+        <div class="kv-row"><span class="key">Email</span><span class="val mono">ops@asi360.co</span></div>
+        <div class="kv-row"><span class="key">Phone</span><span class="val">(510) 288-0994</span></div>
+        <div class="kv-row"><span class="key">Start Date</span><span class="val">2026-03-12</span></div>
+        <div class="kv-row"><span class="key">Target Close</span><span class="val">2026-04-15</span></div>
+        <div class="kv-row"><span class="key">Template</span><span class="val">Software Dev (ID 6)</span></div>
+      </div>
+      <div class="card">
+        <h2>Infrastructure</h2>
+        <div class="kv-row"><span class="key">Droplet</span><span class="val mono">104.248.69.86</span></div>
+        <div class="kv-row"><span class="key">Nginx Config</span><span class="val mono">project-dashboard</span></div>
+        <div class="kv-row"><span class="key">Deploy Path</span><span class="val mono">/var/www/project-dashboard/</span></div>
+        <div class="kv-row"><span class="key">SSL Engine</span><span class="val">Certbot (Let's Encrypt)</span></div>
+        <div class="kv-row"><span class="key">SSL Expires</span><span class="val">2026-06-11</span></div>
+        <div class="kv-row"><span class="key">Auto-Renew</span><span class="val"><span class="status-dot dot-green"></span>Active</span></div>
+        <div class="kv-row"><span class="key">VTiger API</span><span class="val"><span class="status-dot dot-green"></span>Healthy (port 3004)</span></div>
+        <div class="kv-row"><span class="key">Disk Usage</span><span class="val">456 KB</span></div>
+      </div>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="card section">
+      <h2>Technology Stack</h2>
+      <div class="grid-3" style="margin-bottom:0;">
+        <div>
+          <h3>Frontend</h3>
+          <div style="font-size:0.85rem;color:var(--text-muted);">
+            React 19 + Vite 6<br>
+            Tailwind CSS 4<br>
+            React Router 7<br>
+            Supabase JS Client
+          </div>
+        </div>
+        <div>
+          <h3>Backend / Data</h3>
+          <div style="font-size:0.85rem;color:var(--text-muted);">
+            Supabase PostgreSQL<br>
+            VTiger API (Docker)<br>
+            Airtable API<br>
+            nginx + Certbot
+          </div>
+        </div>
+        <div>
+          <h3>Sync Architecture</h3>
+          <div style="font-size:0.85rem;color:var(--text-muted);">
+            Bidirectional tri-sync<br>
+            Webhook endpoints (x2)<br>
+            Echo prevention (5s)<br>
+            modified_source tracking
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cross-References -->
+    <div class="card section">
+      <h2>System Cross-References</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>System</th>
+            <th>Identifier</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Supabase</td>
+            <td><code>asi360_projects.id = 12</code></td>
+            <td>Project <code>gtfffxwfgcxiiauliynd</code></td>
+          </tr>
+          <tr>
+            <td>VTiger CRM</td>
+            <td><code>31x95841</code></td>
+            <td>Projects module</td>
+          </tr>
+          <tr>
+            <td>Airtable</td>
+            <td><code>reczwqSKyKU7H7IWX</code></td>
+            <td>CEO Dashboard base</td>
+          </tr>
+          <tr>
+            <td>GitHub</td>
+            <td><code>claude/optimistic-bose</code></td>
+            <td><code>dondada876/ASI360-AGENCY</code></td>
+          </tr>
+          <tr>
+            <td>Airtable (SSL #1)</td>
+            <td><code>recqgxDVsorUpi8Pl</code></td>
+            <td>Infra Services (Certbot projects.asi360.co)</td>
+          </tr>
+          <tr>
+            <td>Airtable (SSL #2)</td>
+            <td><code>recWEhhTTXg74ovte</code></td>
+            <td>Infra Services (Certbot api.asi360.co)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tasks Table -->
+    <div class="section">
+      <div class="section-title">Task Breakdown (3/10 Complete)</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50px;">#</th>
+              <th>Task Name</th>
+              <th style="width:100px;">Phase</th>
+              <th style="width:100px;">Status</th>
+              <th>VTiger ID</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1.1</td>
+              <td>Feature Brief</td>
+              <td><span class="badge badge-purple">Scope</span></td>
+              <td><span class="status-dot dot-yellow"></span>Open</td>
+              <td><code>30x95847</code></td>
+              <td style="color:var(--text-muted);">—</td>
+            </tr>
+            <tr style="background:rgba(34,197,94,0.03);">
+              <td>1.2</td>
+              <td>Architecture & Approach</td>
+              <td><span class="badge badge-purple">Scope</span></td>
+              <td><span class="status-dot dot-green"></span>Done</td>
+              <td><code>30x95848</code></td>
+              <td style="font-size:0.8rem;">Fixed updated_at bug in VTiger API. Docker rebuilt.</td>
+            </tr>
+            <tr>
+              <td>1.3</td>
+              <td>Scope Sign-off</td>
+              <td><span class="badge badge-purple">Scope</span></td>
+              <td><span class="status-dot dot-yellow"></span>Open</td>
+              <td><code>30x95849</code></td>
+              <td style="color:var(--text-muted);">—</td>
+            </tr>
+            <tr style="background:rgba(34,197,94,0.03);">
+              <td>2.1</td>
+              <td>Branch & Scaffold</td>
+              <td><span class="badge badge-blue">Build</span></td>
+              <td><span class="status-dot dot-green"></span>Done</td>
+              <td><code>30x95850</code></td>
+              <td style="font-size:0.8rem;">16 files, 8,131 lines. Commit 845c6a8.</td>
+            </tr>
+            <tr>
+              <td>2.2</td>
+              <td>Core Implementation</td>
+              <td><span class="badge badge-blue">Build</span></td>
+              <td><span class="status-dot dot-yellow"></span>Open</td>
+              <td><code>30x95851</code></td>
+              <td style="color:var(--text-muted);">—</td>
+            </tr>
+            <tr>
+              <td>2.3</td>
+              <td>Integration Testing</td>
+              <td><span class="badge badge-blue">Build</span></td>
+              <td><span class="status-dot dot-yellow"></span>Open</td>
+              <td><code>30x95852</code></td>
+              <td style="color:var(--text-muted);">—</td>
+            </tr>
+            <tr style="background:rgba(34,197,94,0.03);">
+              <td>2.4</td>
+              <td>Code Review & QA</td>
+              <td><span class="badge badge-blue">Build</span></td>
+              <td><span class="status-dot dot-green"></span>Done</td>
+              <td><code>30x95853</code></td>
+              <td style="font-size:0.8rem;">Deployed to droplet. nginx + SSL configured.</td>
+            </tr>
+            <tr>
+              <td>3.1</td>
+              <td>Merge & Deploy</td>
+              <td><span class="badge badge-green">Ship</span></td>
+              <td><span class="status-dot dot-yellow"></span>Open</td>
+              <td><code>30x95854</code></td>
+              <td style="color:var(--text-muted);">—</td>
+            </tr>
+            <tr>
+              <td>3.2</td>
+              <td>Documentation & Handoff</td>
+              <td><span class="badge badge-green">Ship</span></td>
+              <td><span class="status-dot dot-yellow"></span>Open</td>
+              <td><code>30x95855</code></td>
+              <td style="color:var(--text-muted);">—</td>
+            </tr>
+            <tr>
+              <td>3.3</td>
+              <td>Retro & Close</td>
+              <td><span class="badge badge-green">Ship</span></td>
+              <td><span class="status-dot dot-yellow"></span>Open</td>
+              <td><code>30x95856</code></td>
+              <td style="color:var(--text-muted);">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Events Timeline -->
+    <div class="section">
+      <div class="section-title">Events Timeline</div>
+      <div class="card">
+        <div class="timeline-item">
+          <div class="timeline-date">2026-03-13</div>
+          <div class="timeline-body">
+            <div class="timeline-title"><span class="badge badge-purple" style="font-size:0.65rem;padding:0.15rem 0.5rem;">Planning</span> Planning session initiated</div>
+            <div class="timeline-detail">Client requested DoorDash-style project tracker for all active security integration projects.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2026-03-13</div>
+          <div class="timeline-body">
+            <div class="timeline-title"><span class="badge badge-yellow" style="font-size:0.65rem;padding:0.15rem 0.5rem;">Decision</span> Sync gap identified</div>
+            <div class="timeline-detail">Gateway MCP only pushed to Airtable+VTiger; no reverse path existed. Bidirectional webhooks designed.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2026-03-13</div>
+          <div class="timeline-body">
+            <div class="timeline-title"><span class="badge badge-yellow" style="font-size:0.65rem;padding:0.15rem 0.5rem;">Decision</span> updated_at bug discovered</div>
+            <div class="timeline-detail">VTiger API main.py:1003 — updated_at column never set during PATCH. Fixed and Docker rebuilt.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2026-03-13</div>
+          <div class="timeline-body">
+            <div class="timeline-title"><span class="badge badge-yellow" style="font-size:0.65rem;padding:0.15rem 0.5rem;">Decision</span> Architecture finalized</div>
+            <div class="timeline-detail">React SPA (Vite+React 19+Tailwind 4), bidirectional webhooks for VTiger and Airtable, URL: projects.asi360.co/:slug-HUD/</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2026-03-13</div>
+          <div class="timeline-body">
+            <div class="timeline-title"><span class="badge badge-purple" style="font-size:0.65rem;padding:0.15rem 0.5rem;">Planning</span> Plan v4 approved</div>
+            <div class="timeline-detail">22 subtasks across 5 phases. VTiger project PROJ367 created with 10 tasks.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2026-03-13</div>
+          <div class="timeline-body">
+            <div class="timeline-title"><span class="badge badge-green" style="font-size:0.65rem;padding:0.15rem 0.5rem;">Deploy</span> SSL certificate issued</div>
+            <div class="timeline-detail">Let's Encrypt E8, ECDSA key, auto-renew via certbot.timer. Expires 2026-06-11.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2026-03-13</div>
+          <div class="timeline-body">
+            <div class="timeline-title"><span class="badge badge-yellow" style="font-size:0.65rem;padding:0.15rem 0.5rem;">Decision</span> SSL Certificate Inventory documented</div>
+            <div class="timeline-detail">2 Certbot certs (projects + api) + 1 SiteGround wildcard. Stored in Airtable Infra Services and Supabase project_events.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Webhook Endpoints -->
+    <div class="section">
+      <div class="section-title">Webhook Endpoints</div>
+      <div class="grid-2">
+        <div class="card">
+          <h2>Airtable Webhook</h2>
+          <div class="kv-row"><span class="key">Endpoint</span><span class="val mono" style="font-size:0.7rem;">POST /api/webhooks/airtable-task-update</span></div>
+          <div class="kv-row"><span class="key">Port</span><span class="val">3004</span></div>
+          <div class="kv-row"><span class="key">Status</span><span class="val"><span class="status-dot dot-green"></span>Active</span></div>
+          <div class="kv-row"><span class="key">Echo Guard</span><span class="val">5s window</span></div>
+          <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--text-muted);">
+            Expected payload: <code>{"record_id": "rec...", "fields": {"Status": "..."}}</code>
+          </div>
+        </div>
+        <div class="card">
+          <h2>VTiger Webhook</h2>
+          <div class="kv-row"><span class="key">Endpoint</span><span class="val mono" style="font-size:0.7rem;">POST /api/webhooks/vtiger-task-update</span></div>
+          <div class="kv-row"><span class="key">Port</span><span class="val">3004</span></div>
+          <div class="kv-row"><span class="key">Status</span><span class="val"><span class="status-dot dot-green"></span>Active</span></div>
+          <div class="kv-row"><span class="key">Echo Guard</span><span class="val">5s window</span></div>
+          <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--text-muted);">
+            Expected payload: <code>{"record_id": "31x...", "projecttaskstatus": "..."}</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Git History -->
+    <div class="section">
+      <div class="section-title">Git History (branch: claude/optimistic-bose)</div>
+      <div class="card" style="font-family:'SF Mono','Fira Code',monospace;font-size:0.8rem;line-height:1.8;">
+        <div><span style="color:var(--yellow);">2af0886</span> Update nginx config with SSL (certbot) for projects.asi360.co</div>
+        <div><span style="color:var(--yellow);">97cb494</span> Add nginx config for projects.asi360.co deployment</div>
+        <div><span style="color:var(--yellow);">845c6a8</span> React Project HUD Dashboard: Gantt timeline, project directory, auto-refresh</div>
+        <div><span style="color:var(--yellow);">5e65cd5</span> Timeline v2: dark headers, colspan Gantt bars, PROJECT END column</div>
+        <div><span style="color:var(--yellow);">e2c1102</span> Add tooltips, brief loader, and critical path scheduling</div>
+        <div><span style="color:var(--yellow);">b9e5fc9</span> Add proposal-to-timeline pipeline for project-specific Gantt charts</div>
+      </div>
+    </div>
+
+    <!-- Remaining Work -->
+    <div class="section">
+      <div class="section-title">Remaining Work</div>
+      <div class="card">
+        <div style="display:flex;gap:0.5rem;align-items:flex-start;margin-bottom:0.8rem;">
+          <span style="color:var(--yellow);font-size:1.1rem;">&#9744;</span>
+          <div>
+            <div style="font-weight:600;">Configure VTiger Workflow webhook</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);">Create Workflow on ProjectTask module, trigger on Status change, POST to gateway endpoint.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem;align-items:flex-start;margin-bottom:0.8rem;">
+          <span style="color:var(--yellow);font-size:1.1rem;">&#9744;</span>
+          <div>
+            <div style="font-weight:600;">End-to-end verification (6-point checklist)</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);">Test Airtable-to-Supabase, VTiger-to-Supabase, dashboard refresh, conflict resolution.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem;align-items:flex-start;margin-bottom:0.8rem;">
+          <span style="color:var(--yellow);font-size:1.1rem;">&#9744;</span>
+          <div>
+            <div style="font-weight:600;">Merge to staging and production</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);">claude/optimistic-bose -> staging -> main</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem;align-items:flex-start;">
+          <span style="color:var(--yellow);font-size:1.1rem;">&#9744;</span>
+          <div>
+            <div style="font-weight:600;">Final documentation & handoff</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);">Complete docs, train team, close project.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>PROJ367 — ASI 360 Project HUD Dashboard | Allied Systems Integrations 360</p>
+      <p>Generated 2026-03-13 | Branch: claude/optimistic-bose | Supabase: gtfffxwfgcxiiauliynd</p>
+    </div>
+  </div>
+</body>
+</html>

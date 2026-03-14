@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASI 360 — Project Management Engine Audit</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@300;400;500;600&family=Playfair+Display:wght@700;800;900&display=swap');
+
+:root {
+  --bg: #060a14;
+  --bg-surface: #0c1120;
+  --bg-card: #111827;
+  --bg-card-alt: #0f172a;
+  --bg-elevated: #1e293b;
+  --border: rgba(148, 163, 184, 0.08);
+  --border-bright: rgba(148, 163, 184, 0.15);
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --accent-cyan: #06b6d4;
+  --accent-cyan-glow: rgba(6, 182, 212, 0.15);
+  --accent-emerald: #10b981;
+  --accent-emerald-glow: rgba(16, 185, 129, 0.12);
+  --accent-amber: #f59e0b;
+  --accent-amber-glow: rgba(245, 158, 11, 0.12);
+  --accent-rose: #f43f5e;
+  --accent-rose-glow: rgba(244, 63, 94, 0.12);
+  --accent-violet: #8b5cf6;
+  --accent-violet-glow: rgba(139, 92, 246, 0.12);
+  --accent-blue: #3b82f6;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Ambient background ── */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 20%, rgba(6,182,212,0.04), transparent),
+    radial-gradient(ellipse 500px 500px at 80% 60%, rgba(139,92,246,0.03), transparent),
+    radial-gradient(ellipse 400px 300px at 50% 90%, rgba(16,185,129,0.03), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Grid noise texture ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M60 0v60M0 0h60' stroke='%23ffffff' stroke-opacity='0.015'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page { position: relative; z-index: 1; max-width: 1340px; margin: 0 auto; padding: 2rem 2.5rem 4rem; }
+
+/* ── Header ── */
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 3rem 0 2.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 3rem;
+}
+.masthead-brand {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  margin-bottom: 0.75rem;
+}
+.masthead h1 {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--text) 40%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.masthead-meta {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.9;
+}
+.masthead-meta strong { color: var(--text-muted); font-weight: 500; }
+
+/* ── Section system ── */
+.section { margin-bottom: 3.5rem; }
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  margin-bottom: 0.5rem;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.01em;
+}
+.section-desc {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-bottom: 2rem;
+  max-width: 640px;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.card:hover {
+  border-color: var(--border-bright);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+}
+
+/* ── Stat pills (top row) ── */
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 3rem; }
+.stat-pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.stat-pill::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.stat-pill.cyan::before  { background: linear-gradient(90deg, var(--accent-cyan), transparent); }
+.stat-pill.emerald::before { background: linear-gradient(90deg, var(--accent-emerald), transparent); }
+.stat-pill.amber::before { background: linear-gradient(90deg, var(--accent-amber), transparent); }
+.stat-pill.rose::before  { background: linear-gradient(90deg, var(--accent-rose), transparent); }
+.stat-pill .label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+}
+.stat-pill .value {
+  font-family: var(--font-mono);
+  font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.stat-pill .sub {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 0.35rem;
+}
+.stat-pill.cyan .value  { color: var(--accent-cyan); }
+.stat-pill.emerald .value { color: var(--accent-emerald); }
+.stat-pill.amber .value { color: var(--accent-amber); }
+.stat-pill.rose .value  { color: var(--accent-rose); }
+
+/* ── Comparison Table ── */
+.cmp-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.cmp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 900px;
+}
+.cmp-table thead th {
+  background: var(--bg-elevated);
+  padding: 0.85rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.cmp-table thead th:first-child { width: 180px; }
+.cmp-table thead th.opt-a { color: var(--accent-rose); }
+.cmp-table thead th.opt-b { color: var(--accent-amber); }
+.cmp-table thead th.opt-c { color: var(--accent-emerald); }
+.cmp-table thead th.opt-d { color: var(--accent-cyan); }
+.cmp-table tbody td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.cmp-table tbody tr:hover { background: rgba(255,255,255,0.015); }
+.cmp-table .row-label {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.cmp-table .category-row td {
+  background: var(--bg-card-alt);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.cmp-table .check { color: var(--accent-emerald); font-weight: 700; }
+.cmp-table .cross { color: var(--text-dim); }
+.cmp-table .partial { color: var(--accent-amber); }
+.cmp-table .best-val { background: rgba(16,185,129,0.06); }
+.cmp-table .worst-val { background: rgba(244,63,94,0.04); }
+
+.tag {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+.tag-green { background: rgba(16,185,129,0.12); color: var(--accent-emerald); }
+.tag-amber { background: rgba(245,158,11,0.12); color: var(--accent-amber); }
+.tag-rose  { background: rgba(244,63,94,0.10); color: var(--accent-rose); }
+.tag-cyan  { background: rgba(6,182,212,0.12); color: var(--accent-cyan); }
+.tag-violet { background: rgba(139,92,246,0.12); color: var(--accent-violet); }
+
+/* ── Architecture diagrams ── */
+.arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.arch-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+.arch-card h3 {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.arch-card .arch-sub {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 1.25rem;
+}
+.arch-diagram {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1.25rem;
+  white-space: pre;
+  overflow-x: auto;
+}
+.arch-diagram .hl-cyan { color: var(--accent-cyan); font-weight: 600; }
+.arch-diagram .hl-green { color: var(--accent-emerald); font-weight: 600; }
+.arch-diagram .hl-amber { color: var(--accent-amber); font-weight: 600; }
+.arch-diagram .hl-rose { color: var(--accent-rose); font-weight: 600; }
+.arch-diagram .hl-violet { color: var(--accent-violet); font-weight: 600; }
+.arch-diagram .hl-dim { color: var(--text-dim); }
+
+/* ── Radar Chart (SVG) ── */
+.radar-section { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+.radar-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+.radar-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.legend-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+}
+.legend-item .legend-color {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+.legend-item .legend-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+.legend-item .legend-scores {
+  margin-top: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+
+/* ── Cost Projection ── */
+.cost-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; }
+.cost-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  position: relative;
+}
+.cost-card.recommended {
+  border-color: var(--accent-emerald);
+  box-shadow: 0 0 30px rgba(16,185,129,0.08);
+}
+.cost-card.recommended::after {
+  content: 'RECOMMENDED';
+  position: absolute;
+  top: -10px; right: 12px;
+  background: var(--accent-emerald);
+  color: #000;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 3px;
+}
+.cost-card h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+.cost-card .cost-sub {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-bottom: 1.25rem;
+}
+.cost-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 0.78rem;
+}
+.cost-line:last-child { border-bottom: none; }
+.cost-line .cl-label { color: var(--text-muted); }
+.cost-line .cl-val { font-family: var(--font-mono); font-weight: 500; font-size: 0.75rem; }
+.cost-total {
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border-bright);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.cost-total .ct-label {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+.cost-total .ct-val {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+.cost-card:nth-child(1) .ct-val { color: var(--accent-rose); }
+.cost-card:nth-child(2) .ct-val { color: var(--accent-amber); }
+.cost-card:nth-child(3) .ct-val { color: var(--accent-emerald); }
+.cost-card:nth-child(4) .ct-val { color: var(--accent-cyan); }
+
+/* ── Bar chart ── */
+.bar-chart { margin-top: 2rem; }
+.bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 80px;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.bar-label { font-size: 0.78rem; font-weight: 500; }
+.bar-track {
+  height: 28px;
+  background: var(--bg);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding-left: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  transition: width 1s ease;
+}
+.bar-fill.rose { background: linear-gradient(90deg, var(--accent-rose), rgba(244,63,94,0.6)); }
+.bar-fill.amber { background: linear-gradient(90deg, var(--accent-amber), rgba(245,158,11,0.6)); }
+.bar-fill.emerald { background: linear-gradient(90deg, var(--accent-emerald), rgba(16,185,129,0.6)); }
+.bar-fill.cyan { background: linear-gradient(90deg, var(--accent-cyan), rgba(6,182,212,0.6)); }
+.bar-amount {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ── Recommendation ── */
+.rec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.rec-phase {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  position: relative;
+}
+.rec-phase.phase-now {
+  border-color: var(--accent-emerald);
+  box-shadow: 0 0 40px rgba(16,185,129,0.06);
+}
+.rec-phase.phase-later {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 40px rgba(6,182,212,0.04);
+}
+.phase-tag {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+.phase-now .phase-tag { color: var(--accent-emerald); }
+.phase-later .phase-tag { color: var(--accent-cyan); }
+.rec-phase h3 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+.rec-phase .rec-desc {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  margin-bottom: 1.25rem;
+}
+.rec-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.rec-stat {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  text-align: center;
+}
+.rec-stat .rs-val {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.phase-now .rs-val { color: var(--accent-emerald); }
+.phase-later .rs-val { color: var(--accent-cyan); }
+.rec-stat .rs-label {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.3rem;
+}
+.rec-features {
+  list-style: none;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.rec-features li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.025);
+}
+.rec-features li::before {
+  content: '→';
+  margin-right: 0.5rem;
+  font-weight: 600;
+}
+.phase-now .rec-features li::before { color: var(--accent-emerald); }
+.phase-later .rec-features li::before { color: var(--accent-cyan); }
+
+/* ── Verdict banner ── */
+.verdict {
+  margin-top: 3rem;
+  background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(6,182,212,0.04));
+  border: 1px solid rgba(16,185,129,0.15);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 3rem;
+  text-align: center;
+}
+.verdict h2 {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 0.6rem;
+}
+.verdict p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── Footer ── */
+.footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+/* ── Print ── */
+@media print {
+  body { background: #fff; color: #111; }
+  body::before, body::after { display: none; }
+  .card, .stat-pill, .arch-card, .cost-card, .rec-phase { border-color: #ddd; background: #fafafa; }
+  .masthead h1 { -webkit-text-fill-color: #111; background: none; }
+  .cmp-table thead th { background: #f0f0f0; }
+  .arch-diagram { background: #f5f5f5; }
+  .verdict { background: #f0fdf4; border-color: #86efac; }
+}
+
+@media (max-width: 900px) {
+  .stat-row { grid-template-columns: 1fr 1fr; }
+  .arch-grid, .rec-grid, .radar-section { grid-template-columns: 1fr; }
+  .cost-grid { grid-template-columns: 1fr 1fr; }
+  .masthead { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .masthead-meta { text-align: left; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ════ MASTHEAD ════ -->
+  <header class="masthead">
+    <div>
+      <div class="masthead-brand">Allied Systems Integrations 360</div>
+      <h1>Project Management<br>Engine Audit</h1>
+    </div>
+    <div class="masthead-meta">
+      <strong>PROJ367</strong> — Build vs Buy Analysis<br>
+      Droplet <strong>104.248.69.86</strong> · 2 vCPU / 8 GB<br>
+      Generated <strong>2026-03-14</strong> · Branch <strong>claude/optimistic-bose</strong>
+    </div>
+  </header>
+
+  <!-- ════ CURRENT STATE ════ -->
+  <div class="stat-row">
+    <div class="stat-pill cyan">
+      <div class="label">Droplet RAM</div>
+      <div class="value">3.1 <span style="font-size:0.8rem;opacity:0.6">/ 7.8 GB</span></div>
+      <div class="sub">4.6 GB available · 14 containers + 33 services</div>
+    </div>
+    <div class="stat-pill emerald">
+      <div class="label">Supabase</div>
+      <div class="value">1.7M <span style="font-size:0.8rem;opacity:0.6">rows</span></div>
+      <div class="sub">171 tables · 431 MB · Free tier</div>
+    </div>
+    <div class="stat-pill amber">
+      <div class="label">VTiger CRM</div>
+      <div class="value">351 <span style="font-size:0.8rem;opacity:0.6">projects</span></div>
+      <div class="sub">817 tasks · 936 tickets · 631 contacts</div>
+    </div>
+    <div class="stat-pill rose">
+      <div class="label">Current Build</div>
+      <div class="value">8,131 <span style="font-size:0.8rem;opacity:0.6">LOC</span></div>
+      <div class="sub">16 files · 40+ hours invested · React SPA</div>
+    </div>
+  </div>
+
+  <!-- ════ SECTION 1: COMPARISON TABLE ════ -->
+  <div class="section">
+    <div class="section-label">01 — Side-by-Side Comparison</div>
+    <div class="section-title">Four Options, Measured Honestly</div>
+    <div class="section-desc">Every metric pulled from real infrastructure data, vendor documentation, and deployment experience.</div>
+
+    <div class="cmp-table-wrap">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th class="opt-a">Custom React<br><span style="font-weight:400;font-size:0.6rem;text-transform:none;letter-spacing:0">PROJ367 current</span></th>
+            <th class="opt-b">Custom + Frappe<br><span style="font-weight:400;font-size:0.6rem;text-transform:none;letter-spacing:0">Add Gantt library</span></th>
+            <th class="opt-c">Vikunja<br><span style="font-weight:400;font-size:0.6rem;text-transform:none;letter-spacing:0">Go binary, 100 MB</span></th>
+            <th class="opt-d">Plane<br><span style="font-weight:400;font-size:0.6rem;text-transform:none;letter-spacing:0">Full PM, native MCP</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Resources -->
+          <tr class="category-row"><td colspan="5">Resources &amp; Cost</td></tr>
+          <tr>
+            <td class="row-label">Dev effort</td>
+            <td class="worst-val"><span class="tag tag-rose">60-80 hrs</span></td>
+            <td><span class="tag tag-amber">40-55 hrs</span></td>
+            <td class="best-val"><span class="tag tag-green">20-30 hrs</span></td>
+            <td><span class="tag tag-cyan">15-25 hrs</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Monthly cost</td>
+            <td class="best-val"><span class="tag tag-green">$0</span></td>
+            <td class="best-val"><span class="tag tag-green">$0</span></td>
+            <td class="best-val"><span class="tag tag-green">$0</span></td>
+            <td><span class="tag tag-amber">$24/mo</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">New RAM</td>
+            <td class="best-val">0 MB</td>
+            <td class="best-val">0 MB</td>
+            <td>50-100 MB</td>
+            <td class="worst-val">4,000 MB (new droplet)</td>
+          </tr>
+          <tr>
+            <td class="row-label">New containers</td>
+            <td>0</td>
+            <td>0</td>
+            <td>1</td>
+            <td>6 (separate machine)</td>
+          </tr>
+          <tr>
+            <td class="row-label">Time to production</td>
+            <td class="worst-val"><span class="tag tag-rose">4-6 weeks</span></td>
+            <td><span class="tag tag-amber">3-4 weeks</span></td>
+            <td class="best-val"><span class="tag tag-green">1 week</span></td>
+            <td><span class="tag tag-green">1 week</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Maintenance</td>
+            <td class="worst-val"><span class="tag tag-rose">8-12 hrs/mo</span></td>
+            <td><span class="tag tag-amber">6-8 hrs/mo</span></td>
+            <td class="best-val"><span class="tag tag-green">1-2 hrs/mo</span></td>
+            <td class="best-val"><span class="tag tag-green">1-2 hrs/mo</span></td>
+          </tr>
+
+          <!-- Features -->
+          <tr class="category-row"><td colspan="5">Core Features</td></tr>
+          <tr>
+            <td class="row-label">Gantt chart</td>
+            <td><span class="partial">◐</span> View-only CSS grid</td>
+            <td><span class="check">●</span> Interactive drag</td>
+            <td><span class="check">●</span> Built-in</td>
+            <td><span class="check">●</span> Timeline view</td>
+          </tr>
+          <tr>
+            <td class="row-label">Kanban board</td>
+            <td><span class="cross">○</span> Not built</td>
+            <td><span class="cross">○</span> Not built</td>
+            <td><span class="check">●</span> Built-in</td>
+            <td><span class="check">●</span> Built-in</td>
+          </tr>
+          <tr>
+            <td class="row-label">Mobile / tablet</td>
+            <td><span class="partial">◐</span> Basic responsive</td>
+            <td><span class="partial">◐</span> Basic responsive</td>
+            <td><span class="check">●</span> Responsive UI</td>
+            <td><span class="check">●</span> Native apps</td>
+          </tr>
+          <tr>
+            <td class="row-label">Team sharing</td>
+            <td><span class="cross">○</span> Single user</td>
+            <td><span class="cross">○</span> Single user</td>
+            <td><span class="check">●</span> Users + teams</td>
+            <td><span class="check">●</span> Roles + perms</td>
+          </tr>
+
+          <!-- Integration -->
+          <tr class="category-row"><td colspan="5">Integration &amp; Sync</td></tr>
+          <tr>
+            <td class="row-label">REST API</td>
+            <td><span class="partial">◐</span> Supabase only</td>
+            <td><span class="partial">◐</span> Supabase only</td>
+            <td><span class="check">●</span> Full CRUD</td>
+            <td><span class="check">●</span> Full + GraphQL</td>
+          </tr>
+          <tr>
+            <td class="row-label">Webhooks</td>
+            <td><span class="partial">◐</span> Custom built</td>
+            <td><span class="partial">◐</span> Custom built</td>
+            <td><span class="check">●</span> Outgoing hooks</td>
+            <td><span class="check">●</span> Full system</td>
+          </tr>
+          <tr>
+            <td class="row-label">Calendar sync</td>
+            <td><span class="cross">○</span></td>
+            <td><span class="cross">○</span></td>
+            <td><span class="check">●</span> CalDAV</td>
+            <td><span class="check">●</span> Calendar view</td>
+          </tr>
+          <tr>
+            <td class="row-label">MCP integration</td>
+            <td><span class="cross">○</span></td>
+            <td><span class="cross">○</span></td>
+            <td><span class="partial">◐</span> Custom sync</td>
+            <td class="best-val"><span class="check">●</span> <strong>Native 30+ tools</strong></td>
+          </tr>
+          <tr>
+            <td class="row-label">AI features</td>
+            <td><span class="cross">○</span></td>
+            <td><span class="cross">○</span></td>
+            <td><span class="cross">○</span></td>
+            <td class="best-val"><span class="check">●</span> AI-native</td>
+          </tr>
+
+          <!-- Scalability -->
+          <tr class="category-row"><td colspan="5">Scale &amp; Flexibility</td></tr>
+          <tr>
+            <td class="row-label">Multi-business</td>
+            <td><span class="partial">◐</span> DB column</td>
+            <td><span class="partial">◐</span> DB column</td>
+            <td><span class="check">●</span> Namespaces</td>
+            <td><span class="check">●</span> Workspaces</td>
+          </tr>
+          <tr>
+            <td class="row-label">Customizability</td>
+            <td class="best-val"><span class="tag tag-green">Total</span></td>
+            <td class="best-val"><span class="tag tag-green">Total</span></td>
+            <td><span class="tag tag-amber">Moderate</span></td>
+            <td><span class="tag tag-amber">Moderate</span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Docs / Wiki</td>
+            <td><span class="cross">○</span></td>
+            <td><span class="cross">○</span></td>
+            <td><span class="cross">○</span></td>
+            <td><span class="check">●</span> Built-in pages</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════ SECTION 2: ARCHITECTURE DIAGRAMS ════ -->
+  <div class="section">
+    <div class="section-label">02 — Architecture Comparison</div>
+    <div class="section-title">Data Flow Per Option</div>
+    <div class="section-desc">How each option connects to your existing Supabase → VTiger → Airtable sync pipeline.</div>
+
+    <div class="arch-grid">
+      <div class="arch-card">
+        <h3><span style="color:var(--accent-rose)">A</span> Custom React (Current)</h3>
+        <div class="arch-sub">You build everything. Every feature = more code.</div>
+        <div class="arch-diagram"><span class="hl-rose">React SPA</span> (projects.asi360.co)
+  │ reads directly
+  ▼
+<span class="hl-green">Supabase</span> ◄─── source of truth
+  │                  │
+  │ Gateway MCP      │ wj-sync
+  ▼                  ▼
+<span class="hl-amber">VTiger</span>          <span class="hl-violet">Airtable</span>
+ (CRM)           (CEO view)
+
+<span class="hl-dim">⚠ No Gantt editing, no Kanban,
+  no team sharing, no mobile app
+  Every feature = custom code</span></div>
+      </div>
+      <div class="arch-card">
+        <h3><span style="color:var(--accent-amber)">B</span> Custom + Frappe Gantt</h3>
+        <div class="arch-sub">Better Gantt, still building everything else.</div>
+        <div class="arch-diagram"><span class="hl-amber">React + Frappe Gantt</span>
+  │ reads + drag-drop writes
+  ▼
+<span class="hl-green">Supabase</span> ◄─── source of truth
+  │                  │
+  │ Gateway MCP      │ wj-sync
+  ▼                  ▼
+<span class="hl-amber">VTiger</span>          <span class="hl-violet">Airtable</span>
+ (CRM)           (CEO view)
+
+<span class="hl-dim">⚠ Interactive Gantt ✓ but still
+  no Kanban, no teams, no mobile
+  Frappe = MIT, 8KB, good perf</span></div>
+      </div>
+      <div class="arch-card">
+        <h3><span style="color:var(--accent-emerald)">C</span> Vikunja (Recommended Now)</h3>
+        <div class="arch-sub">Full PM tool. 100 MB. Zero monthly cost.</div>
+        <div class="arch-diagram"><span class="hl-green">Vikunja</span> (pm.asi360.co)     <span class="hl-dim">← Gantt, Kanban,</span>
+  │ REST API + webhooks       <span class="hl-dim">   teams, mobile</span>
+  ▼
+<span class="hl-green">Supabase</span> ◄─── source of truth
+  │       ▲          │
+  │       │          │ wj-sync
+  │  Vikunja         ▼
+  │  webhook    <span class="hl-violet">Airtable</span>
+  │  sync       (CEO view)
+  │ Gateway MCP
+  ▼
+<span class="hl-amber">VTiger</span>
+ (CRM archival)
+
+<span class="hl-green">✓ Gantt ✓ Kanban ✓ Teams ✓ CalDAV
+✓ 1 container ✓ SQLite ✓ $0/mo</span></div>
+      </div>
+      <div class="arch-card">
+        <h3><span style="color:var(--accent-cyan)">D</span> Plane (Endgame)</h3>
+        <div class="arch-sub">Full PM + native MCP. Separate droplet.</div>
+        <div class="arch-diagram"><span class="hl-cyan">Plane</span> (pm.asi360.co)        <span class="hl-dim">← Full PM suite</span>
+  │ REST API + MCP Server     <span class="hl-dim">   + AI-native</span>
+  │        ▲
+  │  <span class="hl-cyan">Claude MCP</span> ◄── direct tool
+  │  (30+ tools)     access!
+  ▼
+<span class="hl-green">Supabase</span> ◄─── source of truth
+  │       ▲          │
+  │  Plane webhook   │ wj-sync
+  │  sync            ▼
+  │ Gateway MCP <span class="hl-violet">Airtable</span>
+  ▼              (CEO view)
+<span class="hl-amber">VTiger</span>
+ (CRM archival)
+
+<span class="hl-cyan">✓ Everything in C plus:
+✓ Native MCP ✓ AI ✓ iOS/Android
+✓ Sprints ✓ Docs  ○ $24/mo</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SECTION 3: RADAR CHART ════ -->
+  <div class="section">
+    <div class="section-label">03 — Feature Radar</div>
+    <div class="section-title">Eight Dimensions, Four Contenders</div>
+    <div class="section-desc">Scored 1-10 across the capabilities that matter for multi-business operations.</div>
+
+    <div class="radar-section">
+      <div class="radar-wrap">
+        <svg viewBox="0 0 400 400" width="360" height="360" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background rings -->
+          <g transform="translate(200,200)">
+            <polygon points="0,-150 106,-106 150,0 106,106 0,150 -106,106 -150,0 -106,-106" fill="none" stroke="rgba(148,163,184,0.06)" stroke-width="1"/>
+            <polygon points="0,-112 79,-79 112,0 79,79 0,112 -79,79 -112,0 -79,-79" fill="none" stroke="rgba(148,163,184,0.05)" stroke-width="1"/>
+            <polygon points="0,-75 53,-53 75,0 53,53 0,75 -53,53 -75,0 -53,-53" fill="none" stroke="rgba(148,163,184,0.04)" stroke-width="1"/>
+            <polygon points="0,-37 26,-26 37,0 26,26 0,37 -26,26 -37,0 -26,-26" fill="none" stroke="rgba(148,163,184,0.03)" stroke-width="1"/>
+            <!-- Axis lines -->
+            <line x1="0" y1="0" x2="0" y2="-155" stroke="rgba(148,163,184,0.06)"/>
+            <line x1="0" y1="0" x2="110" y2="-110" stroke="rgba(148,163,184,0.06)"/>
+            <line x1="0" y1="0" x2="155" y2="0" stroke="rgba(148,163,184,0.06)"/>
+            <line x1="0" y1="0" x2="110" y2="110" stroke="rgba(148,163,184,0.06)"/>
+            <line x1="0" y1="0" x2="0" y2="155" stroke="rgba(148,163,184,0.06)"/>
+            <line x1="0" y1="0" x2="-110" y2="110" stroke="rgba(148,163,184,0.06)"/>
+            <line x1="0" y1="0" x2="-155" y2="0" stroke="rgba(148,163,184,0.06)"/>
+            <line x1="0" y1="0" x2="-110" y2="-110" stroke="rgba(148,163,184,0.06)"/>
+
+            <!-- Labels -->
+            <text x="0" y="-162" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8" letter-spacing="0.05em">GANTT</text>
+            <text x="118" y="-115" text-anchor="start" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">KANBAN</text>
+            <text x="162" y="4" text-anchor="start" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">MOBILE</text>
+            <text x="118" y="120" text-anchor="start" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">TEAMS</text>
+            <text x="0" y="170" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">API</text>
+            <text x="-118" y="120" text-anchor="end" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">MCP</text>
+            <text x="-162" y="4" text-anchor="end" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">CALENDAR</text>
+            <text x="-118" y="-115" text-anchor="end" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="8">CUSTOMIZE</text>
+
+            <!-- Option A: Custom React — 4,2,4,1,5,1,1,10 -->
+            <polygon points="0,-60 21,-21 60,0 10,10 0,75 -10,10 -15,0 -106,-106"
+              fill="rgba(244,63,94,0.08)" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+            <!-- Option B: Custom + Frappe — 8,2,4,1,5,1,1,10 -->
+            <polygon points="0,-120 21,-21 60,0 10,10 0,75 -10,10 -15,0 -106,-106"
+              fill="rgba(245,158,11,0.06)" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+            <!-- Option C: Vikunja — 8,9,7,8,9,4,8,5 -->
+            <polygon points="0,-120 95,-95 105,0 84,84 0,135 -42,42 -120,0 -53,-53"
+              fill="rgba(16,185,129,0.10)" stroke="#10b981" stroke-width="2"/>
+
+            <!-- Option D: Plane — 8,10,10,10,10,10,7,5 -->
+            <polygon points="0,-120 106,-106 150,0 106,106 0,150 -106,106 -105,0 -53,-53"
+              fill="rgba(6,182,212,0.08)" stroke="#06b6d4" stroke-width="2"/>
+          </g>
+        </svg>
+      </div>
+      <div class="radar-legend">
+        <div class="legend-item">
+          <span class="legend-color" style="background:var(--accent-rose)"></span>
+          <span class="legend-name">A — Custom React</span>
+          <div class="legend-scores">Gantt 4 · Kanban 2 · Mobile 4 · Teams 1 · API 5 · MCP 1 · Calendar 1 · Customize 10</div>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background:var(--accent-amber)"></span>
+          <span class="legend-name">B — Custom + Frappe Gantt</span>
+          <div class="legend-scores">Gantt 8 · Kanban 2 · Mobile 4 · Teams 1 · API 5 · MCP 1 · Calendar 1 · Customize 10</div>
+        </div>
+        <div class="legend-item" style="border-color:rgba(16,185,129,0.2);">
+          <span class="legend-color" style="background:var(--accent-emerald)"></span>
+          <span class="legend-name">C — Vikunja</span>
+          <div class="legend-scores">Gantt 8 · Kanban 9 · Mobile 7 · Teams 8 · API 9 · MCP 4 · Calendar 8 · Customize 5</div>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background:var(--accent-cyan)"></span>
+          <span class="legend-name">D — Plane</span>
+          <div class="legend-scores">Gantt 8 · Kanban 10 · Mobile 10 · Teams 10 · API 10 · MCP 10 · Calendar 7 · Customize 5</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SECTION 4: COST PROJECTION ════ -->
+  <div class="section">
+    <div class="section-label">04 — 12-Month Total Cost of Ownership</div>
+    <div class="section-title">The Real Price of "Free"</div>
+    <div class="section-desc">Development hours valued at $150/hr equivalent. Custom code has hidden costs in maintenance and opportunity.</div>
+
+    <div class="cost-grid">
+      <!-- Option A -->
+      <div class="cost-card">
+        <h4 style="color:var(--accent-rose)">A — Custom React</h4>
+        <div class="cost-sub">Build everything yourself</div>
+        <div class="cost-line"><span class="cl-label">Initial dev</span><span class="cl-val">70 hrs × $150</span></div>
+        <div class="cost-line"><span class="cl-label">Maintenance</span><span class="cl-val">10 hrs/mo × 12</span></div>
+        <div class="cost-line"><span class="cl-label">Infrastructure</span><span class="cl-val">$0/mo × 12</span></div>
+        <div class="cost-line"><span class="cl-label">Feature gaps</span><span class="cl-val">+40 hrs builds</span></div>
+        <div class="cost-total">
+          <span class="ct-label">12-mo TCO</span>
+          <span class="ct-val">$34,500</span>
+        </div>
+      </div>
+      <!-- Option B -->
+      <div class="cost-card">
+        <h4 style="color:var(--accent-amber)">B — Custom + Frappe</h4>
+        <div class="cost-sub">Better Gantt, still custom</div>
+        <div class="cost-line"><span class="cl-label">Initial dev</span><span class="cl-val">48 hrs × $150</span></div>
+        <div class="cost-line"><span class="cl-label">Maintenance</span><span class="cl-val">7 hrs/mo × 12</span></div>
+        <div class="cost-line"><span class="cl-label">Infrastructure</span><span class="cl-val">$0/mo × 12</span></div>
+        <div class="cost-line"><span class="cl-label">Feature gaps</span><span class="cl-val">+30 hrs builds</span></div>
+        <div class="cost-total">
+          <span class="ct-label">12-mo TCO</span>
+          <span class="ct-val">$24,300</span>
+        </div>
+      </div>
+      <!-- Option C -->
+      <div class="cost-card recommended">
+        <h4 style="color:var(--accent-emerald)">C — Vikunja</h4>
+        <div class="cost-sub">Full PM tool, zero infra cost</div>
+        <div class="cost-line"><span class="cl-label">Initial dev</span><span class="cl-val">25 hrs × $150</span></div>
+        <div class="cost-line"><span class="cl-label">Maintenance</span><span class="cl-val">1.5 hrs/mo × 12</span></div>
+        <div class="cost-line"><span class="cl-label">Infrastructure</span><span class="cl-val">$0/mo × 12</span></div>
+        <div class="cost-line"><span class="cl-label">Sync pipeline</span><span class="cl-val">+10 hrs build</span></div>
+        <div class="cost-total">
+          <span class="ct-label">12-mo TCO</span>
+          <span class="ct-val">$7,950</span>
+        </div>
+      </div>
+      <!-- Option D -->
+      <div class="cost-card">
+        <h4 style="color:var(--accent-cyan)">D — Plane</h4>
+        <div class="cost-sub">Full PM + MCP, new droplet</div>
+        <div class="cost-line"><span class="cl-label">Initial dev</span><span class="cl-val">20 hrs × $150</span></div>
+        <div class="cost-line"><span class="cl-label">Maintenance</span><span class="cl-val">1.5 hrs/mo × 12</span></div>
+        <div class="cost-line"><span class="cl-label">Infrastructure</span><span class="cl-val">$24/mo × 12</span></div>
+        <div class="cost-line"><span class="cl-label">Sync pipeline</span><span class="cl-val">+10 hrs build</span></div>
+        <div class="cost-total">
+          <span class="ct-label">12-mo TCO</span>
+          <span class="ct-val">$7,458</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual bar chart -->
+    <div class="bar-chart">
+      <div class="bar-row">
+        <div class="bar-label" style="color:var(--accent-rose)">A — Custom</div>
+        <div class="bar-track"><div class="bar-fill rose" style="width:100%">$34,500</div></div>
+        <div class="bar-amount" style="color:var(--accent-rose)">$34,500</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" style="color:var(--accent-amber)">B — Frappe</div>
+        <div class="bar-track"><div class="bar-fill amber" style="width:70%">$24,300</div></div>
+        <div class="bar-amount" style="color:var(--accent-amber)">$24,300</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" style="color:var(--accent-emerald)">C — Vikunja</div>
+        <div class="bar-track"><div class="bar-fill emerald" style="width:23%">$7,950</div></div>
+        <div class="bar-amount" style="color:var(--accent-emerald)">$7,950</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" style="color:var(--accent-cyan)">D — Plane</div>
+        <div class="bar-track"><div class="bar-fill cyan" style="width:21.6%">$7,458</div></div>
+        <div class="bar-amount" style="color:var(--accent-cyan)">$7,458</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SECTION 5: MULTI-BUSINESS MATRIX ════ -->
+  <div class="section">
+    <div class="section-label">05 — Multi-Business Coverage</div>
+    <div class="section-title">Seven Business Lines, One Engine</div>
+    <div class="section-desc">How each option handles your full portfolio of businesses.</div>
+
+    <div class="cmp-table-wrap">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th>Business Unit</th>
+            <th class="opt-a">Custom React</th>
+            <th class="opt-b">Custom + Frappe</th>
+            <th class="opt-c">Vikunja</th>
+            <th class="opt-d">Plane</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">ASI 360 Security</td>
+            <td><span class="partial">◐</span> Manual DB filter</td>
+            <td><span class="partial">◐</span> Manual DB filter</td>
+            <td><span class="check">●</span> Namespace</td>
+            <td><span class="check">●</span> Workspace</td>
+          </tr>
+          <tr>
+            <td class="row-label">500 Grand Live</td>
+            <td><span class="partial">◐</span> Manual DB filter</td>
+            <td><span class="partial">◐</span> Manual DB filter</td>
+            <td><span class="check">●</span> Namespace</td>
+            <td><span class="check">●</span> Workspace</td>
+          </tr>
+          <tr>
+            <td class="row-label">Parking Ops</td>
+            <td><span class="cross">○</span> Separate system</td>
+            <td><span class="cross">○</span> Separate system</td>
+            <td><span class="check">●</span> Namespace</td>
+            <td><span class="check">●</span> Workspace</td>
+          </tr>
+          <tr>
+            <td class="row-label">Umbrella Rentals</td>
+            <td><span class="cross">○</span> Not supported</td>
+            <td><span class="cross">○</span> Not supported</td>
+            <td><span class="check">●</span> Namespace</td>
+            <td><span class="check">●</span> Workspace</td>
+          </tr>
+          <tr>
+            <td class="row-label">Cruises / Jamaica</td>
+            <td><span class="cross">○</span> Not supported</td>
+            <td><span class="cross">○</span> Not supported</td>
+            <td><span class="check">●</span> Namespace</td>
+            <td><span class="check">●</span> Workspace</td>
+          </tr>
+          <tr>
+            <td class="row-label">Coach Sushi</td>
+            <td><span class="cross">○</span> Not supported</td>
+            <td><span class="cross">○</span> Not supported</td>
+            <td><span class="check">●</span> Namespace</td>
+            <td><span class="check">●</span> Workspace</td>
+          </tr>
+          <tr>
+            <td class="row-label">Weather Jockey</td>
+            <td><span class="cross">○</span> Not supported</td>
+            <td><span class="cross">○</span> Not supported</td>
+            <td><span class="check">●</span> Namespace</td>
+            <td><span class="check">●</span> Workspace</td>
+          </tr>
+          <tr class="category-row"><td colspan="5">Isolation Method</td></tr>
+          <tr>
+            <td class="row-label">How it works</td>
+            <td style="font-size:0.75rem;color:var(--text-dim)">WHERE business_unit = ?<br>Code it yourself</td>
+            <td style="font-size:0.75rem;color:var(--text-dim)">WHERE business_unit = ?<br>Code it yourself</td>
+            <td style="font-size:0.75rem;color:var(--text-dim)">Built-in namespaces<br>Separate project lists</td>
+            <td style="font-size:0.75rem;color:var(--text-dim)">Full workspace isolation<br>Separate teams + roles</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════ SECTION 6: RECOMMENDATION ════ -->
+  <div class="section">
+    <div class="section-label">06 — Phased Rollout</div>
+    <div class="section-title">The Path Forward</div>
+    <div class="section-desc">Start lean, scale when the team grows. Same Supabase source of truth either way.</div>
+
+    <div class="rec-grid">
+      <!-- Phase 1 -->
+      <div class="rec-phase phase-now">
+        <div class="phase-tag">Phase 1 — Now</div>
+        <h3>Deploy Vikunja</h3>
+        <div class="rec-desc">One Docker container on the existing droplet. Full Gantt, Kanban, teams, and API out of the box. Build the sync pipeline to Supabase once.</div>
+        <div class="rec-stats">
+          <div class="rec-stat">
+            <div class="rs-val">$0</div>
+            <div class="rs-label">Monthly</div>
+          </div>
+          <div class="rec-stat">
+            <div class="rs-val">100 MB</div>
+            <div class="rs-label">RAM</div>
+          </div>
+          <div class="rec-stat">
+            <div class="rs-val">1 week</div>
+            <div class="rs-label">To Live</div>
+          </div>
+        </div>
+        <ul class="rec-features">
+          <li>Docker compose on existing droplet (port 8300)</li>
+          <li>SQLite backend — no extra DB container</li>
+          <li>7 namespaces for 7 business lines</li>
+          <li>Webhook → Gateway MCP → Supabase sync</li>
+          <li>CalDAV for Apple/Google calendar sync</li>
+          <li>Mobile-responsive — works on tablet immediately</li>
+          <li>Retire custom Gantt code (8,131 LOC)</li>
+          <li>Nginx at pm.asi360.co with SSL</li>
+        </ul>
+      </div>
+
+      <!-- Phase 2 -->
+      <div class="rec-phase phase-later">
+        <div class="phase-tag">Phase 2 — When Team Grows</div>
+        <h3>Migrate to Plane</h3>
+        <div class="rec-desc">When you have 3+ team members, need role-based permissions, or want Claude to manage projects via native MCP — spin up a dedicated droplet.</div>
+        <div class="rec-stats">
+          <div class="rec-stat">
+            <div class="rs-val">$24</div>
+            <div class="rs-label">Monthly</div>
+          </div>
+          <div class="rec-stat">
+            <div class="rs-val">4 GB</div>
+            <div class="rs-label">New Droplet</div>
+          </div>
+          <div class="rec-stat">
+            <div class="rs-val">1 week</div>
+            <div class="rs-label">Migration</div>
+          </div>
+        </div>
+        <ul class="rec-features">
+          <li>Dedicated 2 vCPU / 4 GB droplet</li>
+          <li>Native Plane MCP → Claude manages issues directly</li>
+          <li>iOS + Android native apps for field teams</li>
+          <li>Workspace-level isolation per business</li>
+          <li>Sprint cycles, modules, roadmaps</li>
+          <li>Built-in docs/wiki per project</li>
+          <li>AI-powered issue summaries + auto-assign</li>
+          <li>Same Supabase sync pipeline (reuse Phase 1 code)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict">
+      <h2>Vikunja Now. Plane When You're Ready.</h2>
+      <p>
+        Custom code costs 4.3× more than adopting an existing tool over 12 months.
+        The $26,500 you save in dev hours goes toward the business —
+        not rebuilding Gantt charts from scratch.
+        The Supabase source-of-truth architecture stays identical either way.
+      </p>
+    </div>
+  </div>
+
+  <!-- ════ FOOTER ════ -->
+  <footer class="footer">
+    <span>ASI 360 — Allied Systems Integrations · Project Management Engine Audit</span>
+    <span>PROJ367 · TT932 · Branch claude/optimistic-bose · Supabase gtfffxwfgcxiiauliynd</span>
+  </footer>
+
+</div>
+</body>
+</html>
