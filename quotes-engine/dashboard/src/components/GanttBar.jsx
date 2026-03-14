@@ -1,13 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { PHASE_COLORS } from '../lib/scheduler'
+import { getPhaseColor } from '../lib/scheduler'
 import { StatusBadge } from './PhaseBadge'
 
 /**
- * GanttBar v2 — Enhanced task bar with rich hover tooltip + click-to-open detail.
- *
- * Hover: Shows rich floating tooltip with task details, people, dates, budget.
- * Click: Opens the TaskDetailModal via onTaskClick callback.
- * Touch: Tap shows tooltip, second tap opens modal.
+ * GanttBar v3 — Enhanced task bar with rich hover tooltip, theme support, progress overlay.
  */
 export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
   const [showTooltip, setShowTooltip] = useState(false)
@@ -31,7 +27,7 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
   const estimatedHours = task.estimated_hours || (duration * 8)
 
   function formatDate(dateStr) {
-    if (!dateStr) return '—'
+    if (!dateStr) return '\u2014'
     const d = new Date(dateStr)
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
   }
@@ -75,6 +71,28 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
     return () => clearTimeout(hideTimeout.current)
   }, [])
 
+  // Milestone diamond rendering
+  if (task.is_milestone) {
+    return (
+      <div
+        ref={barRef}
+        style={{ gridColumn: `${colStart} / span 1` }}
+        className="flex items-center justify-center cursor-pointer"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
+      >
+        <div
+          className="w-5 h-5 rotate-45 hover:scale-125 transition-transform"
+          style={{ backgroundColor: task.bar_color }}
+        />
+      </div>
+    )
+  }
+
+  // Task progress for progress bar overlay
+  const progress = task.progress || (task.status === 'completed' ? 100 : task.status === 'in_progress' ? 50 : 0)
+
   return (
     <>
       <div
@@ -85,6 +103,8 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
           backgroundColor: task.bar_color,
           opacity: task.status === 'completed' ? 0.55 : 1,
           boxShadow: showTooltip ? `0 0 0 2px ${task.bar_color}88, 0 4px 12px ${task.bar_color}40` : 'none',
+          outline: task.is_overdue ? '2px solid #ef4444' : 'none',
+          outlineOffset: '1px',
         }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -93,19 +113,22 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
         {statusIcon && <span className="mr-1 text-sm">{statusIcon}</span>}
         {colSpan >= 2 ? task.bar_label : ''}
 
-        {/* Progress indicator for in-progress tasks */}
-        {task.status === 'in_progress' && (
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20">
-            <div className="h-full bg-white/60 w-1/2 animate-pulse" />
-          </div>
-        )}
+        {/* Progress bar overlay */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/15 rounded-b">
+          <div
+            className="h-full bg-white/50 rounded-b transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
 
       {/* Rich Floating Tooltip */}
       {showTooltip && (
         <div
-          className="fixed z-[100] w-72 bg-gray-900 border border-gray-600 rounded-xl shadow-2xl overflow-hidden pointer-events-auto"
+          className="fixed z-[100] w-72 rounded-xl shadow-2xl overflow-hidden pointer-events-auto animate-tooltip-in"
           style={{
+            backgroundColor: 'var(--tooltip-bg)',
+            border: `1px solid var(--tooltip-border)`,
             left: tooltipPos.align === 'right' ? 'auto' : `${barRef.current?.getBoundingClientRect().left || 0}px`,
             right: tooltipPos.align === 'right' ? `${window.innerWidth - (barRef.current?.getBoundingClientRect().right || 0)}px` : 'auto',
             top: tooltipPos.vAlign === 'above' ? 'auto' : `${(barRef.current?.getBoundingClientRect().bottom || 0) + 4}px`,
@@ -115,11 +138,11 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
           onMouseLeave={handleTooltipLeave}
         >
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-700/50" style={{ backgroundColor: `${task.bar_color}15` }}>
+          <div className="px-4 py-3 border-b" style={{ backgroundColor: `${task.bar_color}15`, borderColor: 'color-mix(in srgb, var(--border-primary) 50%, transparent)' }}>
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 font-mono">{task.task_no}</p>
-                <p className="text-sm font-semibold text-white mt-0.5 leading-tight">{task.name}</p>
+                <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{task.task_no}</p>
+                <p className="text-sm font-semibold mt-0.5 leading-tight" style={{ color: 'var(--text-primary)' }}>{task.name}</p>
               </div>
               <StatusBadge status={task.status} />
             </div>
@@ -127,37 +150,37 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
 
           {/* Body */}
           <div className="px-4 py-3 space-y-2.5">
-            <TooltipRow label="Schedule" value={`${formatDate(startLabel)} → ${formatDate(endLabel)}`} />
-            <TooltipRow label="Duration" value={`${duration} day${duration !== 1 ? 's' : ''} · ${estimatedHours}h est.`} />
+            <TooltipRow label="Schedule" value={`${formatDate(startLabel)} \u2192 ${formatDate(endLabel)}`} />
+            <TooltipRow label="Duration" value={`${duration} day${duration !== 1 ? 's' : ''} \u00B7 ${estimatedHours}h est.`} />
             <TooltipRow label="Assigned" custom>
               {task.assigned_to ? (
                 <div className="flex items-center gap-1.5">
                   <div className="w-5 h-5 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-[9px] font-bold text-blue-400">
                     {task.assigned_to.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-gray-300">{task.assigned_to}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{task.assigned_to}</span>
                 </div>
               ) : (
-                <span className="text-gray-600 italic">Unassigned</span>
+                <span className="italic" style={{ color: 'var(--text-muted)' }}>Unassigned</span>
               )}
             </TooltipRow>
             <TooltipRow label="Phase">
               <span className="font-medium" style={{ color: task.bar_color }}>
-                Phase {task.phase_no} {task.phase_name ? `— ${task.phase_name}` : ''}
+                Phase {task.phase_no} {task.phase_name ? `\u2014 ${task.phase_name}` : ''}
               </span>
             </TooltipRow>
             {task.budget && <TooltipRow label="Budget" value={`$${Number(task.budget).toLocaleString()}`} />}
             {task.notes && (
-              <div className="pt-2 border-t border-gray-800">
-                <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">Notes</p>
-                <p className="text-xs text-gray-400 leading-relaxed line-clamp-3">{task.notes}</p>
+              <div className="pt-2 border-t" style={{ borderColor: 'var(--border-primary)' }}>
+                <p className="text-[10px] uppercase tracking-wide mb-1" style={{ color: 'var(--text-muted)' }}>Notes</p>
+                <p className="text-xs leading-relaxed line-clamp-3" style={{ color: 'var(--text-secondary)' }}>{task.notes}</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="px-4 py-2 bg-gray-800/50 border-t border-gray-800 text-center">
-            <p className="text-[10px] text-gray-500">Click for full details</p>
+          <div className="px-4 py-2 border-t text-center" style={{ backgroundColor: 'var(--bg-card-hover)', borderColor: 'var(--border-primary)' }}>
+            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Click for full details</p>
           </div>
         </div>
       )}
@@ -168,11 +191,11 @@ export default function GanttBar({ task, totalDays, dayLabels, onTaskClick }) {
 function TooltipRow({ label, value, custom, children }) {
   return (
     <div className="flex items-center gap-3 text-xs">
-      <span className="text-gray-500 w-16 shrink-0">{label}</span>
+      <span className="w-16 shrink-0" style={{ color: 'var(--text-muted)' }}>{label}</span>
       {custom || children ? (
         <div className="flex-1">{children}</div>
       ) : (
-        <span className="text-gray-300 flex-1">{value}</span>
+        <span className="flex-1" style={{ color: 'var(--text-secondary)' }}>{value}</span>
       )}
     </div>
   )

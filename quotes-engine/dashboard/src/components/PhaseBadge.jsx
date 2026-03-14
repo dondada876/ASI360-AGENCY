@@ -1,4 +1,4 @@
-import { PHASE_COLORS } from '../lib/scheduler'
+import { getPhaseColor } from '../lib/scheduler'
 
 const STATUS_STYLES = {
   completed: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -9,7 +9,7 @@ const STATUS_STYLES = {
 }
 
 export function PhaseBadge({ phase, size = 'sm' }) {
-  const color = PHASE_COLORS[phase] || '#666'
+  const color = getPhaseColor(phase)
   const sizeClass = size === 'lg' ? 'px-3 py-1 text-sm' : 'px-2 py-0.5 text-xs'
 
   return (
@@ -40,13 +40,13 @@ export function PhaseProgressBar({ tasks }) {
   const totalTasks = tasks.length
 
   return (
-    <div className="flex gap-0.5 h-3 rounded-full overflow-hidden bg-gray-800">
+    <div className="flex gap-0.5 h-3 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--progress-track)' }}>
       {phaseNums.map((pno) => {
         const phaseTasks = tasks.filter((t) => t.phase_no === pno)
         const completed = phaseTasks.filter((t) => t.status === 'completed').length
         const widthPct = (phaseTasks.length / totalTasks) * 100
         const fillPct = phaseTasks.length > 0 ? (completed / phaseTasks.length) * 100 : 0
-        const color = PHASE_COLORS[pno] || '#666'
+        const color = getPhaseColor(pno)
 
         return (
           <div

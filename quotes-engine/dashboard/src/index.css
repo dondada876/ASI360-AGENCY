@@ -1,5 +1,116 @@
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════
+   Theme System — CSS Custom Properties
+   ══════════════════════════════════════════════ */
+
+:root {
+  /* Backgrounds */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f3f4f6;
+  --bg-hover: #f3f4f6;
+  --bg-input: #f3f4f6;
+  --bg-overlay: rgba(0, 0, 0, 0.3);
+  --bg-badge: rgba(0, 0, 0, 0.05);
+
+  /* Borders */
+  --border-primary: #e5e7eb;
+  --border-secondary: #d1d5db;
+  --border-input: #d1d5db;
+
+  /* Text */
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --text-mono: #6b7280;
+
+  /* Phase colors — light mode (slightly darker for contrast) */
+  --phase-1: #1e40af;
+  --phase-2: #0f766e;
+  --phase-3: #c2410c;
+  --phase-4: #15803d;
+  --phase-5: #6b21a8;
+  --phase-0: #4b5563;
+
+  /* Gantt-specific */
+  --gantt-today-bg: rgba(59, 130, 246, 0.08);
+  --gantt-today-line: rgba(59, 130, 246, 0.4);
+  --gantt-end-line: #ef4444;
+
+  /* Tooltip / Modal */
+  --tooltip-bg: #ffffff;
+  --tooltip-border: #d1d5db;
+  --modal-bg: #ffffff;
+  --modal-header-bg: rgba(255, 255, 255, 0.95);
+
+  /* Scrollbar */
+  --scrollbar-thumb: #d1d5db;
+  --scrollbar-thumb-hover: #9ca3af;
+
+  /* Progress bar track */
+  --progress-track: #e5e7eb;
+}
+
+.dark {
+  /* Backgrounds */
+  --bg-primary: #030712;
+  --bg-secondary: #111827;
+  --bg-card: #111827;
+  --bg-card-hover: #1f2937;
+  --bg-hover: #1f2937;
+  --bg-input: #1f2937;
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+  --bg-badge: rgba(255, 255, 255, 0.05);
+
+  /* Borders */
+  --border-primary: #1f2937;
+  --border-secondary: #374151;
+  --border-input: #374151;
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --text-mono: #6b7280;
+
+  /* Phase colors — dark mode (original values, brighter) */
+  --phase-1: #0B5394;
+  --phase-2: #45818E;
+  --phase-3: #B85B22;
+  --phase-4: #38761D;
+  --phase-5: #351C75;
+  --phase-0: #434343;
+
+  /* Gantt-specific */
+  --gantt-today-bg: rgba(59, 130, 246, 0.1);
+  --gantt-today-line: rgba(59, 130, 246, 0.3);
+  --gantt-end-line: #ef4444;
+
+  /* Tooltip / Modal */
+  --tooltip-bg: #111827;
+  --tooltip-border: #4b5563;
+  --modal-bg: #111827;
+  --modal-header-bg: rgba(17, 24, 39, 0.95);
+
+  /* Scrollbar */
+  --scrollbar-thumb: #374151;
+  --scrollbar-thumb-hover: #4b5563;
+
+  /* Progress bar track */
+  --progress-track: #1f2937;
+}
+
+/* ── Theme transition ── */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+  transition-delay: 0s !important;
+}
+
 /* ── Modal & Tooltip Animations ── */
 
 @keyframes fade-in {
@@ -66,6 +177,19 @@
   animation: toast-out 0.2s ease-in forwards;
 }
 
+/* ── Skeleton shimmer ── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+
 /* ── Scrollbar styling ── */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -76,12 +200,12 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #374151;
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #4b5563;
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* ── Line clamp utility ── */

@@ -13,18 +13,18 @@ export default function NextSteps({ tasks }) {
   }
 
   return (
-    <div className="rounded-lg bg-gray-900 border border-gray-800 overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-800">
-        <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">Next Steps</h3>
+    <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
+      <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-primary)' }}>
+        <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Next Steps</h3>
       </div>
-      <ul className="divide-y divide-gray-800/50">
+      <ul>
         {steps.map((t) => (
-          <li key={t.task_no || t.id} className="px-4 py-3 flex items-center gap-3">
-            <span className="text-xs text-gray-500 font-mono w-8 shrink-0">{t.task_no}</span>
+          <li key={t.task_no || t.id} className="px-4 py-3 flex items-center gap-3 border-b last:border-b-0" style={{ borderColor: 'color-mix(in srgb, var(--border-primary) 50%, transparent)' }}>
+            <span className="text-xs font-mono w-8 shrink-0" style={{ color: 'var(--text-muted)' }}>{t.task_no}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-gray-200 truncate">{t.task_name}</p>
+              <p className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>{t.task_name}</p>
               {t.assigned_to && (
-                <p className="text-xs text-gray-500 mt-0.5">{t.assigned_to}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{t.assigned_to}</p>
               )}
             </div>
             <PhaseBadge phase={t.phase_no} />

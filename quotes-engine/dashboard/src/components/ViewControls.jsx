@@ -1,21 +1,20 @@
 import { useState, useRef, useEffect } from 'react'
 
 /**
- * ViewControls — View toggle (Gantt/Kanban/List) + Search + Phase/Status filters.
- * Responsive: collapses to stacked on mobile.
+ * ViewControls v3 — View toggle + Search + Phase/Status filters with theme support.
  */
 
 const VIEWS = [
-  { key: 'gantt',  label: 'Gantt',  icon: '▦' },
-  { key: 'kanban', label: 'Kanban', icon: '▨' },
-  { key: 'list',   label: 'List',   icon: '☰' },
+  { key: 'gantt',  label: 'Gantt',  icon: '\u25A6' },
+  { key: 'kanban', label: 'Kanban', icon: '\u25A8' },
+  { key: 'list',   label: 'List',   icon: '\u2630' },
 ]
 
 const PHASE_OPTIONS = [
   { value: '', label: 'All Phases' },
-  { value: '1', label: 'Phase 1 — Scope & Design' },
-  { value: '2', label: 'Phase 2 — Build & Test' },
-  { value: '3', label: 'Phase 3 — Ship & Close' },
+  { value: '1', label: 'Phase 1 \u2014 Scope & Design' },
+  { value: '2', label: 'Phase 2 \u2014 Build & Test' },
+  { value: '3', label: 'Phase 3 \u2014 Ship & Close' },
   { value: '4', label: 'Phase 4' },
   { value: '5', label: 'Phase 5' },
 ]
@@ -44,7 +43,6 @@ export default function ViewControls({
   const [showFilters, setShowFilters] = useState(false)
   const searchRef = useRef(null)
 
-  // Keyboard shortcut: Ctrl+K to focus search
   useEffect(() => {
     const handleKey = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -59,20 +57,21 @@ export default function ViewControls({
   const hasActiveFilters = searchQuery || phaseFilter || statusFilter
 
   return (
-    <div className="rounded-lg bg-gray-900 border border-gray-800 overflow-hidden">
-      {/* Top bar: view toggle + search */}
+    <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
+      {/* Top bar */}
       <div className="flex flex-wrap items-center gap-3 px-4 py-3">
         {/* View toggle */}
-        <div className="flex bg-gray-800 rounded-lg p-0.5">
+        <div className="flex rounded-lg p-0.5" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
           {VIEWS.map((v) => (
             <button
               key={v.key}
               onClick={() => onViewChange(v.key)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
-                activeView === v.key
-                  ? 'bg-gray-700 text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-200'
-              }`}
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5"
+              style={{
+                backgroundColor: activeView === v.key ? 'var(--bg-input)' : 'transparent',
+                color: activeView === v.key ? 'var(--text-primary)' : 'var(--text-secondary)',
+                boxShadow: activeView === v.key ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+              }}
             >
               <span className="text-sm leading-none">{v.icon}</span>
               <span className="hidden sm:inline">{v.label}</span>
@@ -85,15 +84,21 @@ export default function ViewControls({
           <input
             ref={searchRef}
             type="text"
-            placeholder="Search tasks... (⌘K)"
+            placeholder="Search tasks... (\u2318K)"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all"
+            className="w-full rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all"
+            style={{
+              backgroundColor: 'var(--bg-input)',
+              border: '1px solid var(--border-input)',
+              color: 'var(--text-primary)',
+            }}
           />
           {searchQuery && (
             <button
               onClick={() => onSearchChange('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-gray-700 text-gray-500 hover:text-white"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded"
+              style={{ color: 'var(--text-muted)' }}
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M4 4l6 6M10 4L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -102,16 +107,15 @@ export default function ViewControls({
           )}
         </div>
 
-        {/* Filter toggle button */}
+        {/* Filter toggle */}
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1.5 ${
-            hasActiveFilters
-              ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
-              : showFilters
-                ? 'bg-gray-800 text-gray-300 border-gray-600'
-                : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'
-          }`}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1.5"
+          style={{
+            backgroundColor: hasActiveFilters ? 'rgba(59,130,246,0.1)' : 'var(--bg-card-hover)',
+            color: hasActiveFilters ? '#3b82f6' : 'var(--text-secondary)',
+            borderColor: hasActiveFilters ? 'rgba(59,130,246,0.3)' : 'var(--border-primary)',
+          }}
         >
           <span>Filters</span>
           {hasActiveFilters && (
@@ -122,7 +126,7 @@ export default function ViewControls({
         </button>
 
         {/* Task count */}
-        <span className="text-xs text-gray-600 whitespace-nowrap">
+        <span className="text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
           {filteredCount !== taskCount
             ? `${filteredCount} of ${taskCount}`
             : taskCount
@@ -132,13 +136,14 @@ export default function ViewControls({
 
       {/* Expandable filter row */}
       {showFilters && (
-        <div className="border-t border-gray-800 px-4 py-3 flex flex-wrap items-center gap-3 bg-gray-900/50">
+        <div className="border-t px-4 py-3 flex flex-wrap items-center gap-3" style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--bg-secondary)' }}>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500">Phase:</label>
+            <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Phase:</label>
             <select
               value={phaseFilter}
               onChange={(e) => onPhaseChange(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-xs text-gray-300 focus:outline-none focus:border-blue-500/50"
+              className="rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500/50"
+              style={{ backgroundColor: 'var(--bg-input)', border: '1px solid var(--border-input)', color: 'var(--text-secondary)' }}
             >
               {PHASE_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -147,11 +152,12 @@ export default function ViewControls({
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500">Status:</label>
+            <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Status:</label>
             <select
               value={statusFilter}
               onChange={(e) => onStatusChange(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-xs text-gray-300 focus:outline-none focus:border-blue-500/50"
+              className="rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500/50"
+              style={{ backgroundColor: 'var(--bg-input)', border: '1px solid var(--border-input)', color: 'var(--text-secondary)' }}
             >
               {STATUS_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -166,7 +172,8 @@ export default function ViewControls({
                 onPhaseChange('')
                 onStatusChange('')
               }}
-              className="text-xs text-gray-500 hover:text-white transition-colors underline"
+              className="text-xs underline transition-colors"
+              style={{ color: 'var(--text-muted)' }}
             >
               Clear all filters
             </button>

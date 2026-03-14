@@ -1,17 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { StatusBadge, PhaseBadge } from './PhaseBadge'
-import { PHASE_COLORS } from '../lib/scheduler'
+import { getPhaseColor } from '../lib/scheduler'
 
 /**
- * TaskDetailModal — Slide-over drawer from the right edge.
- * Shows full task details: people, schedule, budget, resources, notes.
- * Responsive: full-width on mobile, 420px on desktop.
+ * TaskDetailModal v3 — Slide-over drawer with theme support.
  */
 export default function TaskDetailModal({ task, project, dayLabels, onClose, onStatusChange }) {
   const overlayRef = useRef(null)
   const panelRef = useRef(null)
 
-  // Close on Escape key
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === 'Escape') onClose()
@@ -20,7 +17,6 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
     return () => document.removeEventListener('keydown', handleKey)
   }, [onClose])
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
@@ -31,17 +27,13 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
   const startLabel = dayLabels?.[task.bar_start]?.full || ''
   const endLabel = dayLabels?.[task.bar_end]?.full || ''
   const duration = task.bar_end - task.bar_start + 1
-  const phaseColor = PHASE_COLORS[task.phase_no] || '#666'
-
-  // Estimated hours (2 hrs per business day if not specified)
+  const phaseColor = getPhaseColor(task.phase_no)
   const estimatedHours = task.estimated_hours || (duration * 8)
-  // Budget (proportional to contract value if not set)
-  const taskBudget = task.budget || null
-
+  const taskBudget = task.budget || task.task_budget || null
   const statusOptions = ['open', 'in_progress', 'blocked', 'waiting', 'completed']
 
   function formatDate(dateStr) {
-    if (!dateStr) return '—'
+    if (!dateStr) return '\u2014'
     const d = new Date(dateStr)
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
   }
@@ -51,25 +43,28 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
       {/* Backdrop */}
       <div
         ref={overlayRef}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 animate-fade-in"
+        style={{ backgroundColor: 'var(--bg-overlay)' }}
         onClick={onClose}
       />
 
       {/* Slide-over panel */}
       <div
         ref={panelRef}
-        className="relative w-full sm:w-[420px] max-w-full bg-gray-900 border-l border-gray-700 shadow-2xl overflow-y-auto animate-slide-in"
+        className="relative w-full sm:w-[420px] max-w-full border-l shadow-2xl overflow-y-auto animate-slide-in"
+        style={{ backgroundColor: 'var(--modal-bg)', borderColor: 'var(--border-secondary)' }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-gray-900/95 backdrop-blur border-b border-gray-800 px-5 py-4 z-10">
+        <div className="sticky top-0 backdrop-blur border-b px-5 py-4 z-10" style={{ backgroundColor: 'var(--modal-header-bg)', borderColor: 'var(--border-primary)' }}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 font-mono mb-1">{task.task_no}</p>
-              <h2 className="text-lg font-bold text-white leading-tight">{task.name}</h2>
+              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>{task.task_no}</p>
+              <h2 className="text-lg font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>{task.name}</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors shrink-0"
+              className="p-1.5 rounded-lg transition-colors shrink-0"
+              style={{ color: 'var(--text-secondary)' }}
               aria-label="Close"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -78,7 +73,6 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
             </button>
           </div>
 
-          {/* Status + Phase badges */}
           <div className="flex items-center gap-2 mt-3">
             <StatusBadge status={task.status} />
             <PhaseBadge phase={task.phase_no} />
@@ -93,7 +87,7 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
         {/* Body sections */}
         <div className="px-5 py-4 space-y-5">
 
-          {/* ── Schedule Section ── */}
+          {/* Schedule Section */}
           <Section title="Schedule" icon="calendar">
             <div className="grid grid-cols-2 gap-3">
               <DetailCard label="Start Date" value={formatDate(startLabel)} />
@@ -101,8 +95,7 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
               <DetailCard label="Duration" value={`${duration} business day${duration !== 1 ? 's' : ''}`} />
               <DetailCard label="Est. Hours" value={`${estimatedHours}h`} />
             </div>
-            {/* Timeline mini-bar */}
-            <div className="mt-3 rounded-full h-2.5 bg-gray-800 overflow-hidden">
+            <div className="mt-3 rounded-full h-2.5 overflow-hidden" style={{ backgroundColor: 'var(--progress-track)' }}>
               <div
                 className="h-full rounded-full transition-all"
                 style={{
@@ -111,49 +104,49 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
                 }}
               />
             </div>
-            <p className="text-[10px] text-gray-600 mt-1">
+            <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>
               {task.status === 'completed' ? 'Task completed' : task.status === 'in_progress' ? 'In progress' : 'Not started'}
             </p>
           </Section>
 
-          {/* ── People & Assignment ── */}
+          {/* People & Assignment */}
           <Section title="People" icon="users">
             <div className="space-y-2">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/50">
+              <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
                 <div className="w-9 h-9 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-sm font-bold text-blue-400">
                   {task.assigned_to ? task.assigned_to.charAt(0).toUpperCase() : '?'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white font-medium truncate">
+                  <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
                     {task.assigned_to || 'Unassigned'}
                   </p>
-                  <p className="text-xs text-gray-500">Assigned to</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Assigned to</p>
                 </div>
               </div>
               {project?.client_name && (
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/50">
+                <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
                   <div className="w-9 h-9 rounded-full bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center text-sm font-bold text-emerald-400">
                     {project.client_name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white font-medium truncate">{project.client_name}</p>
-                    <p className="text-xs text-gray-500">Client</p>
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{project.client_name}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Client</p>
                   </div>
                 </div>
               )}
             </div>
           </Section>
 
-          {/* ── Budget & Cost ── */}
+          {/* Budget & Cost */}
           <Section title="Budget & Time" icon="dollar">
             <div className="grid grid-cols-2 gap-3">
               <DetailCard
                 label="Task Budget"
-                value={taskBudget ? `$${Number(taskBudget).toLocaleString()}` : '—'}
+                value={taskBudget ? `$${Number(taskBudget).toLocaleString()}` : '\u2014'}
               />
               <DetailCard
                 label="Contract Value"
-                value={project?.contract_value ? `$${Number(project.contract_value).toLocaleString()}` : '—'}
+                value={project?.contract_value ? `$${Number(project.contract_value).toLocaleString()}` : '\u2014'}
               />
               <DetailCard
                 label="Hours Scheduled"
@@ -161,56 +154,56 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
               />
               <DetailCard
                 label="Rate"
-                value={taskBudget && estimatedHours ? `$${Math.round(taskBudget / estimatedHours)}/hr` : '—'}
+                value={taskBudget && estimatedHours ? `$${Math.round(taskBudget / estimatedHours)}/hr` : '\u2014'}
               />
             </div>
           </Section>
 
-          {/* ── Resources ── */}
+          {/* Resources */}
           <Section title="Resources" icon="box">
             {task.resources && task.resources.length > 0 ? (
               <div className="space-y-2">
                 {task.resources.map((r, i) => (
-                  <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-gray-800/50 text-sm">
-                    <span className="text-gray-300">{r.name || r}</span>
-                    {r.quantity && <span className="text-xs text-gray-500">x{r.quantity}</span>}
+                  <div key={i} className="flex items-center justify-between p-2.5 rounded-lg text-sm" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>{r.name || r}</span>
+                    {r.quantity && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>x{r.quantity}</span>}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-4 text-gray-600 text-sm">
+              <div className="text-center py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
                 <p>No resources listed</p>
                 <p className="text-xs mt-1">Resources can be added via Supabase</p>
               </div>
             )}
           </Section>
 
-          {/* ── Dependencies ── */}
+          {/* Dependencies */}
           {task.dependencies && task.dependencies.length > 0 && (
             <Section title="Dependencies" icon="link">
               <div className="space-y-1">
                 {task.dependencies.map((dep, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm text-gray-400 p-2 rounded bg-gray-800/30">
-                    <span className="text-gray-600">depends on</span>
-                    <span className="font-mono text-xs text-gray-300">{dep}</span>
+                  <div key={i} className="flex items-center gap-2 text-sm p-2 rounded" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>depends on</span>
+                    <span className="font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>{dep}</span>
                   </div>
                 ))}
               </div>
             </Section>
           )}
 
-          {/* ── Notes ── */}
+          {/* Notes */}
           <Section title="Notes" icon="note">
             {task.notes ? (
-              <div className="prose prose-invert prose-sm max-w-none">
-                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{task.notes}</p>
+              <div>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--text-secondary)' }}>{task.notes}</p>
               </div>
             ) : (
-              <p className="text-sm text-gray-600 italic">No notes added</p>
+              <p className="text-sm italic" style={{ color: 'var(--text-muted)' }}>No notes added</p>
             )}
           </Section>
 
-          {/* ── Quick Actions ── */}
+          {/* Quick Actions */}
           <Section title="Update Status" icon="status">
             <div className="flex flex-wrap gap-2">
               {statusOptions.map((s) => (
@@ -220,9 +213,14 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
                   disabled={task.status === s}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                     task.status === s
-                      ? 'bg-white/10 text-white border-white/20 cursor-default ring-2 ring-white/20'
-                      : 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700 hover:text-white cursor-pointer'
+                      ? 'cursor-default ring-2 ring-blue-500/30'
+                      : 'cursor-pointer hover:opacity-80'
                   }`}
+                  style={{
+                    backgroundColor: task.status === s ? 'var(--bg-badge)' : 'var(--bg-card-hover)',
+                    color: task.status === s ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    borderColor: task.status === s ? 'var(--border-secondary)' : 'var(--border-primary)',
+                  }}
                 >
                   {s.replace(/_/g, ' ')}
                 </button>
@@ -230,7 +228,7 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
             </div>
           </Section>
 
-          {/* ── Project Context ── */}
+          {/* Project Context */}
           {project && (
             <Section title="Project" icon="folder">
               <div className="space-y-2 text-xs">
@@ -238,17 +236,18 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
                 <DetailRow label="Number" value={project.project_no} mono />
                 <DetailRow label="Type" value={project.business_type?.replace(/_/g, ' ')} />
                 {project.site_address && <DetailRow label="Site" value={project.site_address} />}
-                <DetailRow label="Phase" value={`Phase ${task.phase_no} — ${task.phase_name || ''}`} />
+                <DetailRow label="Phase" value={`Phase ${task.phase_no} \u2014 ${task.phase_name || ''}`} />
               </div>
             </Section>
           )}
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-900/95 backdrop-blur border-t border-gray-800 px-5 py-3 flex gap-2">
+        <div className="sticky bottom-0 backdrop-blur border-t px-5 py-3 flex gap-2" style={{ backgroundColor: 'var(--modal-header-bg)', borderColor: 'var(--border-primary)' }}>
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm font-medium transition-colors"
+            className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ backgroundColor: 'var(--bg-card-hover)', color: 'var(--text-secondary)' }}
           >
             Close
           </button>
@@ -262,19 +261,19 @@ export default function TaskDetailModal({ task, project, dayLabels, onClose, onS
 
 function Section({ title, icon, children }) {
   const icons = {
-    calendar: '📅',
-    users: '👥',
-    dollar: '💰',
-    box: '📦',
-    link: '🔗',
-    note: '📝',
-    status: '🔄',
-    folder: '📁',
+    calendar: '\uD83D\uDCC5',
+    users: '\uD83D\uDC65',
+    dollar: '\uD83D\uDCB0',
+    box: '\uD83D\uDCE6',
+    link: '\uD83D\uDD17',
+    note: '\uD83D\uDCDD',
+    status: '\uD83D\uDD04',
+    folder: '\uD83D\uDCC1',
   }
 
   return (
     <div>
-      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+      <h3 className="text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
         <span>{icons[icon] || ''}</span>
         {title}
       </h3>
@@ -285,9 +284,9 @@ function Section({ title, icon, children }) {
 
 function DetailCard({ label, value }) {
   return (
-    <div className="rounded-lg bg-gray-800/50 p-3">
-      <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-sm text-white font-semibold mt-0.5">{value}</p>
+    <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
+      <p className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>{label}</p>
+      <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>{value}</p>
     </div>
   )
 }
@@ -295,9 +294,9 @@ function DetailCard({ label, value }) {
 function DetailRow({ label, value, mono }) {
   return (
     <div className="flex justify-between items-center">
-      <span className="text-gray-500">{label}</span>
-      <span className={`text-gray-300 text-right max-w-[60%] truncate ${mono ? 'font-mono' : ''}`}>
-        {value || '—'}
+      <span style={{ color: 'var(--text-muted)' }}>{label}</span>
+      <span className={`text-right max-w-[60%] truncate ${mono ? 'font-mono' : ''}`} style={{ color: 'var(--text-secondary)' }}>
+        {value || '\u2014'}
       </span>
     </div>
   )

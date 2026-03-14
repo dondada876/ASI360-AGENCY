@@ -13,6 +13,16 @@ const PHASE_COLORS = {
 }
 
 /**
+ * Get phase color from CSS custom property (theme-aware).
+ * Falls back to static PHASE_COLORS map.
+ */
+export function getPhaseColor(phaseNo) {
+  if (typeof document === 'undefined') return PHASE_COLORS[phaseNo] || '#666'
+  const val = getComputedStyle(document.documentElement).getPropertyValue(`--phase-${phaseNo}`).trim()
+  return val || PHASE_COLORS[phaseNo] || '#666'
+}
+
+/**
  * Add business days to a Date (skipping weekends).
  */
 function addBusinessDays(startDate, days) {

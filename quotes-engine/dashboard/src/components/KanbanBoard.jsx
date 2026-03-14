@@ -1,10 +1,9 @@
 import { useState, useRef } from 'react'
-import { PHASE_COLORS } from '../lib/scheduler'
+import { getPhaseColor } from '../lib/scheduler'
 import { StatusBadge, PhaseBadge } from './PhaseBadge'
 
 /**
- * KanbanBoard — Drag-and-drop task board with status columns.
- * HTML5 DnD API (zero dependencies). Touch-friendly with tap-to-move fallback.
+ * KanbanBoard v3 — Drag-and-drop task board with theme support.
  */
 
 const COLUMNS = [
@@ -20,7 +19,6 @@ export default function KanbanBoard({ tasks, onStatusChange, onTaskClick, search
   const [dragOver, setDragOver] = useState(null)
   const dragNode = useRef(null)
 
-  // Filter tasks by search query
   const filteredTasks = searchQuery
     ? tasks.filter(t =>
         t.task_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -29,7 +27,6 @@ export default function KanbanBoard({ tasks, onStatusChange, onTaskClick, search
       )
     : tasks
 
-  // Group tasks by status
   const columns = COLUMNS.map(col => ({
     ...col,
     tasks: filteredTasks
@@ -46,12 +43,10 @@ export default function KanbanBoard({ tasks, onStatusChange, onTaskClick, search
     return 'open'
   }
 
-  // ── Drag handlers ──
   function handleDragStart(e, task) {
     dragNode.current = e.target
     setDragging(task)
     e.dataTransfer.effectAllowed = 'move'
-    // Make the drag image slightly transparent
     setTimeout(() => {
       if (dragNode.current) dragNode.current.style.opacity = '0.4'
     }, 0)
@@ -71,7 +66,6 @@ export default function KanbanBoard({ tasks, onStatusChange, onTaskClick, search
   }
 
   function handleDragLeave(e, colKey) {
-    // Only clear if actually leaving the column
     if (!e.currentTarget.contains(e.relatedTarget)) {
       setDragOver(null)
     }
@@ -85,12 +79,11 @@ export default function KanbanBoard({ tasks, onStatusChange, onTaskClick, search
     setDragOver(null)
   }
 
-  // ── Touch fallback: tap a card, then tap a column ──
   const [touchSelected, setTouchSelected] = useState(null)
 
   function handleTouchSelect(task) {
     if (touchSelected?.task_no === task.task_no) {
-      setTouchSelected(null) // Deselect
+      setTouchSelected(null)
     } else {
       setTouchSelected(task)
     }
@@ -104,16 +97,16 @@ export default function KanbanBoard({ tasks, onStatusChange, onTaskClick, search
   }
 
   return (
-    <div className="rounded-lg bg-gray-900 border border-gray-800 p-4">
+    <div className="rounded-lg border p-4" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
       {/* Touch instructions */}
       {touchSelected && (
         <div className="mb-3 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/30 text-xs text-blue-400 flex items-center gap-2">
           <span>Moving:</span>
           <span className="font-semibold">{touchSelected.task_name}</span>
-          <span className="text-blue-500">— tap a column to move</span>
+          <span className="text-blue-500">\u2014 tap a column to move</span>
           <button
             onClick={() => setTouchSelected(null)}
-            className="ml-auto text-blue-400 hover:text-white"
+            className="ml-auto text-blue-400 hover:text-blue-300"
           >
             Cancel
           </button>
@@ -129,27 +122,31 @@ export default function KanbanBoard({ tasks, onStatusChange, onTaskClick, search
               dragOver === col.key
                 ? 'border-blue-500 bg-blue-500/5 scale-[1.01]'
                 : touchSelected && normalizeStatus(touchSelected.status) !== col.key
-                  ? 'border-blue-500/30 bg-gray-800/30 cursor-pointer'
-                  : 'border-gray-800 bg-gray-800/20'
+                  ? 'border-blue-500/30 cursor-pointer'
+                  : ''
             }`}
+            style={{
+              borderColor: dragOver === col.key ? '#3b82f6' : touchSelected ? undefined : 'var(--border-primary)',
+              backgroundColor: dragOver === col.key ? undefined : 'var(--bg-secondary)',
+            }}
             onDragOver={(e) => handleDragOver(e, col.key)}
             onDragLeave={(e) => handleDragLeave(e, col.key)}
             onDrop={(e) => handleDrop(e, col.key)}
             onClick={() => handleColumnTap(col.key)}
           >
             {/* Column header */}
-            <div className="px-3 py-2.5 border-b border-gray-800/50 flex items-center justify-between">
+            <div className="px-3 py-2.5 border-b flex items-center justify-between" style={{ borderColor: 'color-mix(in srgb, var(--border-primary) 50%, transparent)' }}>
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: col.color }} />
-                <span className="text-xs font-semibold text-gray-300 uppercase tracking-wide">{col.label}</span>
+                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{col.label}</span>
               </div>
-              <span className="text-xs text-gray-600 font-mono">{col.tasks.length}</span>
+              <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{col.tasks.length}</span>
             </div>
 
             {/* Cards */}
             <div className="p-2 space-y-2">
               {col.tasks.length === 0 ? (
-                <p className="text-[10px] text-gray-600 text-center py-6">{col.emptyText}</p>
+                <p className="text-[10px] text-center py-6" style={{ color: 'var(--text-muted)' }}>{col.emptyText}</p>
               ) : (
                 col.tasks.map((task) => (
                   <KanbanCard
@@ -172,9 +169,8 @@ export default function KanbanBoard({ tasks, onStatusChange, onTaskClick, search
   )
 }
 
-/* ── Kanban Card ── */
 function KanbanCard({ task, isDragging, isSelected, onDragStart, onDragEnd, onTouchSelect, onTaskClick }) {
-  const phaseColor = PHASE_COLORS[task.phase_no] || '#666'
+  const phaseColor = getPhaseColor(task.phase_no)
 
   return (
     <div
@@ -186,13 +182,18 @@ function KanbanCard({ task, isDragging, isSelected, onDragStart, onDragEnd, onTo
           ? 'opacity-40 scale-95'
           : isSelected
             ? 'border-blue-500 bg-blue-500/10 ring-1 ring-blue-500/30'
-            : 'border-gray-700/50 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'
+            : ''
       }`}
-      style={{ borderLeftWidth: '3px', borderLeftColor: phaseColor }}
+      style={{
+        borderLeftWidth: '3px',
+        borderLeftColor: phaseColor,
+        backgroundColor: isDragging || isSelected ? undefined : 'var(--bg-card)',
+        borderColor: isDragging || isSelected ? undefined : 'var(--border-primary)',
+      }}
     >
       {/* Task number + phase */}
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[10px] text-gray-500 font-mono">{task.task_no}</span>
+        <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{task.task_no}</span>
         <span
           className="text-[10px] font-medium px-1.5 py-0.5 rounded"
           style={{ backgroundColor: `${phaseColor}25`, color: phaseColor }}
@@ -202,7 +203,7 @@ function KanbanCard({ task, isDragging, isSelected, onDragStart, onDragEnd, onTo
       </div>
 
       {/* Task name */}
-      <p className="text-xs text-gray-200 font-medium leading-snug line-clamp-2 mb-2">
+      <p className="text-xs font-medium leading-snug line-clamp-2 mb-2" style={{ color: 'var(--text-primary)' }}>
         {task.task_name}
       </p>
 
@@ -213,17 +214,17 @@ function KanbanCard({ task, isDragging, isSelected, onDragStart, onDragEnd, onTo
             <div className="w-5 h-5 rounded-full bg-blue-600/30 flex items-center justify-center text-[9px] font-bold text-blue-400">
               {task.assigned_to.charAt(0).toUpperCase()}
             </div>
-            <span className="text-[10px] text-gray-500 truncate max-w-[80px]">{task.assigned_to}</span>
+            <span className="text-[10px] truncate max-w-[80px]" style={{ color: 'var(--text-muted)' }}>{task.assigned_to}</span>
           </div>
         ) : (
-          <span className="text-[10px] text-gray-600">Unassigned</span>
+          <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Unassigned</span>
         )}
 
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* Detail button */}
           <button
             onClick={(e) => { e.stopPropagation(); onTaskClick?.(task) }}
-            className="p-1 rounded hover:bg-gray-700 text-gray-500 hover:text-white"
+            className="p-1 rounded transition-colors"
+            style={{ color: 'var(--text-muted)' }}
             title="View details"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -231,10 +232,10 @@ function KanbanCard({ task, isDragging, isSelected, onDragStart, onDragEnd, onTo
               <path d="M7 5v4M7 9.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </button>
-          {/* Move button (touch) */}
           <button
             onClick={(e) => { e.stopPropagation(); onTouchSelect?.(task) }}
-            className="p-1 rounded hover:bg-gray-700 text-gray-500 hover:text-white sm:hidden"
+            className="p-1 rounded transition-colors sm:hidden"
+            style={{ color: 'var(--text-muted)' }}
             title="Move task"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -244,11 +245,10 @@ function KanbanCard({ task, isDragging, isSelected, onDragStart, onDragEnd, onTo
         </div>
       </div>
 
-      {/* Estimated days indicator */}
       {task.estimated_days && (
-        <div className="mt-2 flex items-center gap-1 text-[10px] text-gray-600">
+        <div className="mt-2 flex items-center gap-1 text-[10px]" style={{ color: 'var(--text-muted)' }}>
           <span>{task.estimated_days}d</span>
-          {task.notes && <span title={task.notes}>📝</span>}
+          {task.notes && <span title={task.notes}>\uD83D\uDCDD</span>}
         </div>
       )}
     </div>

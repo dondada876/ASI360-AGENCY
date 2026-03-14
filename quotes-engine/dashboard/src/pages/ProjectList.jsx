@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchProjects } from '../lib/supabase'
-import { calcCompletion, getCurrentPhase, PHASE_COLORS } from '../lib/scheduler'
-import { PhaseProgressBar } from '../components/PhaseBadge'
+import { calcCompletion, getCurrentPhase, getPhaseColor } from '../lib/scheduler'
+import ThemeToggle from '../components/ThemeToggle'
 
 const STATUS_DOTS = {
   initiated: 'bg-gray-400',
@@ -35,15 +35,15 @@ export default function ProjectList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-gray-400">Loading projects...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
+        <div className="animate-pulse" style={{ color: 'var(--text-muted)' }}>Loading projects...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
         <div className="text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg p-6 max-w-md text-center">
           <p className="font-semibold mb-2">Error loading projects</p>
           <p className="text-sm text-red-300">{error}</p>
@@ -56,26 +56,28 @@ export default function ProjectList() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
       {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-950/80 backdrop-blur sticky top-0 z-10">
+      <header className="border-b backdrop-blur sticky top-0 z-10" style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--modal-header-bg)' }}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center text-sm font-bold">A</div>
+            <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center text-sm font-bold text-white">A</div>
             <div>
               <h1 className="text-lg font-bold">ASI 360 — Projects</h1>
-              <p className="text-xs text-gray-500">Allied Systems Integrations</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Allied Systems Integrations</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-500">{projects.length} projects</span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{projects.length} projects</span>
             <button
               onClick={loadProjects}
-              className="p-2 rounded hover:bg-gray-800 text-gray-400 hover:text-white transition-colors text-sm"
+              className="p-2 rounded transition-colors text-sm"
+              style={{ color: 'var(--text-secondary)' }}
               title="Refresh"
             >
               Refresh
             </button>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -88,19 +90,22 @@ export default function ProjectList() {
             const status = (proj.project_status || proj.cf_project_phasestatus || 'initiated').toLowerCase()
             const dotClass = STATUS_DOTS[status] || STATUS_DOTS.initiated
             const phase = proj.current_phase || 1
-            const phaseColor = PHASE_COLORS[phase] || '#666'
+            const phaseColor = getPhaseColor(phase)
 
             return (
               <Link
                 key={proj.id}
                 to={slug ? `/${slug}-HUD` : '#'}
-                className="group block rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-600 transition-all p-5"
+                className="group block rounded-xl border transition-all p-5"
+                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-secondary)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-primary)'}
               >
                 {/* Top row: status dot + project no */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${dotClass}`} />
-                    <span className="text-xs text-gray-500 font-mono">{proj.project_no}</span>
+                    <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{proj.project_no}</span>
                   </div>
                   <span
                     className="text-xs font-semibold px-2 py-0.5 rounded"
@@ -111,15 +116,15 @@ export default function ProjectList() {
                 </div>
 
                 {/* Project name + client */}
-                <h2 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors truncate">
+                <h2 className="text-sm font-semibold group-hover:text-blue-400 transition-colors truncate">
                   {proj.project_name || proj.project_no}
                 </h2>
-                <p className="text-xs text-gray-500 mt-1 truncate">
+                <p className="text-xs mt-1 truncate" style={{ color: 'var(--text-muted)' }}>
                   {proj.client_name || 'No client'}
                 </p>
 
                 {/* Meta row */}
-                <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
+                <div className="mt-4 flex items-center gap-4 text-xs" style={{ color: 'var(--text-muted)' }}>
                   {proj.contract_value && (
                     <span>${Number(proj.contract_value).toLocaleString()}</span>
                   )}
@@ -128,9 +133,9 @@ export default function ProjectList() {
                   )}
                 </div>
 
-                {/* Phase progress placeholder — needs tasks */}
+                {/* Phase progress */}
                 <div className="mt-3">
-                  <div className="h-2 rounded-full bg-gray-800 overflow-hidden">
+                  <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--progress-track)' }}>
                     <div
                       className="h-full rounded-full transition-all"
                       style={{
@@ -146,7 +151,7 @@ export default function ProjectList() {
         </div>
 
         {projects.length === 0 && (
-          <div className="text-center py-20 text-gray-500">
+          <div className="text-center py-20" style={{ color: 'var(--text-muted)' }}>
             <p className="text-lg">No active projects</p>
           </div>
         )}

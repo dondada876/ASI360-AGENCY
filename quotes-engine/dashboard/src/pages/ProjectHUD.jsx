@@ -7,13 +7,14 @@ import {
   updateTaskStatus,
   logProjectEvent,
 } from '../lib/supabase'
-import { buildTimeline, calcCompletion, getCurrentPhase, PHASE_COLORS } from '../lib/scheduler'
+import { buildTimeline, calcCompletion, getCurrentPhase, getPhaseColor } from '../lib/scheduler'
 import GanttTimeline from '../components/GanttTimeline'
 import KanbanBoard from '../components/KanbanBoard'
 import TaskListView from '../components/TaskListView'
 import TaskDetailModal from '../components/TaskDetailModal'
 import ViewControls from '../components/ViewControls'
 import NextSteps from '../components/NextSteps'
+import ThemeToggle from '../components/ThemeToggle'
 import { PhaseBadge, PhaseProgressBar } from '../components/PhaseBadge'
 
 const AUTO_REFRESH_MS = 60_000
@@ -149,19 +150,19 @@ export default function ProjectHUD() {
   // ── Loading / Error states ──
   if (loading && !project) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-gray-400">Loading project...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
+        <div className="animate-pulse" style={{ color: 'var(--text-muted)' }}>Loading project...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
         <div className="text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg p-6 max-w-md text-center">
           <p className="font-semibold mb-2">Project not found</p>
           <p className="text-sm text-red-300">{error}</p>
-          <Link to="/" className="mt-4 inline-block px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300">
+          <Link to="/" className="mt-4 inline-block px-4 py-2 rounded text-sm" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-secondary)' }}>
             Back to projects
           </Link>
         </div>
@@ -173,31 +174,32 @@ export default function ProjectHUD() {
 
   const completion = calcCompletion(tasks)
   const currentPhase = getCurrentPhase(tasks)
-  const phaseColor = PHASE_COLORS[currentPhase] || '#666'
+  const phaseColor = getPhaseColor(currentPhase)
   const deliveryDate = timeline?.delivery_date ? new Date(timeline.delivery_date) : null
   const daysUntilDelivery = deliveryDate
     ? Math.ceil((deliveryDate - new Date()) / (1000 * 60 * 60 * 24))
     : null
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
       {/* ── Header ── */}
-      <header className="border-b border-gray-800 bg-gray-950/80 backdrop-blur sticky top-0 z-20">
+      <header className="border-b backdrop-blur sticky top-0 z-20" style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--modal-header-bg)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <Link to="/" className="text-gray-500 hover:text-white transition-colors text-sm shrink-0">
+            <Link to="/" className="hover:opacity-80 transition-colors text-sm shrink-0" style={{ color: 'var(--text-muted)' }}>
               &larr; <span className="hidden sm:inline">Projects</span>
             </Link>
-            <span className="text-gray-700 hidden sm:inline">/</span>
+            <span className="hidden sm:inline" style={{ color: 'var(--border-secondary)' }}>/</span>
             <span className="text-sm font-semibold truncate">{project.project_name || project.project_no}</span>
           </div>
-          <div className="flex items-center gap-3 text-xs text-gray-500 shrink-0">
+          <div className="flex items-center gap-3 text-xs shrink-0" style={{ color: 'var(--text-muted)' }}>
             {lastRefresh && (
               <span className="hidden sm:inline">Updated {lastRefresh.toLocaleTimeString()}</span>
             )}
             <button
               onClick={loadData}
-              className="p-1.5 rounded hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+              className="p-1.5 rounded transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
               title="Refresh now"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -205,28 +207,29 @@ export default function ProjectHUD() {
                 <path d="M13 2v3h-3M3 14v-3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
+            <ThemeToggle />
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* ── Project Header Card ── */}
-        <div className="rounded-xl bg-gray-900 border border-gray-800 p-4 sm:p-6">
+        <div className="rounded-xl border p-4 sm:p-6" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl font-bold">{project.project_name}</h1>
-              <p className="text-sm text-gray-400 mt-1">{project.client_name}</p>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3 text-xs text-gray-500">
+              <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{project.client_name}</p>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
                 <span className="font-mono">{project.project_no}</span>
                 {project.contract_value && (
                   <>
-                    <span className="text-gray-700">|</span>
+                    <span style={{ color: 'var(--border-secondary)' }}>|</span>
                     <span>${Number(project.contract_value).toLocaleString()}</span>
                   </>
                 )}
                 {project.quote_no && (
                   <>
-                    <span className="text-gray-700 hidden sm:inline">|</span>
+                    <span className="hidden sm:inline" style={{ color: 'var(--border-secondary)' }}>|</span>
                     <span className="hidden sm:inline">Quote: {project.quote_no}</span>
                   </>
                 )}
@@ -238,18 +241,18 @@ export default function ProjectHUD() {
                 <div className="text-xl sm:text-2xl font-bold" style={{ color: phaseColor }}>
                   {completion}%
                 </div>
-                <div className="text-xs text-gray-500 mt-1">Complete</div>
+                <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Complete</div>
               </div>
               <div className="text-center">
                 <PhaseBadge phase={currentPhase} size="lg" />
-                <div className="text-xs text-gray-500 mt-1">Current</div>
+                <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Current</div>
               </div>
               {daysUntilDelivery !== null && (
                 <div className="text-center">
-                  <div className={`text-xl sm:text-2xl font-bold ${daysUntilDelivery > 7 ? 'text-gray-300' : daysUntilDelivery > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
+                  <div className={`text-xl sm:text-2xl font-bold ${daysUntilDelivery > 7 ? '' : daysUntilDelivery > 0 ? 'text-yellow-400' : 'text-green-400'}`} style={daysUntilDelivery > 7 ? { color: 'var(--text-primary)' } : {}}>
                     {daysUntilDelivery > 0 ? daysUntilDelivery : 'Now'}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                     {daysUntilDelivery > 0 ? 'Days left' : 'Due'}
                   </div>
                 </div>
@@ -283,7 +286,7 @@ export default function ProjectHUD() {
               timeline ? (
                 <GanttTimeline timeline={timeline} onTaskClick={handleTaskClick} searchQuery={searchQuery} />
               ) : (
-                <div className="rounded-lg bg-gray-900 border border-gray-800 p-8 text-center text-gray-500">
+                <div className="rounded-lg border p-8 text-center" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)', color: 'var(--text-muted)' }}>
                   <p>No tasks scheduled yet</p>
                 </div>
               )
@@ -313,52 +316,52 @@ export default function ProjectHUD() {
             <div className="space-y-4 sm:space-y-6">
               <NextSteps tasks={tasks} />
 
-              <div className="rounded-lg bg-gray-900 border border-gray-800 p-4">
-                <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-3">Details</h3>
+              <div className="rounded-lg border p-4" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
+                <h3 className="text-sm font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--text-secondary)' }}>Details</h3>
                 <dl className="space-y-2 text-xs">
                   {project.start_date && (
                     <div className="flex justify-between">
-                      <dt className="text-gray-500">Start</dt>
-                      <dd className="text-gray-300">{project.start_date.slice(0, 10)}</dd>
+                      <dt style={{ color: 'var(--text-muted)' }}>Start</dt>
+                      <dd style={{ color: 'var(--text-secondary)' }}>{project.start_date.slice(0, 10)}</dd>
                     </div>
                   )}
                   {timeline?.delivery_date && (
                     <div className="flex justify-between">
-                      <dt className="text-gray-500">Est. Delivery</dt>
-                      <dd className="text-gray-300">{timeline.delivery_date}</dd>
+                      <dt style={{ color: 'var(--text-muted)' }}>Est. Delivery</dt>
+                      <dd style={{ color: 'var(--text-secondary)' }}>{timeline.delivery_date}</dd>
                     </div>
                   )}
                   {timeline?.total_days && (
                     <div className="flex justify-between">
-                      <dt className="text-gray-500">Duration</dt>
-                      <dd className="text-gray-300">{timeline.total_days} days ({timeline.total_weeks} weeks)</dd>
+                      <dt style={{ color: 'var(--text-muted)' }}>Duration</dt>
+                      <dd style={{ color: 'var(--text-secondary)' }}>{timeline.total_days} days ({timeline.total_weeks} weeks)</dd>
                     </div>
                   )}
                   {project.business_type && (
                     <div className="flex justify-between">
-                      <dt className="text-gray-500">Type</dt>
-                      <dd className="text-gray-300 capitalize">{project.business_type.replace(/_/g, ' ')}</dd>
+                      <dt style={{ color: 'var(--text-muted)' }}>Type</dt>
+                      <dd className="capitalize" style={{ color: 'var(--text-secondary)' }}>{project.business_type.replace(/_/g, ' ')}</dd>
                     </div>
                   )}
                   {project.site_address && (
                     <div className="flex justify-between">
-                      <dt className="text-gray-500">Site</dt>
-                      <dd className="text-gray-300 text-right max-w-[60%] truncate">{project.site_address}</dd>
+                      <dt style={{ color: 'var(--text-muted)' }}>Site</dt>
+                      <dd className="text-right max-w-[60%] truncate" style={{ color: 'var(--text-secondary)' }}>{project.site_address}</dd>
                     </div>
                   )}
                 </dl>
               </div>
 
               {events.length > 0 && (
-                <div className="rounded-lg bg-gray-900 border border-gray-800 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-800">
-                    <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">Activity</h3>
+                <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
+                  <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-primary)' }}>
+                    <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>Activity</h3>
                   </div>
-                  <ul className="divide-y divide-gray-800/50 max-h-80 overflow-y-auto custom-scrollbar">
+                  <ul className="max-h-80 overflow-y-auto custom-scrollbar">
                     {events.slice(0, 10).map((evt) => (
-                      <li key={evt.id} className="px-4 py-2.5">
-                        <p className="text-xs text-gray-300">{evt.title}</p>
-                        <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
+                      <li key={evt.id} className="px-4 py-2.5 border-b last:border-b-0" style={{ borderColor: 'var(--border-primary)' }}>
+                        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{evt.title}</p>
+                        <div className="flex items-center gap-2 mt-1 text-[10px]" style={{ color: 'var(--text-muted)' }}>
                           <span className="capitalize">{evt.event_type}</span>
                           <span>via {evt.event_source}</span>
                           <span>{new Date(evt.created_at).toLocaleDateString()}</span>
@@ -392,7 +395,7 @@ export default function ProjectHUD() {
               ? 'bg-red-500/10 border-red-500/30 text-red-400'
               : 'bg-green-500/10 border-green-500/30 text-green-400'
           }`}>
-            <span>{toast.type === 'error' ? '✕' : '✓'}</span>
+            <span>{toast.type === 'error' ? '\u2715' : '\u2713'}</span>
             {toast.message}
           </div>
         </div>

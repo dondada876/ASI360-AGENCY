@@ -1,18 +1,15 @@
 import { useState } from 'react'
-import { PHASE_COLORS } from '../lib/scheduler'
+import { getPhaseColor } from '../lib/scheduler'
 import { StatusBadge, PhaseBadge } from './PhaseBadge'
 
 /**
- * TaskListView — Table/list view of all tasks.
- * Responsive: table on desktop, stacked cards on mobile.
- * Click any row to open the task detail modal.
+ * TaskListView v3 — Table/list view with theme support.
  */
 
 export default function TaskListView({ tasks, onTaskClick, searchQuery, dayLabels }) {
   const [sortField, setSortField] = useState('task_no')
   const [sortDir, setSortDir] = useState('asc')
 
-  // Filter
   const filtered = searchQuery
     ? tasks.filter(t =>
         t.task_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -21,7 +18,6 @@ export default function TaskListView({ tasks, onTaskClick, searchQuery, dayLabel
       )
     : tasks
 
-  // Sort
   const sorted = [...filtered].sort((a, b) => {
     let aVal, bVal
     switch (sortField) {
@@ -64,103 +60,98 @@ export default function TaskListView({ tasks, onTaskClick, searchQuery, dayLabel
   }
 
   function SortIcon({ field }) {
-    if (sortField !== field) return <span className="text-gray-700 ml-0.5">↕</span>
-    return <span className="text-blue-400 ml-0.5">{sortDir === 'asc' ? '↑' : '↓'}</span>
+    if (sortField !== field) return <span className="ml-0.5" style={{ color: 'var(--text-muted)' }}>\u2195</span>
+    return <span className="text-blue-400 ml-0.5">{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>
   }
 
   return (
-    <div className="rounded-lg bg-gray-900 border border-gray-800 overflow-hidden">
+    <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
       {/* Desktop table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-800 text-left">
-              <th className="px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide cursor-pointer hover:text-gray-300" onClick={() => handleSort('task_no')}>
-                # <SortIcon field="task_no" />
-              </th>
-              <th className="px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide cursor-pointer hover:text-gray-300" onClick={() => handleSort('task_name')}>
-                Task <SortIcon field="task_name" />
-              </th>
-              <th className="px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide cursor-pointer hover:text-gray-300" onClick={() => handleSort('phase_no')}>
-                Phase <SortIcon field="phase_no" />
-              </th>
-              <th className="px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide cursor-pointer hover:text-gray-300" onClick={() => handleSort('status')}>
-                Status <SortIcon field="status" />
-              </th>
-              <th className="px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide cursor-pointer hover:text-gray-300" onClick={() => handleSort('assigned_to')}>
-                Assigned <SortIcon field="assigned_to" />
-              </th>
-              <th className="px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide cursor-pointer hover:text-gray-300" onClick={() => handleSort('estimated_days')}>
-                Days <SortIcon field="estimated_days" />
-              </th>
-              <th className="px-4 py-3 text-xs text-gray-500 font-semibold uppercase tracking-wide">
+            <tr className="border-b text-left" style={{ borderColor: 'var(--border-primary)' }}>
+              {[
+                { field: 'task_no', label: '#' },
+                { field: 'task_name', label: 'Task' },
+                { field: 'phase_no', label: 'Phase' },
+                { field: 'status', label: 'Status' },
+                { field: 'assigned_to', label: 'Assigned' },
+                { field: 'estimated_days', label: 'Days' },
+              ].map(col => (
+                <th
+                  key={col.field}
+                  className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer transition-colors"
+                  style={{ color: 'var(--text-muted)' }}
+                  onClick={() => handleSort(col.field)}
+                >
+                  {col.label} <SortIcon field={col.field} />
+                </th>
+              ))}
+              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
                 Notes
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800/50">
-            {sorted.map((task) => {
-              const phaseColor = PHASE_COLORS[task.phase_no] || '#666'
-              return (
-                <tr
-                  key={task.task_no || task.id}
-                  onClick={() => onTaskClick?.(task)}
-                  className="hover:bg-gray-800/50 cursor-pointer transition-colors group"
-                >
-                  <td className="px-4 py-2.5 font-mono text-xs text-gray-500">{task.task_no}</td>
-                  <td className="px-4 py-2.5">
-                    <span className="text-gray-200 group-hover:text-white transition-colors">{task.task_name}</span>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <PhaseBadge phase={task.phase_no} />
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <StatusBadge status={task.status} />
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {task.assigned_to ? (
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-full bg-blue-600/30 flex items-center justify-center text-[9px] font-bold text-blue-400">
-                          {task.assigned_to.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-xs text-gray-400 truncate max-w-[100px]">{task.assigned_to}</span>
+          <tbody>
+            {sorted.map((task) => (
+              <tr
+                key={task.task_no || task.id}
+                onClick={() => onTaskClick?.(task)}
+                className="cursor-pointer transition-colors group border-b last:border-b-0"
+                style={{ borderColor: 'color-mix(in srgb, var(--border-primary) 50%, transparent)' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-card-hover)'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                <td className="px-4 py-2.5 font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{task.task_no}</td>
+                <td className="px-4 py-2.5">
+                  <span style={{ color: 'var(--text-primary)' }}>{task.task_name}</span>
+                </td>
+                <td className="px-4 py-2.5"><PhaseBadge phase={task.phase_no} /></td>
+                <td className="px-4 py-2.5"><StatusBadge status={task.status} /></td>
+                <td className="px-4 py-2.5">
+                  {task.assigned_to ? (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-full bg-blue-600/30 flex items-center justify-center text-[9px] font-bold text-blue-400">
+                        {task.assigned_to.charAt(0).toUpperCase()}
                       </div>
-                    ) : (
-                      <span className="text-xs text-gray-600">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5 text-xs text-gray-400 text-center">
-                    {task.estimated_days || 2}d
-                  </td>
-                  <td className="px-4 py-2.5 text-xs text-gray-500 max-w-[200px] truncate">
-                    {task.notes || '—'}
-                  </td>
-                </tr>
-              )
-            })}
+                      <span className="text-xs truncate max-w-[100px]" style={{ color: 'var(--text-secondary)' }}>{task.assigned_to}</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>\u2014</span>
+                  )}
+                </td>
+                <td className="px-4 py-2.5 text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+                  {task.estimated_days || 2}d
+                </td>
+                <td className="px-4 py-2.5 text-xs max-w-[200px] truncate" style={{ color: 'var(--text-muted)' }}>
+                  {task.notes || '\u2014'}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
       {/* Mobile card layout */}
-      <div className="md:hidden divide-y divide-gray-800/50">
+      <div className="md:hidden">
         {sorted.map((task) => {
-          const phaseColor = PHASE_COLORS[task.phase_no] || '#666'
+          const phaseColor = getPhaseColor(task.phase_no)
           return (
             <div
               key={task.task_no || task.id}
               onClick={() => onTaskClick?.(task)}
-              className="px-4 py-3 active:bg-gray-800/50 cursor-pointer"
-              style={{ borderLeftWidth: '3px', borderLeftColor: phaseColor }}
+              className="px-4 py-3 cursor-pointer border-b last:border-b-0"
+              style={{ borderLeftWidth: '3px', borderLeftColor: phaseColor, borderBottomColor: 'color-mix(in srgb, var(--border-primary) 50%, transparent)' }}
             >
               <div className="flex items-start justify-between gap-2 mb-1">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-200 font-medium">{task.task_name}</p>
-                  <p className="text-[10px] text-gray-500 font-mono mt-0.5">{task.task_no}</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{task.task_name}</p>
+                  <p className="text-[10px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>{task.task_no}</p>
                 </div>
                 <StatusBadge status={task.status} />
               </div>
-              <div className="flex items-center gap-3 mt-2 text-[10px] text-gray-500">
+              <div className="flex items-center gap-3 mt-2 text-[10px]" style={{ color: 'var(--text-muted)' }}>
                 <PhaseBadge phase={task.phase_no} />
                 {task.assigned_to && (
                   <span className="flex items-center gap-1">
@@ -178,7 +169,7 @@ export default function TaskListView({ tasks, onTaskClick, searchQuery, dayLabel
       </div>
 
       {sorted.length === 0 && (
-        <div className="text-center py-12 text-gray-600">
+        <div className="text-center py-12" style={{ color: 'var(--text-muted)' }}>
           <p className="text-sm">No tasks match your filters</p>
         </div>
       )}
