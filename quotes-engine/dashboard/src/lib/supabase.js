@@ -6,6 +6,8 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ||
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+// ── Read operations ──
+
 export async function fetchProjects() {
   const { data, error } = await supabase
     .from('asi360_projects')
@@ -45,4 +47,58 @@ export async function fetchProjectEvents(projectNo, limit = 20) {
     .limit(limit)
   if (error) throw error
   return data
+}
+
+// ── Write operations ──
+
+/**
+ * Update a task's status (used by Kanban drag-drop and detail modal).
+ * Sets modified_source to 'dashboard' for tri-sync conflict resolution.
+ */
+export async function updateTaskStatus(taskId, newStatus) {
+  const { data, error } = await supabase
+    .from('asi360_project_tasks')
+    .update({
+      status: newStatus,
+      modified_source: 'dashboard',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', taskId)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Update a task's assigned_to field.
+ */
+export async function updateTaskAssignment(taskId, assignedTo) {
+  const { data, error } = await supabase
+    .from('asi360_project_tasks')
+    .update({
+      assigned_to: assignedTo,
+      modified_source: 'dashboard',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', taskId)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Log an event to the project_events table.
+ */
+export async function logProjectEvent(projectNo, title, eventType = 'task_update', source = 'dashboard') {
+  const { error } = await supabase
+    .from('project_events')
+    .insert({
+      project_no: projectNo,
+      title,
+      event_type: eventType,
+      event_source: source,
+    })
+  if (error) console.error('Failed to log event:', error)
 }
