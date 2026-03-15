@@ -54,8 +54,8 @@ export default async function PortalHomePage() {
     <div className="p-6 lg:p-8 max-w-6xl">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Your Projects</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Your Projects</h1>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
           {projects?.length || 0} active project{(projects?.length || 0) !== 1 ? "s" : ""}
         </p>
       </div>
@@ -73,13 +73,13 @@ export default async function PortalHomePage() {
             <Link
               key={proj.id}
               href={`/portal/projects/${proj.slug || proj.project_no}`}
-              className="group block rounded-xl border border-slate-800 bg-slate-900 p-5 transition-all hover:border-slate-600"
+              className="group block rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 transition-all hover:border-gray-400 dark:hover:border-slate-600"
             >
               {/* Top row */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${dotClass}`} />
-                  <span className="text-xs font-mono text-slate-500">{proj.project_no}</span>
+                  <span className="text-xs font-mono text-gray-400 dark:text-slate-500">{proj.project_no}</span>
                 </div>
                 <span
                   className="text-xs font-semibold px-2 py-0.5 rounded"
@@ -90,15 +90,15 @@ export default async function PortalHomePage() {
               </div>
 
               {/* Project name */}
-              <h2 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors truncate">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-400 transition-colors truncate">
                 {proj.project_name || proj.project_no}
               </h2>
-              <p className="text-xs text-slate-500 mt-1 truncate">
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 truncate">
                 {proj.client_name || "No client"}
               </p>
 
               {/* Meta row */}
-              <div className="mt-4 flex items-center gap-3 text-xs text-slate-500">
+              <div className="mt-4 flex items-center gap-3 text-xs text-gray-400 dark:text-slate-500">
                 {proj.business_type && (
                   <span className="capitalize">{proj.business_type.replace(/_/g, " ")}</span>
                 )}
@@ -111,7 +111,7 @@ export default async function PortalHomePage() {
 
               {/* Phase progress bar */}
               <div className="mt-3">
-                <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                <div className="h-1.5 rounded-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all"
                     style={{
@@ -127,7 +127,7 @@ export default async function PortalHomePage() {
       </div>
 
       {(!projects || projects.length === 0) && (
-        <div className="text-center py-20 text-slate-500">
+        <div className="text-center py-20 text-gray-400 dark:text-slate-500">
           <p className="text-lg">No projects assigned yet</p>
           <p className="text-sm mt-2">
             Your project manager will grant you access to your projects.

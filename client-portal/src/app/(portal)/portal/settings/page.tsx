@@ -99,8 +99,8 @@ export default function SettingsPage() {
     return (
       <div className="p-6 lg:p-8 max-w-2xl">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-slate-800 rounded w-48" />
-          <div className="h-64 bg-slate-900 rounded-xl" />
+          <div className="h-8 bg-gray-200 dark:bg-slate-800 rounded w-48" />
+          <div className="h-64 bg-gray-100 dark:bg-slate-900 rounded-xl" />
         </div>
       </div>
     )
@@ -108,19 +108,19 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-2xl">
-      <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Settings</h1>
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Profile Section */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-slate-300 mb-4">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-4">
             Profile
           </h2>
           <div className="space-y-4">
             <div>
               <label
                 htmlFor="displayName"
-                className="block text-sm font-medium text-slate-400 mb-1"
+                className="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1"
               >
                 Display Name
               </label>
@@ -129,28 +129,28 @@ export default function SettingsPage() {
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">
+              <label className="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1">
                 Email
               </label>
               <input
                 type="email"
                 value={profile?.email || ""}
                 disabled
-                className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-500 cursor-not-allowed"
+                className="w-full px-3 py-2 bg-gray-100/50 dark:bg-slate-800/50 border border-gray-300/50 dark:border-slate-700/50 rounded-lg text-gray-400 dark:text-slate-500 cursor-not-allowed"
               />
-              <p className="text-xs text-slate-600 mt-1">
+              <p className="text-xs text-gray-400 dark:text-slate-600 mt-1">
                 Email cannot be changed. Contact your project manager.
               </p>
             </div>
             <div>
               <label
                 htmlFor="phone"
-                className="block text-sm font-medium text-slate-400 mb-1"
+                className="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1"
               >
                 Phone
               </label>
@@ -159,20 +159,20 @@ export default function SettingsPage() {
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="+1 (555) 123-4567"
               />
             </div>
             {profile?.company_name && (
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
+                <label className="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1">
                   Company
                 </label>
                 <input
                   type="text"
                   value={profile.company_name}
                   disabled
-                  className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-500 cursor-not-allowed"
+                  className="w-full px-3 py-2 bg-gray-100/50 dark:bg-slate-800/50 border border-gray-300/50 dark:border-slate-700/50 rounded-lg text-gray-400 dark:text-slate-500 cursor-not-allowed"
                 />
               </div>
             )}
@@ -180,8 +180,8 @@ export default function SettingsPage() {
         </div>
 
         {/* Notification Preferences */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-slate-300 mb-4">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-4">
             Notification Preferences
           </h2>
           <div className="space-y-3">
@@ -212,8 +212,8 @@ export default function SettingsPage() {
                 className="flex items-center justify-between py-2 cursor-pointer"
               >
                 <div>
-                  <p className="text-sm text-slate-300">{item.label}</p>
-                  <p className="text-xs text-slate-600">{item.desc}</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-300">{item.label}</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-600">{item.desc}</p>
                 </div>
                 <button
                   type="button"
@@ -224,7 +224,7 @@ export default function SettingsPage() {
                     }))
                   }
                   className={`relative w-10 h-5 rounded-full transition-colors ${
-                    notifPrefs[item.key] ? "bg-blue-600" : "bg-slate-700"
+                    notifPrefs[item.key] ? "bg-blue-600" : "bg-gray-300 dark:bg-slate-700"
                   }`}
                 >
                   <span

@@ -19,21 +19,34 @@ const PRIORITY_COLORS: Record<string, string> = {
   Urgent: "text-red-400",
 }
 
-export default async function CasesListPage() {
+export default async function AdminCasesPage() {
   const supabase = await createClient()
 
-  // RLS-filtered: only cases this client owns
-  const { data: cases, error } = await supabase
+  // Admin sees ALL cases (RLS admin policy grants full access)
+  const { data: cases } = await supabase
     .from("vtiger_cases_cache")
     .select(
-      "id, case_no, title, status, priority, category, created_at, modified_at, resolved_at, project_id"
+      "id, case_no, vtiger_id, title, status, priority, category, sync_status, client_id, project_id, assigned_to, is_billable, created_at, modified_at, resolved_at"
     )
     .order("created_at", { ascending: false })
 
-  // Get project names for display
-  const projectIds = [
-    ...new Set(cases?.map((c) => c.project_id).filter(Boolean)),
-  ]
+  // Get client names
+  const clientIds = [...new Set(cases?.map((c) => c.client_id).filter(Boolean))]
+  let clientMap: Record<string, string> = {}
+  if (clientIds.length > 0) {
+    const { data: clients } = await supabase
+      .from("client_profiles")
+      .select("id, display_name, company_name")
+      .in("id", clientIds)
+    clients?.forEach((c) => {
+      clientMap[c.id] = c.company_name
+        ? `${c.display_name} (${c.company_name})`
+        : c.display_name
+    })
+  }
+
+  // Get project names
+  const projectIds = [...new Set(cases?.map((c) => c.project_id).filter(Boolean))]
   let projectMap: Record<number, string> = {}
   if (projectIds.length > 0) {
     const { data: projects } = await supabase
@@ -45,54 +58,63 @@ export default async function CasesListPage() {
     })
   }
 
-  if (error) {
-    return (
-      <div className="p-8">
-        <div className="text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg p-6 max-w-md">
-          <p className="font-semibold mb-2">Error loading cases</p>
-          <p className="text-sm text-red-300">{error.message}</p>
-        </div>
-      </div>
-    )
-  }
-
   const openCases = cases?.filter(
     (c) => c.status !== "Closed" && c.status !== "Resolved"
   )
   const closedCases = cases?.filter(
     (c) => c.status === "Closed" || c.status === "Resolved"
   )
+  const pendingSync = cases?.filter((c) => c.sync_status === "pending_sync")
 
   return (
-    <div className="p-6 lg:p-8 max-w-5xl">
-      {/* Header */}
+    <div className="p-6 lg:p-8 max-w-6xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Support Cases</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">All Cases</h1>
           <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
             {openCases?.length || 0} open &bull;{" "}
             {closedCases?.length || 0} resolved
+            {pendingSync && pendingSync.length > 0 && (
+              <span className="text-red-400 ml-2">
+                &bull; {pendingSync.length} pending sync
+              </span>
+            )}
           </p>
         </div>
-        <Link
-          href="/portal/cases/new"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          + New Case
-        </Link>
       </div>
+
+      {/* Pending Sync Alert */}
+      {pendingSync && pendingSync.length > 0 && (
+        <div className="mb-6 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+          <p className="text-sm text-red-400 font-medium">
+            {pendingSync.length} case(s) pending VTiger sync
+          </p>
+          <p className="text-xs text-red-300/60 mt-1">
+            These cases were created while the Gateway was unreachable. They will
+            sync automatically when connectivity is restored.
+          </p>
+          <div className="mt-2 space-y-1">
+            {pendingSync.map((c) => (
+              <p key={c.id} className="text-xs text-red-300/80 font-mono">
+                {c.case_no} — {c.title}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Open Cases */}
       {openCases && openCases.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-3">
-            Open Cases
+            Open Cases ({openCases.length})
           </h2>
           <div className="space-y-2">
             {openCases.map((c) => (
-              <CaseRow
+              <AdminCaseRow
                 key={c.id}
                 caseData={c}
+                clientName={c.client_id ? clientMap[c.client_id] : null}
                 projectName={c.project_id ? projectMap[c.project_id] : null}
               />
             ))}
@@ -104,13 +126,14 @@ export default async function CasesListPage() {
       {closedCases && closedCases.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-3">
-            Resolved / Closed
+            Resolved / Closed ({closedCases.length})
           </h2>
           <div className="space-y-2">
             {closedCases.map((c) => (
-              <CaseRow
+              <AdminCaseRow
                 key={c.id}
                 caseData={c}
+                clientName={c.client_id ? clientMap[c.client_id] : null}
                 projectName={c.project_id ? projectMap[c.project_id] : null}
               />
             ))}
@@ -121,36 +144,32 @@ export default async function CasesListPage() {
       {/* Empty State */}
       {(!cases || cases.length === 0) && (
         <div className="text-center py-20 text-gray-400 dark:text-slate-500">
-          <p className="text-lg">No support cases yet</p>
-          <p className="text-sm mt-2">
-            Create a new case when you need help with a project.
-          </p>
-          <Link
-            href="/portal/cases/new"
-            className="inline-block mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            + Create Your First Case
-          </Link>
+          <p className="text-lg">No cases in the system</p>
         </div>
       )}
     </div>
   )
 }
 
-function CaseRow({
+function AdminCaseRow({
   caseData,
+  clientName,
   projectName,
 }: {
   caseData: {
     id: string
     case_no: string
+    vtiger_id: string | null
     title: string
     status: string
     priority: string
     category: string
+    sync_status: string
+    assigned_to: string | null
+    is_billable: boolean | null
     created_at: string
-    modified_at: string
   }
+  clientName: string | null | undefined
   projectName: string | null | undefined
 }) {
   const statusStyle = STATUS_COLORS[caseData.status] || STATUS_COLORS.Open
@@ -159,22 +178,46 @@ function CaseRow({
   return (
     <Link
       href={`/portal/cases/${caseData.case_no}`}
-      className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-gray-400 dark:hover:border-slate-600 transition-colors group"
+      className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-gray-400 dark:hover:border-slate-600 transition-colors group"
     >
-      {/* Case number */}
-      <span className="text-xs font-mono text-gray-400 dark:text-slate-500 shrink-0 w-16">
-        {caseData.case_no}
-      </span>
+      {/* Case number + sync status */}
+      <div className="shrink-0 w-20">
+        <span className="text-xs font-mono text-gray-400 dark:text-slate-500 block">
+          {caseData.case_no}
+        </span>
+        {caseData.sync_status === "pending_sync" && (
+          <span className="text-[8px] text-red-400">PENDING</span>
+        )}
+      </div>
 
-      {/* Title + project */}
+      {/* Title + client + project */}
       <div className="flex-1 min-w-0">
         <p className="text-sm text-gray-700 dark:text-slate-200 group-hover:text-blue-400 transition-colors truncate">
           {caseData.title}
         </p>
-        {projectName && (
-          <p className="text-xs text-gray-400 dark:text-slate-600 truncate">{projectName}</p>
-        )}
+        <div className="flex items-center gap-2 text-[10px] text-gray-400 dark:text-slate-600">
+          {clientName && <span>{clientName}</span>}
+          {projectName && (
+            <>
+              <span>&bull;</span>
+              <span>{projectName}</span>
+            </>
+          )}
+          {caseData.assigned_to && (
+            <>
+              <span>&bull;</span>
+              <span className="text-gray-400 dark:text-slate-500">
+                Assigned: {caseData.assigned_to}
+              </span>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Category */}
+      <span className="text-[10px] text-gray-400 dark:text-slate-600 capitalize shrink-0">
+        {caseData.category?.replace(/_/g, " ")}
+      </span>
 
       {/* Priority */}
       <span className={`text-[10px] font-medium shrink-0 ${priorityColor}`}>
@@ -189,7 +232,7 @@ function CaseRow({
       </span>
 
       {/* Date */}
-      <span className="text-[10px] text-gray-400 dark:text-slate-600 shrink-0 w-20 text-right">
+      <span className="text-[10px] text-gray-400 dark:text-slate-600 shrink-0 w-16 text-right">
         {new Date(caseData.created_at).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",

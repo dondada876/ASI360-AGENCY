@@ -93,25 +93,25 @@ export default function NewCasePage() {
       <div className="mb-4">
         <Link
           href="/portal/cases"
-          className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+          className="text-sm text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
         >
           &larr; All Cases
         </Link>
       </div>
 
-      <h1 className="text-2xl font-bold text-white mb-6">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
         Create Support Case
       </h1>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-5"
+        className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-6 space-y-5"
       >
         {/* Title */}
         <div>
           <label
             htmlFor="title"
-            className="block text-sm font-medium text-slate-300 mb-1"
+            className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1"
           >
             Case Title *
           </label>
@@ -120,7 +120,7 @@ export default function NewCasePage() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Brief summary of the issue"
             required
           />
@@ -130,7 +130,7 @@ export default function NewCasePage() {
         <div>
           <label
             htmlFor="project"
-            className="block text-sm font-medium text-slate-300 mb-1"
+            className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1"
           >
             Related Project
           </label>
@@ -140,7 +140,7 @@ export default function NewCasePage() {
             onChange={(e) =>
               setProjectId(e.target.value ? Number(e.target.value) : null)
             }
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">No project (general inquiry)</option>
             {projects.map((p) => (
@@ -156,7 +156,7 @@ export default function NewCasePage() {
           <div>
             <label
               htmlFor="category"
-              className="block text-sm font-medium text-slate-300 mb-1"
+              className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1"
             >
               Category
             </label>
@@ -164,7 +164,7 @@ export default function NewCasePage() {
               id="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>
@@ -176,7 +176,7 @@ export default function NewCasePage() {
           <div>
             <label
               htmlFor="priority"
-              className="block text-sm font-medium text-slate-300 mb-1"
+              className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1"
             >
               Priority
             </label>
@@ -184,7 +184,7 @@ export default function NewCasePage() {
               id="priority"
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {PRIORITIES.map((p) => (
                 <option key={p.value} value={p.value}>
@@ -199,7 +199,7 @@ export default function NewCasePage() {
         <div>
           <label
             htmlFor="description"
-            className="block text-sm font-medium text-slate-300 mb-1"
+            className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1"
           >
             Description *
           </label>
@@ -208,7 +208,7 @@ export default function NewCasePage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={6}
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             placeholder="Describe the issue in detail. Include any relevant context, error messages, or steps to reproduce."
             required
           />
@@ -232,7 +232,7 @@ export default function NewCasePage() {
           </button>
           <Link
             href="/portal/cases"
-            className="px-4 py-2.5 text-slate-400 hover:text-white text-sm transition-colors"
+            className="px-4 py-2.5 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors"
           >
             Cancel
           </Link>

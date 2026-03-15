@@ -59,15 +59,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 px-4">
       <div className="w-full max-w-md">
         {/* Logo & Branding */}
         <div className="text-center mb-8">
           <div className="w-14 h-14 rounded-xl bg-blue-600 flex items-center justify-center text-2xl font-bold text-white mx-auto mb-4">
             A
           </div>
-          <h1 className="text-2xl font-bold text-white">ASI 360 Client Portal</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">ASI 360 Client Portal</h1>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
             Allied Systems Integrations
           </p>
         </div>
@@ -75,10 +75,10 @@ export default function LoginPage() {
         {/* Login Form */}
         <form
           onSubmit={handleLogin}
-          className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4"
+          className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-6 space-y-4"
         >
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1">
               Email
             </label>
             <input
@@ -86,7 +86,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="you@company.com"
               required
               autoComplete="email"
@@ -94,7 +94,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1">
               Password
             </label>
             <input
@@ -102,7 +102,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter your password"
               required
               autoComplete="current-password"
@@ -124,7 +124,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-xs text-slate-500 mt-6">
+        <p className="text-center text-xs text-gray-400 dark:text-slate-500 mt-6">
           Don&apos;t have an account? Contact your ASI 360 project manager.
         </p>
       </div>

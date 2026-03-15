@@ -39,21 +39,21 @@ export default function CaseReplyForm({ caseNo }: { caseNo: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="mt-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-4">
         <textarea
           ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Write a reply..."
           rows={3}
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           disabled={submitting}
         />
         {error && (
           <p className="text-xs text-red-400 mt-2">{error}</p>
         )}
         <div className="flex items-center justify-between mt-3">
-          <p className="text-[10px] text-slate-600">
+          <p className="text-[10px] text-gray-400 dark:text-slate-600">
             Your reply will be visible to the ASI 360 team.
           </p>
           <button

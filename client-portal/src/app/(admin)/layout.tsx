@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import PortalSidebar from "@/components/ui/portal-sidebar"
 
-export default async function PortalLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
@@ -17,15 +17,15 @@ export default async function PortalLayout({
     redirect("/login")
   }
 
-  // Fetch client profile for sidebar display
+  // Fetch client profile — must be admin role
   const { data: profile } = await supabase
     .from("client_profiles")
     .select("id, display_name, company_name, role, email")
     .eq("user_id", user.id)
     .single()
 
-  if (!profile) {
-    redirect("/login")
+  if (!profile || profile.role !== "admin") {
+    redirect("/portal")
   }
 
   return (

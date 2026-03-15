@@ -20,7 +20,7 @@ const PHASE_COLORS: Record<number, string> = {
 }
 
 const STATUS_BADGES: Record<string, { bg: string; text: string }> = {
-  "not started": { bg: "bg-slate-700", text: "text-slate-300" },
+  "not started": { bg: "bg-gray-200 dark:bg-slate-700", text: "text-gray-600 dark:text-slate-300" },
   "in progress": { bg: "bg-blue-500/20", text: "text-blue-400" },
   completed: { bg: "bg-green-500/20", text: "text-green-400" },
   deferred: { bg: "bg-yellow-500/20", text: "text-yellow-400" },
@@ -128,7 +128,7 @@ export default async function ProjectDetailPage({
       <div className="mb-4">
         <Link
           href="/portal"
-          className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+          className="text-sm text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
         >
           &larr; All Projects
         </Link>
@@ -137,7 +137,7 @@ export default async function ProjectDetailPage({
       {/* Project Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-xs font-mono text-slate-500">
+          <span className="text-xs font-mono text-gray-400 dark:text-slate-500">
             {project.project_no}
           </span>
           <span
@@ -149,17 +149,17 @@ export default async function ProjectDetailPage({
           >
             Phase {phase} — {PHASE_LABELS[phase] || `Phase ${phase}`}
           </span>
-          <span className="text-xs capitalize text-slate-500 bg-slate-800 px-2 py-0.5 rounded">
+          <span className="text-xs capitalize text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded">
             {status}
           </span>
         </div>
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {project.project_name}
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
           {project.client_name || "No client"}
           {project.business_type && (
-            <span className="ml-2 text-slate-600">
+            <span className="ml-2 text-gray-400 dark:text-slate-600">
               &bull; {project.business_type.replace(/_/g, " ")}
             </span>
           )}
@@ -181,13 +181,13 @@ export default async function ProjectDetailPage({
         <StatCard
           label="Internal Tickets"
           value={`${ticketCount || 0} in progress`}
-          accent={ticketCount ? "text-slate-400" : undefined}
+          accent={ticketCount ? "text-gray-500 dark:text-slate-400" : undefined}
         />
       </div>
 
       {/* Phase Progress */}
       <div className="mb-8">
-        <h2 className="text-sm font-semibold text-slate-300 mb-3">
+        <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-3">
           Phase Progress
         </h2>
         <div className="flex gap-1">
@@ -216,7 +216,7 @@ export default async function ProjectDetailPage({
 
       {/* Task List by Phase */}
       <div className="mb-8">
-        <h2 className="text-sm font-semibold text-slate-300 mb-3">Tasks</h2>
+        <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-3">Tasks</h2>
         {Object.entries(tasksByPhase).map(([phaseNo, phaseTasks]) => (
           <div key={phaseNo} className="mb-4">
             <h3
@@ -236,14 +236,14 @@ export default async function ProjectDetailPage({
                 return (
                   <div
                     key={task.id}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800"
                   >
                     {task.is_milestone ? (
                       <span className="text-amber-400 text-xs">&#9670;</span>
                     ) : (
-                      <span className="text-slate-600 text-xs">&#9679;</span>
+                      <span className="text-gray-400 dark:text-slate-600 text-xs">&#9679;</span>
                     )}
-                    <span className="flex-1 text-sm text-slate-300 truncate">
+                    <span className="flex-1 text-sm text-gray-600 dark:text-slate-300 truncate">
                       {task.task_name}
                     </span>
                     <span
@@ -252,7 +252,7 @@ export default async function ProjectDetailPage({
                       {task.status || "Not Started"}
                     </span>
                     {task.due_date && (
-                      <span className="text-[10px] text-slate-600">
+                      <span className="text-[10px] text-gray-400 dark:text-slate-600">
                         {formatDate(task.due_date)}
                       </span>
                     )}
@@ -263,7 +263,7 @@ export default async function ProjectDetailPage({
           </div>
         ))}
         {(!tasks || tasks.length === 0) && (
-          <p className="text-sm text-slate-600 py-4">
+          <p className="text-sm text-gray-400 dark:text-slate-600 py-4">
             No tasks assigned to this project yet.
           </p>
         )}
@@ -272,21 +272,21 @@ export default async function ProjectDetailPage({
       {/* Recent Activity */}
       {events && events.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-sm font-semibold text-slate-300 mb-3">
+          <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-3">
             Recent Activity
           </h2>
           <div className="space-y-2">
             {events.map((evt) => (
               <div
                 key={evt.id}
-                className="flex items-start gap-3 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800"
+                className="flex items-start gap-3 px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800"
               >
-                <span className="text-xs text-slate-600 mt-0.5 shrink-0">
+                <span className="text-xs text-gray-400 dark:text-slate-600 mt-0.5 shrink-0">
                   {formatDate(evt.created_at)}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm text-slate-300">{evt.title}</p>
-                  <p className="text-xs text-slate-500 capitalize">
+                  <p className="text-sm text-gray-600 dark:text-slate-300">{evt.title}</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500 capitalize">
                     {evt.event_type?.replace(/_/g, " ")}
                   </p>
                 </div>
@@ -298,10 +298,10 @@ export default async function ProjectDetailPage({
 
       {/* Comments */}
       <div className="mb-8">
-        <h2 className="text-sm font-semibold text-slate-300 mb-3">
+        <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-3">
           Comments
           {comments && comments.length > 0 && (
-            <span className="text-slate-600 font-normal ml-2">
+            <span className="text-gray-400 dark:text-slate-600 font-normal ml-2">
               ({comments.length})
             </span>
           )}
@@ -311,20 +311,20 @@ export default async function ProjectDetailPage({
             {comments.map((c) => (
               <div
                 key={c.id}
-                className="flex gap-3 px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg"
+                className="flex gap-3 px-4 py-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg"
               >
-                <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-300 shrink-0 mt-0.5">
+                <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-gray-600 dark:text-slate-300 shrink-0 mt-0.5">
                   {c.author_name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-slate-300">
+                    <span className="text-xs font-medium text-gray-600 dark:text-slate-300">
                       {c.author_name}
                     </span>
-                    <span className="text-[10px] text-slate-600 capitalize">
+                    <span className="text-[10px] text-gray-400 dark:text-slate-600 capitalize">
                       {c.author_role}
                     </span>
-                    <span className="text-[10px] text-slate-700">
+                    <span className="text-[10px] text-gray-300 dark:text-slate-700">
                       {new Date(c.created_at).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -333,7 +333,7 @@ export default async function ProjectDetailPage({
                       })}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-400 whitespace-pre-wrap">
+                  <p className="text-sm text-gray-500 dark:text-slate-400 whitespace-pre-wrap">
                     {c.content}
                   </p>
                 </div>
@@ -341,7 +341,7 @@ export default async function ProjectDetailPage({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-600 py-2">
+          <p className="text-sm text-gray-400 dark:text-slate-600 py-2">
             No comments yet.
           </p>
         )}
@@ -350,7 +350,7 @@ export default async function ProjectDetailPage({
         {accessLevel !== "viewer" ? (
           <ProjectCommentForm projectId={project.id} />
         ) : (
-          <p className="text-[10px] text-slate-600 mt-2 italic">
+          <p className="text-[10px] text-gray-400 dark:text-slate-600 mt-2 italic">
             Viewer access — upgrade to commenter to post comments.
           </p>
         )}
@@ -359,28 +359,28 @@ export default async function ProjectDetailPage({
       {/* Project Info */}
       {(project.description || project.scope_description || project.site_address) && (
         <div className="mb-8">
-          <h2 className="text-sm font-semibold text-slate-300 mb-3">
+          <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-3">
             Project Details
           </h2>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-4 space-y-3">
             {project.description && (
               <div>
-                <p className="text-xs text-slate-500 mb-1">Description</p>
-                <p className="text-sm text-slate-300">{project.description}</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">Description</p>
+                <p className="text-sm text-gray-600 dark:text-slate-300">{project.description}</p>
               </div>
             )}
             {project.scope_description && (
               <div>
-                <p className="text-xs text-slate-500 mb-1">Scope</p>
-                <p className="text-sm text-slate-300">
+                <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">Scope</p>
+                <p className="text-sm text-gray-600 dark:text-slate-300">
                   {project.scope_description}
                 </p>
               </div>
             )}
             {project.site_address && (
               <div>
-                <p className="text-xs text-slate-500 mb-1">Site Address</p>
-                <p className="text-sm text-slate-300">
+                <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">Site Address</p>
+                <p className="text-sm text-gray-600 dark:text-slate-300">
                   {project.site_address}
                 </p>
               </div>
@@ -404,11 +404,11 @@ function StatCard({
   accent?: string
 }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-lg p-3">
-      <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">
+    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg p-3">
+      <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1">
         {label}
       </p>
-      <p className={`text-sm font-semibold ${accent || "text-white"}`}>
+      <p className={`text-sm font-semibold ${accent || "text-gray-900 dark:text-white"}`}>
         {value || "—"}
       </p>
     </div>

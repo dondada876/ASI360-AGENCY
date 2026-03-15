@@ -10,12 +10,12 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   "Wait for customer": { bg: "bg-yellow-500/20", text: "text-yellow-400" },
   "Wait for 3rd party": { bg: "bg-orange-500/20", text: "text-orange-400" },
   Resolved: { bg: "bg-green-500/20", text: "text-green-400" },
-  Closed: { bg: "bg-slate-700", text: "text-slate-400" },
+  Closed: { bg: "bg-gray-200 dark:bg-slate-700", text: "text-gray-500 dark:text-slate-400" },
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  Low: "text-slate-500",
-  Normal: "text-slate-400",
+  Low: "text-gray-400 dark:text-slate-500",
+  Normal: "text-gray-500 dark:text-slate-400",
   Medium: "text-amber-400",
   High: "text-orange-400",
   Urgent: "text-red-400",
@@ -61,7 +61,7 @@ export default async function CaseDetailPage({
   const statusStyle =
     STATUS_COLORS[caseData.status] || STATUS_COLORS.Open
   const priorityColor =
-    PRIORITY_COLORS[caseData.priority] || "text-slate-400"
+    PRIORITY_COLORS[caseData.priority] || "text-gray-500 dark:text-slate-400"
 
   return (
     <div className="p-6 lg:p-8 max-w-4xl">
@@ -69,7 +69,7 @@ export default async function CaseDetailPage({
       <div className="mb-4">
         <Link
           href="/portal/cases"
-          className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+          className="text-sm text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
         >
           &larr; All Cases
         </Link>
@@ -78,7 +78,7 @@ export default async function CaseDetailPage({
       {/* Case Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-xs font-mono text-slate-500">
+          <span className="text-xs font-mono text-gray-400 dark:text-slate-500">
             {caseData.case_no}
           </span>
           <span
@@ -90,8 +90,8 @@ export default async function CaseDetailPage({
             {caseData.priority} Priority
           </span>
         </div>
-        <h1 className="text-xl font-bold text-white">{caseData.title}</h1>
-        <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{caseData.title}</h1>
+        <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 dark:text-slate-500">
           {projectName && <span>Project: {projectName}</span>}
           {caseData.category && (
             <span className="capitalize">
@@ -110,11 +110,11 @@ export default async function CaseDetailPage({
       </div>
 
       {/* Case Description */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 mb-6">
-        <h2 className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-3">
+      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-5 mb-6">
+        <h2 className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-3">
           Description
         </h2>
-        <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
+        <p className="text-sm text-gray-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
           {caseData.description}
         </p>
       </div>
@@ -143,7 +143,7 @@ export default async function CaseDetailPage({
 
       {/* Activity Timeline */}
       <div className="mb-6">
-        <h2 className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-3">
+        <h2 className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-3">
           Activity
         </h2>
         {activities && activities.length > 0 ? (
@@ -151,20 +151,20 @@ export default async function CaseDetailPage({
             {activities.map((a) => (
               <div
                 key={a.id}
-                className="flex gap-3 px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg"
+                className="flex gap-3 px-4 py-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg"
               >
-                <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-300 shrink-0 mt-0.5">
+                <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-gray-600 dark:text-slate-300 shrink-0 mt-0.5">
                   {a.author_name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-slate-300">
+                    <span className="text-xs font-medium text-gray-600 dark:text-slate-300">
                       {a.author_name}
                     </span>
-                    <span className="text-[10px] text-slate-600 capitalize">
+                    <span className="text-[10px] text-gray-400 dark:text-slate-600 capitalize">
                       {a.action.replace(/_/g, " ")}
                     </span>
-                    <span className="text-[10px] text-slate-700">
+                    <span className="text-[10px] text-gray-300 dark:text-slate-700">
                       {new Date(a.created_at).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -174,7 +174,7 @@ export default async function CaseDetailPage({
                     </span>
                   </div>
                   {a.content && (
-                    <p className="text-sm text-slate-400 whitespace-pre-wrap">
+                    <p className="text-sm text-gray-500 dark:text-slate-400 whitespace-pre-wrap">
                       {a.content}
                     </p>
                   )}
@@ -183,7 +183,7 @@ export default async function CaseDetailPage({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-600 py-4">
+          <p className="text-sm text-gray-400 dark:text-slate-600 py-4">
             No activity recorded yet.
           </p>
         )}
@@ -195,19 +195,19 @@ export default async function CaseDetailPage({
       )}
 
       {/* Case Meta */}
-      <div className="mt-6 bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div className="mt-6 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
           <div>
-            <p className="text-slate-600 mb-0.5">Case ID</p>
-            <p className="text-slate-300 font-mono">{caseData.case_no}</p>
+            <p className="text-gray-400 dark:text-slate-600 mb-0.5">Case ID</p>
+            <p className="text-gray-600 dark:text-slate-300 font-mono">{caseData.case_no}</p>
           </div>
           <div>
-            <p className="text-slate-600 mb-0.5">Status</p>
-            <p className="text-slate-300">{caseData.status}</p>
+            <p className="text-gray-400 dark:text-slate-600 mb-0.5">Status</p>
+            <p className="text-gray-600 dark:text-slate-300">{caseData.status}</p>
           </div>
           <div>
-            <p className="text-slate-600 mb-0.5">Last Updated</p>
-            <p className="text-slate-300">
+            <p className="text-gray-400 dark:text-slate-600 mb-0.5">Last Updated</p>
+            <p className="text-gray-600 dark:text-slate-300">
               {new Date(caseData.modified_at).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
@@ -216,8 +216,8 @@ export default async function CaseDetailPage({
             </p>
           </div>
           <div>
-            <p className="text-slate-600 mb-0.5">Contact</p>
-            <p className="text-slate-300">
+            <p className="text-gray-400 dark:text-slate-600 mb-0.5">Contact</p>
+            <p className="text-gray-600 dark:text-slate-300">
               {caseData.contact_name || caseData.organization_name || "—"}
             </p>
           </div>

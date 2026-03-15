@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import NotificationBell from "@/components/NotificationBell"
+import ThemeToggle from "@/components/ThemeToggle"
 
 interface Profile {
   id: string
@@ -35,25 +37,27 @@ export default function PortalSidebar({ profile }: { profile: Profile }) {
   }
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen sticky top-0">
+    <aside className="w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col h-screen sticky top-0">
       {/* Header */}
-      <div className="p-4 border-b border-slate-800">
+      <div className="p-4 border-b border-gray-200 dark:border-slate-800">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">
             A
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-white truncate">ASI 360 Portal</p>
-            <p className="text-xs text-slate-400 truncate">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">ASI 360 Portal</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
               {profile.company_name || profile.email}
             </p>
           </div>
+          <ThemeToggle />
+          <NotificationBell />
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1">
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider px-3 mb-2">
+        <p className="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider px-3 mb-2">
           Portal
         </p>
         {NAV_ITEMS.map((item) => {
@@ -65,7 +69,7 @@ export default function PortalSidebar({ profile }: { profile: Profile }) {
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                 isActive
                   ? "bg-blue-600/10 text-blue-400"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                  : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
               }`}
             >
               <item.icon className="w-4 h-4 shrink-0" />
@@ -76,8 +80,8 @@ export default function PortalSidebar({ profile }: { profile: Profile }) {
 
         {profile.role === "admin" && (
           <>
-            <div className="h-px bg-slate-800 my-3" />
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider px-3 mb-2">
+            <div className="h-px bg-gray-200 dark:bg-slate-800 my-3" />
+            <p className="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider px-3 mb-2">
               Admin
             </p>
             {ADMIN_ITEMS.map((item) => {
@@ -89,7 +93,7 @@ export default function PortalSidebar({ profile }: { profile: Profile }) {
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                     isActive
                       ? "bg-amber-600/10 text-amber-400"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800"
+                      : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
                   }`}
                 >
                   <item.icon className="w-4 h-4 shrink-0" />
@@ -102,18 +106,18 @@ export default function PortalSidebar({ profile }: { profile: Profile }) {
       </nav>
 
       {/* User Footer */}
-      <div className="p-3 border-t border-slate-800">
+      <div className="p-3 border-t border-gray-200 dark:border-slate-800">
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300">
+          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-slate-300">
             {profile.display_name.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-white truncate">{profile.display_name}</p>
-            <p className="text-xs text-slate-500 capitalize">{profile.role}</p>
+            <p className="text-sm text-gray-900 dark:text-white truncate">{profile.display_name}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 capitalize">{profile.role}</p>
           </div>
           <button
             onClick={handleSignOut}
-            className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+            className="p-1.5 text-gray-400 dark:text-slate-500 hover:text-red-400 transition-colors"
             title="Sign Out"
           >
             <LogoutIcon className="w-4 h-4" />
