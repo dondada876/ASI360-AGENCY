@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import ProjectCommentForm from "@/components/ProjectCommentForm"
 
 const PHASE_LABELS: Record<number, string> = {
   1: "Scope & Design",
@@ -76,6 +77,39 @@ export default async function ProjectDetailPage({
     .eq("project_no", project.project_no)
     .order("created_at", { ascending: false })
     .limit(10)
+
+  // Fetch project comments (external only, via RLS)
+  const { data: comments } = await supabase
+    .from("project_comments")
+    .select(
+      "id, author_name, author_role, content, created_at"
+    )
+    .eq("project_id", project.id)
+    .order("created_at", { ascending: true })
+
+  // Check access level (commenter vs viewer)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  let accessLevel = "viewer"
+  if (user) {
+    const { data: profile } = await supabase
+      .from("client_profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single()
+
+    if (profile) {
+      const { data: access } = await supabase
+        .from("client_project_access")
+        .select("access_level")
+        .eq("project_id", project.id)
+        .eq("client_id", profile.id)
+        .single()
+      accessLevel = access?.access_level || "viewer"
+    }
+  }
 
   const phase = project.current_phase || 1
   const phaseColor = PHASE_COLORS[phase] || "#3b82f6"
@@ -261,6 +295,66 @@ export default async function ProjectDetailPage({
           </div>
         </div>
       )}
+
+      {/* Comments */}
+      <div className="mb-8">
+        <h2 className="text-sm font-semibold text-slate-300 mb-3">
+          Comments
+          {comments && comments.length > 0 && (
+            <span className="text-slate-600 font-normal ml-2">
+              ({comments.length})
+            </span>
+          )}
+        </h2>
+        {comments && comments.length > 0 ? (
+          <div className="space-y-2">
+            {comments.map((c) => (
+              <div
+                key={c.id}
+                className="flex gap-3 px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg"
+              >
+                <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-300 shrink-0 mt-0.5">
+                  {c.author_name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-medium text-slate-300">
+                      {c.author_name}
+                    </span>
+                    <span className="text-[10px] text-slate-600 capitalize">
+                      {c.author_role}
+                    </span>
+                    <span className="text-[10px] text-slate-700">
+                      {new Date(c.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-400 whitespace-pre-wrap">
+                    {c.content}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-600 py-2">
+            No comments yet.
+          </p>
+        )}
+
+        {/* Comment form for commenter+ access */}
+        {accessLevel !== "viewer" ? (
+          <ProjectCommentForm projectId={project.id} />
+        ) : (
+          <p className="text-[10px] text-slate-600 mt-2 italic">
+            Viewer access — upgrade to commenter to post comments.
+          </p>
+        )}
+      </div>
 
       {/* Project Info */}
       {(project.description || project.scope_description || project.site_address) && (

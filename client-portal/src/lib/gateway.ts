@@ -1,11 +1,24 @@
 /**
  * Gateway API client — Server-side only.
  * All VTiger and notification calls go through the Gateway at 104.248.69.86:8443.
+ *
+ * The Gateway API key is fetched from Supabase Vault at runtime — never from .env.
  * NEVER import this in client components.
  */
 
+import { getSecret } from "@/lib/vault"
+
 const GATEWAY_URL = process.env.GATEWAY_URL || "http://104.248.69.86:8443"
-const GATEWAY_KEY = process.env.GATEWAY_API_KEY || ""
+
+// Cache the key for the process lifetime (vault.ts also caches for 5 min)
+let _gatewayKey: string | null = null
+
+async function getGatewayKey(): Promise<string> {
+  if (!_gatewayKey) {
+    _gatewayKey = (await getSecret("gateway_api_key")) || ""
+  }
+  return _gatewayKey
+}
 
 interface GatewayOptions {
   method?: string
@@ -24,11 +37,13 @@ export async function gatewayCall<T = unknown>({
   const timer = setTimeout(() => controller.abort(), timeout)
 
   try {
+    const gatewayKey = await getGatewayKey()
+
     const options: RequestInit = {
       method,
       headers: {
         "Content-Type": "application/json",
-        ...(GATEWAY_KEY ? { "X-Api-Key": GATEWAY_KEY } : {}),
+        ...(gatewayKey ? { "X-Api-Key": gatewayKey } : {}),
       },
       signal: controller.signal,
     }

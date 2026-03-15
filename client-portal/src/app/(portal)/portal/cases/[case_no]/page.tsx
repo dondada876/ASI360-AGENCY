@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import CaseReplyForm from "@/components/CaseReplyForm"
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   Open: { bg: "bg-blue-500/20", text: "text-blue-400" },
@@ -188,8 +189,13 @@ export default async function CaseDetailPage({
         )}
       </div>
 
+      {/* Reply Form (not on closed cases) */}
+      {caseData.status !== "Closed" && (
+        <CaseReplyForm caseNo={caseData.case_no} />
+      )}
+
       {/* Case Meta */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div className="mt-6 bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
           <div>
             <p className="text-slate-600 mb-0.5">Case ID</p>

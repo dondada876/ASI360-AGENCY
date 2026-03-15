@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       syncStatus = "pending_sync"
     }
 
-    // Write to Supabase cache (always succeeds)
+    // Write to Supabase cache (RLS allows authenticated users to insert own cases)
     const { data: newCase, error: insertError } = await supabase
       .from("vtiger_cases_cache")
       .insert({
