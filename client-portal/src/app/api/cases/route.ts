@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getServiceClient } from "@/lib/vault"
 import { createCase } from "@/lib/gateway"
 
 export async function POST(request: NextRequest) {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Get client profile
+    // Get client profile (RLS-filtered — user can only read own profile)
     const { data: profile } = await supabase
       .from("client_profiles")
       .select("id, display_name, company_name, vtiger_contact_id")
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest) {
         category: category || "general",
         priority: priority || "Normal",
         contact_id: profile.vtiger_contact_id || undefined,
+        contact_name: profile.display_name,
         organization: profile.company_name || undefined,
       })
 
@@ -60,10 +62,15 @@ export async function POST(request: NextRequest) {
       // Gateway/VTiger is down — fallback to pending sync
       caseNo = `PENDING-${Date.now()}`
       syncStatus = "pending_sync"
+      console.warn("[cases/route] Gateway unavailable — using fallback pending_sync")
     }
 
-    // Write to Supabase cache (RLS allows authenticated users to insert own cases)
-    const { data: newCase, error: insertError } = await supabase
+    // Use service client for writes (bypasses RLS — API route validates permissions above)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const adminClient = getServiceClient() as any
+
+    // Write to Supabase cache
+    const { data: newCase, error: insertError } = await adminClient
       .from("vtiger_cases_cache")
       .insert({
         case_no: caseNo,
@@ -90,7 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the creation activity
-    await supabase.from("case_activity_log").insert({
+    await adminClient.from("case_activity_log").insert({
       case_no: newCase.case_no,
       author_name: profile.display_name,
       author_role: "client",

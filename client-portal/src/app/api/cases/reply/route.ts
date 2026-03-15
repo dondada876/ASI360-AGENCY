@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { getServiceClient } from "@/lib/vault"
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify the client owns this case (RLS will filter, but be explicit)
+    // Verify the client owns this case (RLS-filtered SELECT — only their cases visible)
     const { data: caseData } = await supabase
       .from("vtiger_cases_cache")
       .select("id, case_no, status")
@@ -54,8 +55,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Use service client for writes (bypasses RLS — API route validates permissions above)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const adminClient = getServiceClient() as any
+
     // Insert activity log entry
-    const { error: insertErr } = await supabase
+    const { error: insertErr } = await adminClient
       .from("case_activity_log")
       .insert({
         case_no,
@@ -74,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update the case modified_at timestamp
-    await supabase
+    await adminClient
       .from("vtiger_cases_cache")
       .update({ modified_at: new Date().toISOString() })
       .eq("case_no", case_no)
