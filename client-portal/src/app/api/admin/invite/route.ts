@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getServiceClient } from "@/lib/vault"
+import { createNotification } from "@/lib/notifications"
+import { sendNotification } from "@/lib/gateway"
 
 function generateTempPassword(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"
@@ -114,6 +116,43 @@ export async function POST(request: NextRequest) {
         // Don't fail the entire invite — user is created, access can be fixed
       }
     }
+
+    // Create welcome notification (appears in-app on first login)
+    if (profile) {
+      createNotification({
+        client_id: profile.id,
+        type: "welcome",
+        title: "Welcome to ASI 360 Portal",
+        message: `Hi ${display_name}, your portal account is ready. You can view project status, create support cases, and communicate with the ASI 360 team.`,
+        action_url: "/portal",
+        priority: "normal",
+      })
+    }
+
+    // Send invite email via Gateway (non-blocking)
+    const portalUrl = process.env.NEXT_PUBLIC_PORTAL_URL || "https://portal.asi360.co"
+    sendNotification({
+      channel: "email",
+      recipient: email,
+      subject: "Welcome to ASI 360 Client Portal",
+      message: [
+        `Hi ${display_name},`,
+        "",
+        "Your ASI 360 Client Portal account has been created.",
+        "",
+        `Portal URL: ${portalUrl}/login`,
+        `Email: ${email}`,
+        `Temporary Password: ${tempPassword}`,
+        "",
+        "Please log in and change your password at your earliest convenience.",
+        "",
+        `${projects?.length || 0} project(s) have been assigned to your account.`,
+        "",
+        "— ASI 360 Team",
+      ].join("\n"),
+    }).catch((err) => {
+      console.warn("[invite] Email delivery failed (non-blocking):", err)
+    })
 
     return NextResponse.json(
       {
