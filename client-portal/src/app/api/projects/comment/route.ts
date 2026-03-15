@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { notifyProjectMembers } from "@/lib/notifications"
 
 export async function POST(request: NextRequest) {
   try {
@@ -79,6 +80,15 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    // Notify other project members (non-blocking)
+    notifyProjectMembers(project_id, profile.id, {
+      type: "comment_reply",
+      title: "New comment on project",
+      message: `${profile.display_name} commented on the project`,
+      action_url: `/portal/projects/${project_id}`,
+      priority: "normal",
+    })
 
     return NextResponse.json(
       { id: comment.id, success: true },

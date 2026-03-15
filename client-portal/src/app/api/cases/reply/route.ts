@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getServiceClient } from "@/lib/vault"
+import { notifyAdmins } from "@/lib/notifications"
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,6 +84,16 @@ export async function POST(request: NextRequest) {
       .from("vtiger_cases_cache")
       .update({ modified_at: new Date().toISOString() })
       .eq("case_no", case_no)
+
+    // Notify admins of new reply (non-blocking)
+    notifyAdmins({
+      case_no,
+      type: "case_update",
+      title: `Reply on ${case_no}`,
+      message: `${profile.display_name} replied on case ${case_no}`,
+      action_url: `/admin/cases`,
+      priority: "normal",
+    })
 
     return NextResponse.json({ success: true }, { status: 201 })
   } catch (err: unknown) {

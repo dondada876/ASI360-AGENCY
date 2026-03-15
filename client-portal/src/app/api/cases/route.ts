@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getServiceClient } from "@/lib/vault"
 import { createCase } from "@/lib/gateway"
+import { notifyAdmins } from "@/lib/notifications"
 
 export async function POST(request: NextRequest) {
   try {
@@ -104,6 +105,17 @@ export async function POST(request: NextRequest) {
       action: "comment",
       content: "Case created",
       is_internal: false,
+    })
+
+    // Notify admins of new case (non-blocking)
+    notifyAdmins({
+      case_no: newCase.case_no,
+      project_id: project_id || null,
+      type: "case_update",
+      title: `New case: ${title}`,
+      message: `${profile.display_name} created case ${newCase.case_no} — ${priority || "Normal"} priority`,
+      action_url: `/admin/cases`,
+      priority: priority === "Urgent" || priority === "High" ? "high" : "normal",
     })
 
     return NextResponse.json(
