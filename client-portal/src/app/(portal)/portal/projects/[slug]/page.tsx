@@ -194,18 +194,18 @@ export default async function ProjectDetailPage({
           {[1, 2, 3, 4, 5].map((p) => (
             <div key={p} className="flex-1">
               <div
-                className="h-2 rounded-full"
-                style={{
-                  backgroundColor:
-                    p <= phase ? PHASE_COLORS[p] : "rgb(30 41 59)",
-                  opacity: p <= phase ? 1 : 0.3,
-                }}
+                className={`h-2 rounded-full ${p > phase ? "bg-gray-200 dark:bg-slate-700 opacity-50" : ""}`}
+                style={
+                  p <= phase
+                    ? { backgroundColor: PHASE_COLORS[p] }
+                    : undefined
+                }
               />
               <p
-                className="text-[10px] mt-1 text-center"
-                style={{
-                  color: p <= phase ? PHASE_COLORS[p] : "rgb(100 116 139)",
-                }}
+                className={`text-[10px] mt-1 text-center ${p > phase ? "text-gray-400 dark:text-slate-500" : ""}`}
+                style={
+                  p <= phase ? { color: PHASE_COLORS[p] } : undefined
+                }
               >
                 {PHASE_LABELS[p]}
               </p>

@@ -176,8 +176,8 @@ function CaseRow({
         )}
       </div>
 
-      {/* Priority */}
-      <span className={`text-[10px] font-medium shrink-0 ${priorityColor}`}>
+      {/* Priority — hidden on mobile */}
+      <span className={`text-[10px] font-medium shrink-0 hidden sm:inline ${priorityColor}`}>
         {caseData.priority}
       </span>
 
@@ -188,8 +188,8 @@ function CaseRow({
         {caseData.status}
       </span>
 
-      {/* Date */}
-      <span className="text-[10px] text-gray-400 dark:text-slate-600 shrink-0 w-20 text-right">
+      {/* Date — hidden on mobile */}
+      <span className="text-[10px] text-gray-400 dark:text-slate-600 shrink-0 w-20 text-right hidden sm:inline">
         {new Date(caseData.created_at).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",

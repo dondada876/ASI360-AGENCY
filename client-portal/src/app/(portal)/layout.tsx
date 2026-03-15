@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import PortalSidebar from "@/components/ui/portal-sidebar"
+import MobileNav from "@/components/ui/mobile-nav"
 
 export default async function PortalLayout({
   children,
@@ -30,8 +31,13 @@ export default async function PortalLayout({
 
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-slate-950">
-      <PortalSidebar profile={profile} />
-      <main className="flex-1 overflow-y-auto">
+      {/* Desktop sidebar — hidden on mobile */}
+      <div className="hidden lg:block">
+        <PortalSidebar profile={profile} />
+      </div>
+      {/* Mobile nav — visible on mobile only */}
+      <MobileNav profile={profile} />
+      <main className="flex-1 overflow-y-auto pt-14 lg:pt-0">
         {children}
       </main>
     </div>

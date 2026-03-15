@@ -125,7 +125,7 @@ export default async function CaseDetailPage({
           <h2 className="text-xs font-medium uppercase tracking-wider text-green-500 mb-3">
             Resolution
           </h2>
-          <p className="text-sm text-green-300 whitespace-pre-wrap leading-relaxed">
+          <p className="text-sm text-green-700 dark:text-green-300 whitespace-pre-wrap leading-relaxed">
             {caseData.resolution}
           </p>
           {caseData.resolved_at && (
