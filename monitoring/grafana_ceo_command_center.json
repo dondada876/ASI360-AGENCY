@@ -1,0 +1,371 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    { "title": "Sentinel Governance", "url": "/d/sentinel-governance-v1", "type": "link", "icon": "doc" }
+  ],
+  "panels": [
+    {
+      "id": 100,
+      "title": "CEO COMMAND CENTER",
+      "type": "text",
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "mode": "html",
+        "content": "<div style='text-align:center;padding:8px 0'><span style='font-size:22px;font-weight:bold;color:#0B5394'>ASI 360</span> <span style='font-size:18px;color:#666'>| Multi-Org Operational Intelligence | EOS-Aligned</span></div>"
+      }
+    },
+
+    {"id":199,"title":"── PORTFOLIO SNAPSHOT ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":2},"collapsed":false},
+
+    {
+      "id": 1,
+      "title": "Active Projects",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "sum(ceo_portfolio_projects_total{status=~'in_progress|in progress'})", "legendFormat": "Active" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"green","value":null},{"color":"orange","value":10}] } } },
+      "options": { "graphMode": "area", "textMode": "value_and_name" }
+    },
+    {
+      "id": 2,
+      "title": "Open Tasks",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "sum(ceo_portfolio_tasks_total{status='open'})", "legendFormat": "Open" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"blue","value":null},{"color":"orange","value":50},{"color":"red","value":100}] } } },
+      "options": { "graphMode": "area", "textMode": "value_and_name" }
+    },
+    {
+      "id": 3,
+      "title": "Completed Tasks",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "sum(ceo_portfolio_tasks_total{status='completed'})", "legendFormat": "Done" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"green","value":null}] } } },
+      "options": { "graphMode": "area", "textMode": "value_and_name" }
+    },
+    {
+      "id": 4,
+      "title": "Off-Track KPIs",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_scorecard_off_track_total", "legendFormat": "Off Track" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"green","value":null},{"color":"orange","value":1},{"color":"red","value":3}] } } },
+      "options": { "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "id": 5,
+      "title": "Decisions Needed",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_handoff_decisions_needed_total", "legendFormat": "Awaiting CEO" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":1},{"color":"red","value":5}] } } },
+      "options": { "graphMode": "none", "textMode": "value_and_name", "colorMode": "background" }
+    },
+    {
+      "id": 6,
+      "title": "Max Risk Score",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_risk_score_max", "legendFormat": "Risk" }],
+      "fieldConfig": { "defaults": { "min": 0, "max": 12, "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":4},{"color":"orange","value":8},{"color":"red","value":10}] } } }
+    },
+
+    {"id":200,"title":"── FINANCIAL PIPELINE ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":7},"collapsed":false},
+
+    {
+      "id": 10,
+      "title": "Pipeline by Status ($)",
+      "type": "piechart",
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_financial_pipeline_value", "legendFormat": "{{ status }}" }],
+      "options": { "legend": { "displayMode": "table", "placement": "right", "values": ["value","percent"] } }
+    },
+    {
+      "id": 11,
+      "title": "Overdue Invoices",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 8, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "ceo_financial_overdue_count", "legendFormat": "Count" },
+        { "expr": "ceo_financial_overdue_value", "legendFormat": "Value ($)" }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {"matcher":{"id":"byName","options":"Value ($)"},"properties":[{"id":"unit","value":"currencyUSD"}]}
+        ],
+        "defaults": { "thresholds": { "steps": [{"color":"green","value":null},{"color":"red","value":1}] } }
+      },
+      "options": { "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "id": 12,
+      "title": "Avg Days Sales Outstanding",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 11 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_financial_dso_avg", "legendFormat": "DSO" }],
+      "fieldConfig": { "defaults": { "unit": "d", "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":20},{"color":"orange","value":30},{"color":"red","value":45}] } } },
+      "options": { "graphMode": "area", "textMode": "value_and_name" }
+    },
+    {
+      "id": 13,
+      "title": "Avg Days to Close",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 4, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_financial_days_to_close_avg", "legendFormat": "Days to Close" }],
+      "fieldConfig": { "defaults": { "unit": "d", "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":14},{"color":"red","value":30}] } } },
+      "options": { "graphMode": "area", "textMode": "value_and_name" }
+    },
+    {
+      "id": 14,
+      "title": "Financial Velocity Trend",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "ceo_financial_dso_avg", "legendFormat": "DSO" },
+        { "expr": "ceo_financial_days_to_close_avg", "legendFormat": "Days to Close" },
+        { "expr": "ceo_financial_overdue_count", "legendFormat": "Overdue Count" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } } }
+    },
+
+    {"id":201,"title":"── WORK DISTRIBUTION — INTENT & IMPACT ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":15},"collapsed":false},
+
+    {
+      "id": 20,
+      "title": "Tasks by Strategic Intent",
+      "type": "piechart",
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_intent_tasks_total", "legendFormat": "{{ intent }}" }],
+      "options": { "legend": { "displayMode": "table", "placement": "right", "values": ["value","percent"] } }
+    },
+    {
+      "id": 21,
+      "title": "24h Activity by Impact Level",
+      "type": "bargauge",
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_activity_24h_by_impact", "legendFormat": "{{ impact }}" }],
+      "fieldConfig": {
+        "overrides": [
+          {"matcher":{"id":"byName","options":"critical"},"properties":[{"id":"color","value":{"fixedColor":"red","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"high"},"properties":[{"id":"color","value":{"fixedColor":"orange","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"medium"},"properties":[{"id":"color","value":{"fixedColor":"yellow","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"low"},"properties":[{"id":"color","value":{"fixedColor":"blue","mode":"fixed"}}]}
+        ]
+      },
+      "options": { "orientation": "horizontal", "displayMode": "gradient" }
+    },
+    {
+      "id": 22,
+      "title": "24h Activity by Entity Type",
+      "type": "bargauge",
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_activity_24h_by_entity", "legendFormat": "{{ entity_type }}" }],
+      "options": { "orientation": "horizontal", "displayMode": "gradient" }
+    },
+
+    {"id":202,"title":"── EOS SCORECARD & ROCKS ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":23},"collapsed":false},
+
+    {
+      "id": 30,
+      "title": "EOS Scorecard — KPIs vs Targets",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "ceo_scorecard_value", "format": "table", "instant": true },
+        { "expr": "ceo_scorecard_target", "format": "table", "instant": true },
+        { "expr": "ceo_scorecard_on_track", "format": "table", "instant": true }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {"matcher":{"id":"byName","options":"on_track"},"properties":[
+            {"id":"custom.cellOptions","value":{"mode":"gradient","type":"color-background"}},
+            {"id":"thresholds","value":{"steps":[{"color":"red","value":null},{"color":"green","value":1}]}},
+            {"id":"mappings","value":[{"type":"value","options":{"0":{"text":"OFF TRACK"},"1":{"text":"ON TRACK"}}}]}
+          ]}
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "title": "Quarterly Rocks",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "sum(ceo_rocks_total{status='on_track'})", "legendFormat": "On Track" },
+        { "expr": "sum(ceo_rocks_total{status='off_track'})", "legendFormat": "Off Track" },
+        { "expr": "sum(ceo_rocks_total{status='completed'})", "legendFormat": "Done" }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {"matcher":{"id":"byName","options":"On Track"},"properties":[{"id":"color","value":{"fixedColor":"green","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"Off Track"},"properties":[{"id":"color","value":{"fixedColor":"red","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"Done"},"properties":[{"id":"color","value":{"fixedColor":"blue","mode":"fixed"}}]}
+        ]
+      },
+      "options": { "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "id": 32,
+      "title": "Avg Rock Completion",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 28 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_rocks_completion_avg", "legendFormat": "Rocks" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "steps": [{"color":"red","value":null},{"color":"orange","value":40},{"color":"yellow","value":70},{"color":"green","value":90}] } } }
+    },
+
+    {"id":203,"title":"── TEAM & UTILIZATION ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":32},"collapsed":false},
+
+    {
+      "id": 40,
+      "title": "Team Capacity vs Allocated (Weekly)",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 33 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "ceo_team_capacity_hours_weekly", "legendFormat": "Capacity (hrs)" },
+        { "expr": "ceo_team_allocated_hours_weekly", "legendFormat": "Allocated (hrs)" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "h" } },
+      "options": { "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "id": 41,
+      "title": "Team by Organization",
+      "type": "piechart",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 33 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_team_total", "legendFormat": "{{ org }}" }],
+      "options": { "legend": { "displayMode": "table", "placement": "right" } }
+    },
+    {
+      "id": 42,
+      "title": "Billable Utilization by Member (%)",
+      "type": "bargauge",
+      "gridPos": { "h": 5, "w": 12, "x": 12, "y": 33 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_team_utilization_pct", "legendFormat": "{{ member }}" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "steps": [{"color":"red","value":null},{"color":"orange","value":40},{"color":"yellow","value":60},{"color":"green","value":70}] } } },
+      "options": { "orientation": "horizontal", "displayMode": "gradient" }
+    },
+
+    {"id":204,"title":"── RISK REGISTER & HANDOFFS ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":38},"collapsed":false},
+
+    {
+      "id": 50,
+      "title": "Risk Heatmap",
+      "description": "Open risks by Likelihood × Impact",
+      "type": "table",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 39 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_risk_total", "format": "table", "instant": true }],
+      "fieldConfig": {
+        "overrides": [
+          {"matcher":{"id":"byName","options":"Value"},"properties":[
+            {"id":"custom.cellOptions","value":{"mode":"gradient","type":"color-background"}},
+            {"id":"thresholds","value":{"steps":[{"color":"green","value":null},{"color":"yellow","value":1},{"color":"orange","value":3},{"color":"red","value":5}]}}
+          ]}
+        ]
+      }
+    },
+    {
+      "id": 51,
+      "title": "Today's Handoff Status",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 6, "x": 12, "y": 39 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "ceo_handoff_submitted_today", "legendFormat": "{{ author }}" }
+      ],
+      "fieldConfig": { "defaults": { "mappings": [{"type":"value","options":{"1":{"text":"SUBMITTED","color":"green"},"0":{"text":"MISSING","color":"red"}}}] } },
+      "options": { "graphMode": "none", "textMode": "value_and_name", "colorMode": "background" }
+    },
+    {
+      "id": 52,
+      "title": "Blocked Items & Decisions",
+      "type": "stat",
+      "gridPos": { "h": 3, "w": 6, "x": 18, "y": 39 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "ceo_handoff_blocked_items_total", "legendFormat": "Blocked" },
+        { "expr": "ceo_handoff_decisions_needed_total", "legendFormat": "Decisions Needed" }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {"matcher":{"id":"byName","options":"Blocked"},"properties":[{"id":"color","value":{"fixedColor":"orange","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"Decisions Needed"},"properties":[{"id":"color","value":{"fixedColor":"red","mode":"fixed"}}]}
+        ]
+      },
+      "options": { "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "id": 53,
+      "title": "Activity Stream — 24h Trend",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 42 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "sum by (action) (ceo_activity_24h_total)", "legendFormat": "{{ action }}" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 15, "stacking": { "mode": "normal" } } } }
+    },
+
+    {"id":205,"title":"── PROJECT COMPLETION BY ORG ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":48},"collapsed":false},
+
+    {
+      "id": 60,
+      "title": "Completion % by Organization",
+      "type": "bargauge",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 49 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "ceo_org_completion_pct", "legendFormat": "{{ org }}" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "steps": [{"color":"red","value":null},{"color":"orange","value":30},{"color":"yellow","value":60},{"color":"green","value":80}] } } },
+      "options": { "orientation": "horizontal", "displayMode": "gradient", "showUnfilled": true }
+    },
+    {
+      "id": 61,
+      "title": "Projects by Status & Org",
+      "type": "barchart",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 49 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "ceo_org_projects{status=~'in_progress|in progress'}", "legendFormat": "{{ org }} Active" },
+        { "expr": "ceo_org_projects{status='initiated'}", "legendFormat": "{{ org }} Initiated" },
+        { "expr": "ceo_org_projects{status='completed'}", "legendFormat": "{{ org }} Completed" }
+      ],
+      "options": { "orientation": "horizontal", "stacking": "normal" }
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "tags": ["ceo", "command-center", "eos", "multi-org", "asi360"],
+  "templating": {
+    "list": [
+      { "name": "DS_PROMETHEUS", "type": "datasource", "query": "prometheus", "current": { "text": "Prometheus", "value": "prometheus" } }
+    ]
+  },
+  "time": { "from": "now-24h", "to": "now" },
+  "title": "CEO Command Center — Multi-Org Intelligence",
+  "uid": "ceo-command-center-v1",
+  "version": 1
+}
