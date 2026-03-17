@@ -75,7 +75,7 @@ log = logging.getLogger("cb-main")
 
 # ── Configuration ─────────────────────────────────────────────────────
 HEALTH_INTERVAL_S = 30          # How often to check all services
-PORT = 8310
+PORT = int(os.environ.get("CB_PORT", 8310))
 PERSIST_INTERVAL_S = 300        # Save state every 5 min
 LATENCY_TIMEOUT_S = 10          # HTTP health check timeout
 DEGRADED_LATENCY_MS = 5000.0   # Latency above this = degraded
