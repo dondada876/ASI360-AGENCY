@@ -25,6 +25,7 @@ const ADMIN_ITEMS = [
   { href: "/admin/clients", label: "Manage Clients", icon: UsersIcon },
   { href: "/admin/invite", label: "Invite Client", icon: InviteIcon },
   { href: "/admin/cases", label: "All Cases", icon: CasesIcon },
+  { href: "/admin/vtiger-crm-optimization-HUD", label: "Project HUD", icon: GanttIcon },
   { href: "/admin/notifications", label: "Notifications", icon: BellIcon },
   { href: "/admin/audit", label: "Audit Log", icon: AuditIcon },
 ]
@@ -245,6 +246,16 @@ function LogoutIcon({ className }: { className?: string }) {
       <path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3" />
       <path d="M10 11l3-3-3-3" />
       <line x1="13" y1="8" x2="6" y2="8" />
+    </svg>
+  )
+}
+
+function GanttIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1.5">
+      <rect x="1" y="2" width="8" height="3" rx="0.5" />
+      <rect x="4" y="7" width="9" height="3" rx="0.5" />
+      <rect x="2" y="12" width="7" height="3" rx="0.5" />
     </svg>
   )
 }
