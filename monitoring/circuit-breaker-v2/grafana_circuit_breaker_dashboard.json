@@ -1,0 +1,560 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    { "title": "CEO Command Center", "url": "/d/ceo-command-center-v1", "type": "link", "icon": "dashboard" },
+    { "title": "Sentinel Governance", "url": "/d/sentinel-governance-v1", "type": "link", "icon": "doc" }
+  ],
+  "panels": [
+    {
+      "id": 100,
+      "title": "MCP CIRCUIT BREAKER — SERVICE FLEET",
+      "type": "text",
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "mode": "html",
+        "content": "<div style='text-align:center;padding:8px 0'><span style='font-size:22px;font-weight:bold;color:#58a6ff'>⚡ Circuit Breaker v2</span> <span style='font-size:16px;color:#8b949e'>| Service Lifecycle Manager | Run Modes • Auto-Heal • Hibernate • Wake-on-Call</span></div>"
+      }
+    },
+
+    {"id":199,"title":"── FLEET STATUS ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":2},"collapsed":false},
+
+    {
+      "id": 1,
+      "title": "Total Services",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "count(cb_service_state)", "legendFormat": "Total" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"blue","value":null}] } } },
+      "options": { "graphMode": "none", "textMode": "value_and_name", "colorMode": "background" }
+    },
+    {
+      "id": 2,
+      "title": "Healthy",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb_services_healthy", "legendFormat": "Healthy" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"green","value":null}] } } },
+      "options": { "graphMode": "none", "textMode": "value_and_name", "colorMode": "background" }
+    },
+    {
+      "id": 3,
+      "title": "Degraded",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb_services_degraded", "legendFormat": "Degraded" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"yellow","value":null},{"color":"orange","value":1}] } } },
+      "options": { "graphMode": "none", "textMode": "value_and_name", "colorMode": "background" }
+    },
+    {
+      "id": 4,
+      "title": "Down",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb_services_down", "legendFormat": "Down" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"green","value":null},{"color":"red","value":1}] } } },
+      "options": { "graphMode": "none", "textMode": "value_and_name", "colorMode": "background" }
+    },
+    {
+      "id": 5,
+      "title": "Hibernating",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 12, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb_services_hibernating", "legendFormat": "Sleeping" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"#6e7681","value":null}] } } },
+      "options": { "graphMode": "none", "textMode": "value_and_name", "colorMode": "background" }
+    },
+    {
+      "id": 6,
+      "title": "Restarts (24h)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 15, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "sum(increase(cb_restart_total[24h]))", "legendFormat": "Restarts" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":3},{"color":"red","value":10}] } } },
+      "options": { "graphMode": "area", "textMode": "value_and_name" }
+    },
+    {
+      "id": 7,
+      "title": "Approvals Pending",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 18, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "sum(cb_restart_approval_pending)", "legendFormat": "Awaiting CEO" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"green","value":null},{"color":"red","value":1}] } } },
+      "options": { "graphMode": "none", "textMode": "value_and_name", "colorMode": "background" }
+    },
+    {
+      "id": 8,
+      "title": "🏖️ Vacation",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 21, "y": 3 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb_vacation_mode_active", "legendFormat": "Vacation" }],
+      "fieldConfig": { "defaults": { "mappings": [{"type":"value","options":{"0":{"text":"OFF","color":"green"},"1":{"text":"ON 🏖️","color":"#f0883e"}}}] } },
+      "options": { "graphMode": "none", "textMode": "value_and_name", "colorMode": "background" }
+    },
+
+    {"id":200,"title":"── SERVICE GRID ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":7},"collapsed":false},
+
+    {
+      "id": 10,
+      "title": "All Services — State × Mode × Last Activity",
+      "type": "table",
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "cb_service_state", "format": "table", "instant": true, "refId": "state" },
+        { "expr": "cb_service_uptime_seconds", "format": "table", "instant": true, "refId": "uptime" },
+        { "expr": "cb_service_latency_ms", "format": "table", "instant": true, "refId": "latency" },
+        { "expr": "cb_service_memory_bytes / 1024 / 1024", "format": "table", "instant": true, "refId": "memory" },
+        { "expr": "cb_idle_seconds", "format": "table", "instant": true, "refId": "idle" },
+        { "expr": "cb_breaker_state", "format": "table", "instant": true, "refId": "breaker" },
+        { "expr": "cb_restart_attempt", "format": "table", "instant": true, "refId": "restart_attempt" }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "state"},
+            "properties": [
+              {"id": "custom.cellOptions", "value": {"mode": "gradient", "type": "color-background"}},
+              {"id": "mappings", "value": [
+                {"type":"value","options":{"0":{"text":"⬇ DOWN","color":"red"}}},
+                {"type":"value","options":{"1":{"text":"✅ UP","color":"green"}}},
+                {"type":"value","options":{"2":{"text":"⚠️ DEGRADED","color":"yellow"}}},
+                {"type":"value","options":{"3":{"text":"💤 HIBERNATING","color":"#6e7681"}}},
+                {"type":"value","options":{"4":{"text":"🔧 MAINTENANCE","color":"#a371f7"}}},
+                {"type":"value","options":{"5":{"text":"🚀 STARTING","color":"#58a6ff"}}}
+              ]}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "breaker"},
+            "properties": [
+              {"id": "mappings", "value": [
+                {"type":"value","options":{"0":{"text":"CLOSED"}}},
+                {"type":"value","options":{"1":{"text":"🔴 OPEN"}}},
+                {"type":"value","options":{"2":{"text":"🟡 HALF_OPEN"}}},
+                {"type":"value","options":{"3":{"text":"⛔ FORCED"}}}
+              ]}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "uptime"},
+            "properties": [{"id": "unit", "value": "dtdurations"}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "idle"},
+            "properties": [{"id": "unit", "value": "dtdurations"}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "memory"},
+            "properties": [{"id": "unit", "value": "decmbytes"}, {"id": "decimals", "value": 1}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "latency"},
+            "properties": [{"id": "unit", "value": "ms"}]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [{"displayName": "state", "desc": false}],
+        "footer": {"show": true, "reducer": ["count"]}
+      }
+    },
+
+    {"id":201,"title":"── CIRCUIT BREAKER TIMELINE ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":20},"collapsed":false},
+
+    {
+      "id": 20,
+      "title": "CB State Over Time (All Services)",
+      "type": "state-timeline",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb_breaker_state", "legendFormat": "{{ service }}" }],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 80 },
+          "mappings": [
+            {"type":"value","options":{"0":{"text":"CLOSED","color":"green"}}},
+            {"type":"value","options":{"1":{"text":"OPEN","color":"red"}}},
+            {"type":"value","options":{"2":{"text":"HALF_OPEN","color":"yellow"}}},
+            {"type":"value","options":{"3":{"text":"FORCED","color":"#a371f7"}}}
+          ]
+        }
+      }
+    },
+
+    {"id":202,"title":"── RUN MODE DISTRIBUTION ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":29},"collapsed":false},
+
+    {
+      "id": 30,
+      "title": "Services by Run Mode",
+      "type": "piechart",
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 30 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "sum by (mode) (cb_services_total)", "legendFormat": "{{ mode }}" }],
+      "fieldConfig": {
+        "overrides": [
+          {"matcher":{"id":"byName","options":"always_on"},"properties":[{"id":"color","value":{"fixedColor":"green","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"on_demand"},"properties":[{"id":"color","value":{"fixedColor":"#58a6ff","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"manual"},"properties":[{"id":"color","value":{"fixedColor":"#6e7681","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"maintenance"},"properties":[{"id":"color","value":{"fixedColor":"#a371f7","mode":"fixed"}}]}
+        ]
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "values": ["value","percent"] } }
+    },
+    {
+      "id": 31,
+      "title": "Services by Group",
+      "type": "piechart",
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 30 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "sum by (group) (cb_service_state > -1)", "legendFormat": "{{ group }}" }],
+      "options": { "legend": { "displayMode": "table", "placement": "right", "values": ["value","percent"] } }
+    },
+    {
+      "id": 32,
+      "title": "Total Memory Usage (Running Services)",
+      "type": "gauge",
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 30 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "sum(cb_service_memory_bytes) / 1024 / 1024", "legendFormat": "Total MB" }],
+      "fieldConfig": { "defaults": { "unit": "decmbytes", "min": 0, "max": 4096, "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":2048},{"color":"orange","value":3072},{"color":"red","value":3584}] } } }
+    },
+
+    {"id":203,"title":"── IDLE & WAKE TRACKING ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":37},"collapsed":false},
+
+    {
+      "id": 40,
+      "title": "Idle Time by ON_DEMAND Service",
+      "type": "bargauge",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 38 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb_idle_seconds{mode=\"on_demand\"} > 0", "legendFormat": "{{ service }}" }],
+      "fieldConfig": { "defaults": { "unit": "dtdurations", "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":300},{"color":"orange","value":600},{"color":"red","value":900}] } } },
+      "options": { "orientation": "horizontal", "displayMode": "gradient" }
+    },
+    {
+      "id": 41,
+      "title": "Wake Latency (Time to Healthy)",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 38 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, rate(cb_wake_latency_seconds_bucket[1h]))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, rate(cb_wake_latency_seconds_bucket[1h]))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, rate(cb_wake_latency_seconds_bucket[1h]))", "legendFormat": "p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "fillOpacity": 10 } } }
+    },
+
+    {"id":204,"title":"── RESTART & RECOVERY ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":45},"collapsed":false},
+
+    {
+      "id": 50,
+      "title": "Restart Attempts (Current)",
+      "type": "bargauge",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 46 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb_restart_attempt > 0", "legendFormat": "{{ service }}" }],
+      "fieldConfig": { "defaults": { "min": 0, "max": 5, "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":1},{"color":"orange","value":3},{"color":"red","value":5}] } } },
+      "options": { "orientation": "horizontal", "displayMode": "gradient" }
+    },
+    {
+      "id": 51,
+      "title": "Restarts Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 46 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "increase(cb_restart_total[1h])", "legendFormat": "{{ service }} ({{ trigger }})" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 20, "stacking": { "mode": "normal" } } } }
+    },
+    {
+      "id": 52,
+      "title": "Escalations & Approvals",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 46 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "sum(cb_restart_escalated)", "legendFormat": "Escalated" },
+        { "expr": "sum(cb_restart_approval_pending)", "legendFormat": "Awaiting Approval" },
+        { "expr": "sum(increase(cb_event_total{event_type=\"approve\"}[24h]))", "legendFormat": "Approved (24h)" },
+        { "expr": "sum(increase(cb_event_total{event_type=\"deny\"}[24h]))", "legendFormat": "Denied (24h)" }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {"matcher":{"id":"byName","options":"Escalated"},"properties":[{"id":"color","value":{"fixedColor":"orange","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"Awaiting Approval"},"properties":[{"id":"color","value":{"fixedColor":"red","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"Approved (24h)"},"properties":[{"id":"color","value":{"fixedColor":"green","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"Denied (24h)"},"properties":[{"id":"color","value":{"fixedColor":"#6e7681","mode":"fixed"}}]}
+        ]
+      },
+      "options": { "graphMode": "none", "textMode": "value_and_name" }
+    },
+
+    {"id":205,"title":"── DEPENDENCY MAP ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":52},"collapsed":false},
+
+    {
+      "id": 60,
+      "title": "Cascade Risk — If This Goes Down…",
+      "type": "bargauge",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 53 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "count by (blocked_by) (cb_dependency_blocked == 1)", "legendFormat": "{{ blocked_by }}" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"yellow","value":null},{"color":"orange","value":3},{"color":"red","value":8}] } } },
+      "options": { "orientation": "horizontal", "displayMode": "gradient" }
+    },
+    {
+      "id": 61,
+      "title": "Blocked Services",
+      "type": "table",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 53 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb_dependency_blocked == 1", "format": "table", "instant": true }],
+      "fieldConfig": {
+        "overrides": [
+          {"matcher":{"id":"byName","options":"Value"},"properties":[
+            {"id":"custom.cellOptions","value":{"mode":"gradient","type":"color-background"}},
+            {"id":"mappings","value":[{"type":"value","options":{"1":{"text":"BLOCKED","color":"orange"}}}]}
+          ]}
+        ]
+      }
+    },
+
+    {"id":206,"title":"── EVENT LOG ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":59},"collapsed":false},
+
+    {
+      "id": 70,
+      "title": "Lifecycle Events (24h)",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 60 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "increase(cb_event_total{event_type=\"restart\"}[1h])", "legendFormat": "Restarts" },
+        { "expr": "increase(cb_event_total{event_type=\"hibernate\"}[1h])", "legendFormat": "Hibernations" },
+        { "expr": "increase(cb_event_total{event_type=\"wake\"}[1h])", "legendFormat": "Wakes" },
+        { "expr": "increase(cb_event_total{event_type=\"trip\"}[1h])", "legendFormat": "CB Trips" },
+        { "expr": "increase(cb_event_total{event_type=\"recover\"}[1h])", "legendFormat": "Recoveries" }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 30, "stacking": { "mode": "normal" } } },
+        "overrides": [
+          {"matcher":{"id":"byName","options":"Restarts"},"properties":[{"id":"color","value":{"fixedColor":"orange","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"Hibernations"},"properties":[{"id":"color","value":{"fixedColor":"#6e7681","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"Wakes"},"properties":[{"id":"color","value":{"fixedColor":"#58a6ff","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"CB Trips"},"properties":[{"id":"color","value":{"fixedColor":"red","mode":"fixed"}}]},
+          {"matcher":{"id":"byName","options":"Recoveries"},"properties":[{"id":"color","value":{"fixedColor":"green","mode":"fixed"}}]}
+        ]
+      }
+    },
+    {
+      "id": 71,
+      "title": "Hibernations & Wakes (ON_DEMAND Activity)",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 60 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "sum by (service) (increase(cb_hibernate_total[1h]))", "legendFormat": "💤 {{ service }}" },
+        { "expr": "sum by (service) (increase(cb_wake_total[1h]))", "legendFormat": "☀️ {{ service }}" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 15 } } }
+    },
+
+    {"id":207,"title":"── SLO & ERROR BUDGETS ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":67},"collapsed":false},
+
+    {
+      "id": 80,
+      "title": "Service Availability (30d Rolling)",
+      "description": "Monthly availability per service. Green ≥99.5%, Yellow ≥99%, Red <99%.",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 68 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb:service_availability:ratio_30d * 100", "legendFormat": "{{ service }}", "instant": true }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 90, "max": 100, "decimals": 2,
+          "thresholds": { "steps": [{"color":"red","value":null},{"color":"yellow","value":99.0},{"color":"green","value":99.5}] }
+        }
+      },
+      "options": { "orientation": "horizontal", "displayMode": "gradient", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 81,
+      "title": "Error Budget Consumed (30d)",
+      "description": "0% = no budget used, 100% = fully consumed, >100% = SLO breached. Green <50%, Yellow <80%, Red ≥80%.",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 68 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "cb:error_budget_consumed:critical_30d * 100", "legendFormat": "{{ service }} [Critical]", "instant": true },
+        { "expr": "cb:error_budget_consumed:business_30d * 100", "legendFormat": "{{ service }} [Business]", "instant": true }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0, "max": 200, "decimals": 1,
+          "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":50},{"color":"orange","value":80},{"color":"red","value":100}] }
+        }
+      },
+      "options": { "orientation": "horizontal", "displayMode": "gradient" }
+    },
+    {
+      "id": 82,
+      "title": "Burn Rate (1h Short Window)",
+      "description": "Burn rate >1.0 = consuming error budget faster than allowed. >14.4 = will exhaust 30d budget in 1 hour.",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 76 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "cb:burn_rate:critical_1h", "legendFormat": "{{ service }} [Crit 1h]" },
+        { "expr": "cb:burn_rate:business_1h", "legendFormat": "{{ service }} [Biz 1h]" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "thresholdsStyle": { "mode": "line" } },
+          "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":1},{"color":"red","value":14.4}] }
+        }
+      }
+    },
+    {
+      "id": 83,
+      "title": "Availability Trend (24h Window)",
+      "description": "Rolling 24h availability per service. SLO targets shown as thresholds.",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 76 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "cb:service_availability:ratio_24h{mode=\"always_on\"} * 100", "legendFormat": "{{ service }}" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 90, "max": 100,
+          "custom": { "fillOpacity": 10, "thresholdsStyle": { "mode": "dashed" } },
+          "thresholds": { "steps": [{"color":"red","value":null},{"color":"yellow","value":99.0},{"color":"green","value":99.5}] }
+        }
+      }
+    },
+
+    {"id":208,"title":"── FLEET HEALTH TRENDS ──","type":"row","gridPos":{"h":1,"w":24,"x":0,"y":83},"collapsed":true,"panels":[
+    {
+      "id": 90,
+      "title": "Fleet Health % Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 84 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "cb:fleet:health_pct", "legendFormat": "Fleet Health %" },
+        { "expr": "cb:fleet:always_on_health_pct", "legendFormat": "Always-On %" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "fillOpacity": 20 } } }
+    },
+    {
+      "id": 91,
+      "title": "Memory & Latency Trends",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 84 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "cb:fleet:total_memory_mb", "legendFormat": "Total Memory (MB)" },
+        { "expr": "cb:fleet:avg_latency_ms", "legendFormat": "Avg Latency (ms)" },
+        { "expr": "cb:fleet:max_latency_ms", "legendFormat": "Max Latency (ms)" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10 } } }
+    },
+    {
+      "id": 92,
+      "title": "RAM Saved by Hibernation",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 91 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb:fleet:hibernated_ram_saved_mb", "legendFormat": "Saved" }],
+      "fieldConfig": { "defaults": { "unit": "decmbytes", "thresholds": { "steps": [{"color":"blue","value":null}] } } },
+      "options": { "graphMode": "area", "textMode": "value_and_name", "colorMode": "background" }
+    },
+    {
+      "id": 93,
+      "title": "Near Hibernate",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 91 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [{ "expr": "cb:idle:near_hibernate_count", "legendFormat": "About to Sleep" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"color":"#6e7681","value":null}] } } },
+      "options": { "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "id": 94,
+      "title": "Wake Latency (p50 / p95 / p99)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 91 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        { "expr": "cb:wake_latency:p50", "legendFormat": "p50" },
+        { "expr": "cb:wake_latency:p95", "legendFormat": "p95" },
+        { "expr": "cb:wake_latency:p99", "legendFormat": "p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 1, "thresholds": { "steps": [{"color":"green","value":null},{"color":"yellow","value":15},{"color":"red","value":30}] } } },
+      "options": { "graphMode": "none", "textMode": "value_and_name" }
+    }
+    ]}
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["circuit-breaker", "lifecycle", "mcp", "asi360", "fleet", "slo"],
+  "templating": {
+    "list": [
+      {
+        "name": "DS_PROMETHEUS",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": { "text": "Prometheus", "value": "prometheus" }
+      },
+      {
+        "name": "mode",
+        "label": "Run Mode",
+        "type": "custom",
+        "query": "always_on,on_demand,manual,maintenance",
+        "multi": true,
+        "includeAll": true,
+        "current": { "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "group",
+        "label": "Group",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "query": "label_values(cb_service_state, group)",
+        "multi": true,
+        "includeAll": true,
+        "refresh": 2,
+        "current": { "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "service",
+        "label": "Service",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "query": "label_values(cb_service_state{mode=~\"$mode\", group=~\"$group\"}, service)",
+        "multi": true,
+        "includeAll": true,
+        "refresh": 2,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "Circuit Breaker v2 — Service Fleet Manager",
+  "uid": "cb-fleet-manager-v2",
+  "version": 2
+}

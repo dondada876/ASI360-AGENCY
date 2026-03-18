@@ -1,0 +1,27 @@
+[Unit]
+Description=MCP Circuit Breaker v2 — Service Lifecycle Manager
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/mcp-circuit-breaker
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/mcp-circuit-breaker/venv/bin/python main.py
+Restart=always
+RestartSec=5
+
+# Per-service bulkhead (prevents CB itself from cascading)
+MemoryMax=256M
+CPUQuota=25%
+TasksMax=50
+LimitNOFILE=4096
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mcp-circuit-breaker
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,244 @@
+# circuit_breaker_rules.yml — Prometheus alert rules for Circuit Breaker v2.
+#
+# Deploy to: /opt/prometheus/rules/circuit_breaker_rules.yml
+# Validate: promtool check rules circuit_breaker_rules.yml
+# Reload:   curl -X POST http://localhost:9090/-/reload
+
+groups:
+  # ── Critical Infrastructure Alerts ─────────────────────────────────
+  - name: cb_critical
+    interval: 30s
+    rules:
+
+      # ALWAYS_ON critical service is down
+      - alert: CriticalServiceDown
+        expr: |
+          cb_service_state{mode="always_on"} == 0
+          and on(service) cb_service_state{group=~"gateway|security|monitoring"}
+        for: 2m
+        labels:
+          severity: critical
+          team: ops
+        annotations:
+          summary: "CRITICAL: {{ $labels.service }} is DOWN"
+          description: "Core infrastructure service {{ $labels.service }} ({{ $labels.group }}) has been down for >2 minutes. Auto-restart should have kicked in."
+          runbook: "Check: curl http://localhost:8310/api/services/{{ $labels.service }}"
+
+      # Circuit breaker tripped on critical service
+      - alert: CriticalBreakerTripped
+        expr: |
+          cb_breaker_state{service=~"mcp-gateway|key-custodian|telegram-hub|prometheus|alertmanager|grafana"} >= 1
+        for: 1m
+        labels:
+          severity: critical
+          team: ops
+        annotations:
+          summary: "BREAKER OPEN: {{ $labels.service }}"
+          description: "Circuit breaker for critical service {{ $labels.service }} is OPEN/FORCED_OPEN. Service may be unreachable."
+
+      # Restart escalation (waiting for CEO approval)
+      - alert: RestartApprovalPending
+        expr: cb_restart_approval_pending == 1
+        for: 5m
+        labels:
+          severity: critical
+          team: ceo
+        annotations:
+          summary: "APPROVAL NEEDED: {{ $labels.service }} restart"
+          description: "{{ $labels.service }} failed auto-restart and is waiting for CEO approval via Telegram. Check Telegram for /approve_{{ $labels.service }}."
+
+  # ── Service Health Alerts ──────────────────────────────────────────
+  - name: cb_service_health
+    interval: 30s
+    rules:
+
+      # Any ALWAYS_ON service down for >5min
+      - alert: AlwaysOnServiceDown
+        expr: cb_service_state{mode="always_on"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "{{ $labels.service }} is DOWN (always_on)"
+          description: "Always-on service {{ $labels.service }} has been down for >5 minutes. Restart tracker attempt: {{ $value }}."
+
+      # Service degraded (high latency)
+      - alert: ServiceDegraded
+        expr: cb_service_state == 2
+        for: 3m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "{{ $labels.service }} is DEGRADED"
+          description: "{{ $labels.service }} is responding but with high latency (>5s). Current latency: {{ with printf `cb_service_latency_ms{service=\"%s\"}` $labels.service | query }}{{ . | first | value }}{{ end }}ms."
+
+      # Multiple services down simultaneously (cascade)
+      - alert: MultipleServicesDown
+        expr: cb_services_down > 3
+        for: 2m
+        labels:
+          severity: critical
+          team: ops
+        annotations:
+          summary: "{{ $value }} services are DOWN"
+          description: "More than 3 services are down simultaneously. Possible cascade failure. Check dependency graph."
+
+      # High failure rate in sliding window
+      - alert: HighFailureRate
+        expr: |
+          (cb_breaker_failures_total - cb_breaker_failures_total offset 15m) > 10
+        for: 1m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "{{ $labels.service }}: {{ $value }} failures in 15min"
+          description: "Service {{ $labels.service }} has accumulated {{ $value }} health check failures in the last 15 minutes."
+
+  # ── Restart & Recovery Alerts ──────────────────────────────────────
+  - name: cb_restarts
+    interval: 30s
+    rules:
+
+      # Too many restarts (flapping)
+      - alert: ServiceFlapping
+        expr: |
+          increase(cb_restart_total[1h]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "{{ $labels.service }} is FLAPPING ({{ $value }} restarts/hr)"
+          description: "Service {{ $labels.service }} has been restarted {{ $value }} times in the last hour. Possible configuration issue or dependency problem."
+
+      # Restart attempt escalating (attempt 3+)
+      - alert: RestartEscalating
+        expr: cb_restart_attempt >= 3
+        for: 30s
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "{{ $labels.service }}: restart attempt {{ $value }}"
+          description: "Auto-restart for {{ $labels.service }} is at attempt {{ $value }}. Escalation to Telegram imminent."
+
+      # Restart escalated to Telegram
+      - alert: RestartEscalated
+        expr: cb_restart_escalated == 1
+        for: 1m
+        labels:
+          severity: critical
+          team: ceo
+        annotations:
+          summary: "{{ $labels.service }}: restart ESCALATED"
+          description: "{{ $labels.service }} has exhausted auto-restart attempts and has been escalated. Check Telegram for approval request."
+
+  # ── Lifecycle Alerts ───────────────────────────────────────────────
+  - name: cb_lifecycle
+    interval: 60s
+    rules:
+
+      # ON_DEMAND service running too long without activity
+      - alert: OnDemandStaleService
+        expr: |
+          cb_idle_seconds{mode="on_demand"} > 1800
+          and cb_service_state{mode="on_demand"} == 1
+        for: 5m
+        labels:
+          severity: info
+          team: ops
+        annotations:
+          summary: "{{ $labels.service }}: idle {{ $value }}s (should hibernate)"
+          description: "ON_DEMAND service {{ $labels.service }} has been idle for {{ $value }}s but hasn't been hibernated. Hibernate manager may need attention."
+
+      # Wake latency too high
+      - alert: SlowWakeLatency
+        expr: |
+          histogram_quantile(0.95, rate(cb_wake_latency_seconds_bucket[1h])) > 30
+        for: 5m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "{{ $labels.service }}: wake latency p95 > 30s"
+          description: "ON_DEMAND service {{ $labels.service }} is taking >30s to wake up (p95). Consider keeping it always-on or investigating startup performance."
+
+      # Vacation mode active reminder
+      - alert: VacationModeActive
+        expr: cb_vacation_mode_active == 1
+        for: 24h
+        labels:
+          severity: info
+          team: ceo
+        annotations:
+          summary: "VACATION MODE has been active for >24h"
+          description: "Vacation mode has been enabled for over 24 hours. Non-critical services are hibernated. Disable via dashboard or /vacation_off."
+
+  # ── Dependency Alerts ──────────────────────────────────────────────
+  - name: cb_dependencies
+    interval: 30s
+    rules:
+
+      # Service blocked by dependency
+      - alert: ServiceBlockedByDependency
+        expr: cb_dependency_blocked == 1
+        for: 3m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "{{ $labels.service }}: BLOCKED by {{ $labels.blocked_by }}"
+          description: "{{ $labels.service }} cannot function because its dependency {{ $labels.blocked_by }} is down."
+
+      # Gateway down = cascade risk
+      - alert: GatewayCascadeRisk
+        expr: |
+          cb_service_state{service="mcp-gateway"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: ops
+        annotations:
+          summary: "MCP GATEWAY DOWN — 10+ services affected"
+          description: "The MCP Gateway is down. All tool servers, orchestrators, and MCP-dependent services are blocked. This is a P0 incident."
+
+  # ── SLO Tracking ───────────────────────────────────────────────────
+  - name: cb_slo
+    interval: 5m
+    rules:
+
+      # Record: fraction of time service is up (for SLO burn rate)
+      - record: cb:service_availability:ratio_5m
+        expr: |
+          avg_over_time(
+            (cb_service_state == bool 1)[5m:30s]
+          )
+
+      # Critical services: SLO 99.5% (3.6h/month budget)
+      - alert: CriticalSLOBreach
+        expr: |
+          cb:service_availability:ratio_5m{mode="always_on"} < 0.995
+          and on(service) cb_service_state{group=~"gateway|security"}
+        for: 15m
+        labels:
+          severity: critical
+          team: ops
+        annotations:
+          summary: "SLO BREACH: {{ $labels.service }} below 99.5%"
+          description: "Critical service {{ $labels.service }} availability is {{ $value | humanizePercentage }} (SLO: 99.5%). Error budget at risk."
+
+      # Business services: SLO 99.0% (7.2h/month budget)
+      - alert: BusinessSLOBreach
+        expr: |
+          cb:service_availability:ratio_5m{mode="always_on"} < 0.99
+          and on(service) cb_service_state{group=~"comms|orchestration|background"}
+        for: 30m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "SLO WARNING: {{ $labels.service }} below 99.0%"
+          description: "Business service {{ $labels.service }} availability is {{ $value | humanizePercentage }} (SLO: 99.0%)."
