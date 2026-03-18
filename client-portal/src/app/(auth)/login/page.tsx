@@ -4,6 +4,29 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
+/** Generate a unique session ID for tracking login→logout duration */
+function generateSessionId(): string {
+  return `sess_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`
+}
+
+/** Server-side audit log — captures IP, user-agent, session tracking */
+async function logAudit(
+  event_type: string,
+  email: string,
+  metadata: Record<string, unknown> = {},
+  session_id?: string
+) {
+  try {
+    await fetch("/api/auth/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event_type, email, metadata, session_id }),
+    })
+  } catch {
+    // Silent — audit failures must never block the user
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
@@ -20,10 +43,8 @@ export default function LoginPage() {
       const supabase = createClient()
 
       // 1. Sign in with Supabase Auth
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      const { data, error: authError } =
+        await supabase.auth.signInWithPassword({ email, password })
 
       if (authError) throw authError
 
@@ -36,23 +57,46 @@ export default function LoginPage() {
 
       if (profileError || !profile) {
         await supabase.auth.signOut()
-        throw new Error("No portal account found for this email. Contact your project manager.")
+        throw new Error(
+          "No portal account found for this email. Contact your project manager."
+        )
       }
 
       if (!profile.is_active) {
         await supabase.auth.signOut()
-        throw new Error("Your portal account has been deactivated. Contact support.")
+        throw new Error(
+          "Your portal account has been deactivated. Contact support."
+        )
       }
 
-      // 3. Redirect based on role
-      if (profile.role === "admin") {
-        router.push("/admin")
+      // 3. Generate session ID and log successful login (server-side — captures IP)
+      const sessionId = generateSessionId()
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("portal_session_id", sessionId)
+      }
+      await logAudit(
+        "login_success",
+        email,
+        {
+          role: profile.role,
+          display_name: profile.display_name,
+          user_id: data.user.id,
+        },
+        sessionId
+      )
+
+      // 4. Redirect based on role — full page navigation ensures cookies are sent
+      if (["admin", "owner"].includes(profile.role)) {
+        window.location.href = "/admin"
       } else {
-        router.push("/portal")
+        window.location.href = "/portal"
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Login failed"
       setError(message)
+
+      // Log failed login attempt (server-side — captures IP of attacker)
+      await logAudit("login_failed", email, { reason: message })
     } finally {
       setLoading(false)
     }
@@ -66,7 +110,9 @@ export default function LoginPage() {
           <div className="w-14 h-14 rounded-xl bg-blue-600 flex items-center justify-center text-2xl font-bold text-white mx-auto mb-4">
             A
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">ASI 360 Client Portal</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            ASI 360 Client Portal
+          </h1>
           <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
             Allied Systems Integrations
           </p>
@@ -78,7 +124,10 @@ export default function LoginPage() {
           className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-6 space-y-4"
         >
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1"
+            >
               Email
             </label>
             <input
@@ -94,7 +143,10 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1"
+            >
               Password
             </label>
             <input
