@@ -1,9 +1,50 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServiceClient } from "@/lib/vault"
-import { sendNotification } from "@/lib/gateway"
+import { getServiceClient, getSecret } from "@/lib/vault"
 
 const PORTAL_URL =
   process.env.NEXT_PUBLIC_PORTAL_URL || "https://projects.asi360.co"
+
+async function sendResetEmail(params: {
+  to: string
+  displayName: string
+  actionLink: string
+}) {
+  const resendKey = await getSecret("resend_api_key_asi360")
+  if (!resendKey) throw new Error("resend_api_key_asi360 not in vault")
+
+  const text = [
+    `Hi ${params.displayName},`,
+    "",
+    "We received a request to reset your ASI 360 Client Portal password.",
+    "",
+    "Click the link below to set a new password:",
+    params.actionLink,
+    "",
+    "This link expires in 1 hour.",
+    "If you didn't request this, you can safely ignore this email.",
+    "",
+    "— ASI 360 Team",
+  ].join("\n")
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "ASI 360 Portal <noreply@asi360.co>",
+      to: [params.to],
+      subject: "Reset your ASI 360 Portal password",
+      text,
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Resend ${res.status}: ${err}`)
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,28 +88,14 @@ export async function POST(request: NextRequest) {
     const actionLink = (linkData as { properties?: { action_link?: string } } | null)?.properties?.action_link
 
     const displayName = profile.display_name || "there"
-    const emailBody = [
-      `Hi ${displayName},`,
-      "",
-      "We received a request to reset your ASI 360 Client Portal password.",
-      "",
-      "Click the link below to set a new password:",
-      actionLink || "(link unavailable — please try again)",
-      "",
-      "This link expires in 1 hour.",
-      "If you didn't request this, you can safely ignore this email.",
-      "",
-      "— ASI 360 Team",
-    ].join("\n")
 
-    // Send email via Gateway → Resend (non-blocking)
-    sendNotification({
-      channel: "email",
-      recipient: email,
-      subject: "Reset your ASI 360 Portal password",
-      message: emailBody,
+    // Send email via Resend directly (non-blocking)
+    sendResetEmail({
+      to: email,
+      displayName,
+      actionLink: actionLink || `${PORTAL_URL}/forgot-password`,
     }).catch((err: unknown) => {
-      console.error("[forgot-password] sendNotification error:", err)
+      console.error("[forgot-password] sendResetEmail error:", err)
     })
 
     // Audit log (non-blocking)
