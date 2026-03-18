@@ -41,13 +41,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true })
     }
 
-    const actionLink =
+    const rawActionLink =
       (linkData as { properties?: { action_link?: string } }).properties
         ?.action_link
 
-    if (!actionLink) {
+    if (!rawActionLink) {
       console.error("[forgot-password] no action_link in generateLink response")
       return NextResponse.json({ success: true })
+    }
+
+    // Extract token_hash and build a clean portal URL (hides Supabase internals)
+    let resetLink = `${PORTAL_URL}/auth/callback?next=/reset-password`
+    try {
+      const parsed = new URL(rawActionLink)
+      const tokenHash = parsed.searchParams.get("token")
+      if (tokenHash) {
+        resetLink = `${PORTAL_URL}/auth/callback?token_hash=${encodeURIComponent(tokenHash)}&type=recovery&next=/reset-password`
+      }
+    } catch {
+      console.error("[forgot-password] failed to parse action_link")
     }
 
     const displayName = profile.display_name || "there"
@@ -65,7 +77,7 @@ export async function POST(request: NextRequest) {
       "We received a request to reset your ASI 360 Client Portal password.",
       "",
       "Click the link below to set a new password:",
-      actionLink,
+      resetLink,
       "",
       "This link expires in 1 hour.",
       "If you didn't request this, you can safely ignore this email.",
