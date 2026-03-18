@@ -48,6 +48,19 @@ function formatDuration(seconds: number | null): string {
 export default async function AuditLogPage() {
   const supabase = await createClient()
 
+  // Fetch admin's timezone preference for display
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const { data: adminProfile } = user
+    ? await supabase
+        .from("client_profiles")
+        .select("timezone")
+        .eq("user_id", user.id)
+        .single()
+    : { data: null }
+  const tz = adminProfile?.timezone || "America/Los_Angeles"
+
   // Fetch recent events (limit 200 for comprehensive view)
   const { data: events, count } = await supabase
     .from("auth_audit_log")
@@ -173,7 +186,7 @@ export default async function AuditLogPage() {
         </h1>
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
           {count || 0} total events &bull; Session tracking &bull; Client
-          engagement
+          engagement &bull; <span className="font-mono">{tz}</span>
         </p>
       </div>
 
@@ -245,6 +258,7 @@ export default async function AuditLogPage() {
                     {new Date(data.last).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
+                      timeZone: tz,
                     })}
                   </span>
                 </div>
@@ -391,6 +405,7 @@ export default async function AuditLogPage() {
                   hour: "numeric",
                   minute: "2-digit",
                   second: "2-digit",
+                  timeZone: tz,
                 })}
               </span>
             </div>
