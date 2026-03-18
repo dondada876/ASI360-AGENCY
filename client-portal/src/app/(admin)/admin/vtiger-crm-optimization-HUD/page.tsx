@@ -13,6 +13,12 @@ export type HUDProject = {
   start_date: string | null
   target_close_date: string | null
   client_name: string | null
+  description: string | null
+  scope_description: string | null
+  site_address: string | null
+  contact_name: string | null
+  contact_phone: string | null
+  health_score: number | null
 }
 
 export type HUDTask = {
@@ -108,7 +114,7 @@ export default async function VtigerCRMHUDPage({
   const { data: projects } = await adminClient
     .from("asi360_projects")
     .select(
-      "id, project_no, project_name, slug, project_status, current_phase, start_date, target_close_date, client_name"
+      "id, project_no, project_name, slug, project_status, current_phase, start_date, target_close_date, client_name, description, scope_description, site_address, contact_name, contact_phone, health_score"
     )
     .order("project_no", { ascending: false })
 
@@ -136,6 +142,18 @@ export default async function VtigerCRMHUDPage({
 
   const grid = computeGrid(activeProject, tasks ?? [])
 
+  const { count: ticketCount } = await adminClient
+    .from("vtiger_tickets_ref")
+    .select("id", { count: "exact", head: true })
+    .eq("project_id", activeProject.id)
+    .neq("status", "Closed")
+
+  const { count: caseCount } = await adminClient
+    .from("vtiger_cases_cache")
+    .select("id", { count: "exact", head: true })
+    .eq("project_id", activeProject.id)
+    .neq("status", "Closed")
+
   return (
     <GanttHUD
       projects={projects}
@@ -143,6 +161,8 @@ export default async function VtigerCRMHUDPage({
       activeProject={activeProject}
       tasks={tasks ?? []}
       grid={grid}
+      ticketCount={ticketCount ?? 0}
+      caseCount={caseCount ?? 0}
     />
   )
 }

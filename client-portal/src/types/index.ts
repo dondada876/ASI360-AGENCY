@@ -13,6 +13,7 @@ export interface ClientProfile {
   is_active: boolean
   notification_preferences: NotificationPreferences
   telegram_chat_id: string | null
+  timezone: string
   created_at: string
 }
 

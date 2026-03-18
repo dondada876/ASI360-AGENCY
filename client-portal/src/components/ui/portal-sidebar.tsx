@@ -25,9 +25,12 @@ const ADMIN_ITEMS = [
   { href: "/admin/clients", label: "Manage Clients", icon: UsersIcon },
   { href: "/admin/invite", label: "Invite Client", icon: InviteIcon },
   { href: "/admin/cases", label: "All Cases", icon: CasesIcon },
+  { href: "/admin/cameras", label: "Camera Requests", icon: CameraIcon },
+  { href: "/admin/credentials", label: "Credentials", icon: KeyIcon },
   { href: "/admin/vtiger-crm-optimization-HUD", label: "Project HUD", icon: GanttIcon },
   { href: "/admin/notifications", label: "Notifications", icon: BellIcon },
   { href: "/admin/audit", label: "Audit Log", icon: AuditIcon },
+  { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
 ]
 
 export default function PortalSidebar({ profile }: { profile: Profile }) {
@@ -256,6 +259,25 @@ function GanttIcon({ className }: { className?: string }) {
       <rect x="1" y="2" width="8" height="3" rx="0.5" />
       <rect x="4" y="7" width="9" height="3" rx="0.5" />
       <rect x="2" y="12" width="7" height="3" rx="0.5" />
+    </svg>
+  )
+}
+
+function CameraIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1.5">
+      <rect x="1" y="5" width="14" height="9" rx="1" />
+      <circle cx="8" cy="9.5" r="2.5" />
+      <path d="M5 5V4a1 1 0 011-1h4a1 1 0 011 1v1" />
+    </svg>
+  )
+}
+
+function KeyIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="6" cy="8" r="4" />
+      <path d="M10 8h5M13 6v4" />
     </svg>
   )
 }

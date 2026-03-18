@@ -9,7 +9,6 @@ interface ProfileData {
   display_name: string
   email: string
   phone: string | null
-  company_name: string | null
   timezone: string
   notification_preferences: {
     email: boolean
@@ -19,13 +18,12 @@ interface ProfileData {
   }
 }
 
-export default function SettingsPage() {
+export default function AdminSettingsPage() {
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
-  // Editable fields
   const [displayName, setDisplayName] = useState("")
   const [phone, setPhone] = useState("")
   const [timezone, setTimezone] = useState("America/Los_Angeles")
@@ -46,9 +44,7 @@ export default function SettingsPage() {
 
       const { data } = await supabase
         .from("client_profiles")
-        .select(
-          "id, display_name, email, phone, company_name, timezone, notification_preferences"
-        )
+        .select("id, display_name, email, phone, timezone, notification_preferences")
         .eq("user_id", user.id)
         .single()
 
@@ -113,14 +109,15 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Admin Settings</h1>
+      <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
+        Manage your profile, timezone, and notification preferences.
+      </p>
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Profile Section */}
         <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-4">
-            Profile
-          </h2>
+          <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-4">Profile</h2>
           <div className="space-y-4">
             <div>
               <label
@@ -148,9 +145,6 @@ export default function SettingsPage() {
                 disabled
                 className="w-full px-3 py-2 bg-gray-100/50 dark:bg-slate-800/50 border border-gray-300/50 dark:border-slate-700/50 rounded-lg text-gray-400 dark:text-slate-500 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-400 dark:text-slate-600 mt-1">
-                Email cannot be changed. Contact your project manager.
-              </p>
             </div>
             <div>
               <label
@@ -168,27 +162,12 @@ export default function SettingsPage() {
                 placeholder="+1 (555) 123-4567"
               />
             </div>
-            {profile?.company_name && (
-              <div>
-                <label className="block text-sm font-medium text-gray-500 dark:text-slate-400 mb-1">
-                  Company
-                </label>
-                <input
-                  type="text"
-                  value={profile.company_name}
-                  disabled
-                  className="w-full px-3 py-2 bg-gray-100/50 dark:bg-slate-800/50 border border-gray-300/50 dark:border-slate-700/50 rounded-lg text-gray-400 dark:text-slate-500 cursor-not-allowed"
-                />
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Timezone */}
+        {/* Timezone Section */}
         <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-1">
-            Timezone
-          </h2>
+          <h2 className="text-sm font-semibold text-gray-600 dark:text-slate-300 mb-1">Timezone</h2>
           <p className="text-xs text-gray-400 dark:text-slate-500 mb-4">
             Timestamps in the portal will display in this timezone.
           </p>
