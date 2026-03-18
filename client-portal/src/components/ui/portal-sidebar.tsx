@@ -30,6 +30,7 @@ const ADMIN_ITEMS = [
   { href: "/admin/vtiger-crm-optimization-HUD", label: "Project HUD", icon: GanttIcon },
   { href: "/admin/notifications", label: "Notifications", icon: BellIcon },
   { href: "/admin/audit", label: "Audit Log", icon: AuditIcon },
+  { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
 ]
 
 export default function PortalSidebar({ profile }: { profile: Profile }) {
