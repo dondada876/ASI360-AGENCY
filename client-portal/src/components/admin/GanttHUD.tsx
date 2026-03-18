@@ -15,6 +15,7 @@ const PHASE_COLORS: Record<number, { hex: string; glow: string }> = {
 }
 
 const PHASE_LABELS: Record<number, string> = {
+  0: "Pre-Start",
   1: "Scope & Design",
   2: "Procurement",
   3: "Build & Install",
@@ -22,15 +23,42 @@ const PHASE_LABELS: Record<number, string> = {
   5: "Close & Handoff",
 }
 
+// VTiger task detail URL
+const VTIGER_TASK_URL = (id: string) =>
+  `https://allsysinc.od1.vtiger.com/index.php?module=ProjectTask&action=DetailView&record=${id}`
+
 const COL_PX_WEEK = 64
 const COL_PX_DAY = 36
 const ROW_H = 34
 const PHASE_H = 40
-const LABEL_W = 224
+const LABEL_W = 240
 const HEADER_PERIOD_H = 28
 const HEADER_COL_H = 26
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+
+/** Normalize status to lowercase with spaces (handles both in_progress and "in progress") */
+function normalizeStatus(s: string): string {
+  return s.replace(/_/g, " ").toLowerCase().trim()
+}
+
+/**
+ * Strip embedded project prefix and/or trailing task number from task_name.
+ * Canonical convention: "PROJ369-1.1 Feature Brief" → "Feature Brief"
+ * Old conventions: "Feature Brief 1.1" → "Feature Brief", "J.4a Pipeline 2.5" → "Pipeline"
+ */
+function cleanTaskName(taskName: string, projectNo: string): string {
+  let name = taskName
+  // Strip "PROJ###-#.# " prefix (new canonical format)
+  name = name.replace(new RegExp(`^${projectNo}-[\\d.]+\\s+`), "")
+  // Strip any generic "PROJ###-#.# " prefix
+  name = name.replace(/^PROJ\d+-[\d.]+\s+/, "")
+  // Strip old "J.#[letter] " prefix
+  name = name.replace(/^J\.\d+[a-z]?\s+/i, "")
+  // Strip trailing " #.#" task number suffix (old convention)
+  name = name.replace(/\s+\d+\.\d+$/, "")
+  return name.trim() || taskName
+}
 
 function parseUTCDate(s: string): Date {
   const datePart = s.split("T")[0]
@@ -57,47 +85,58 @@ function getPeriodLabels(
   const labels: { label: string; startCol: number; span: number }[] = []
   let curLabel = ""
   let spanStart = 0
-
   for (let i = 0; i < totalCols; i++) {
     const d = new Date(gridStart)
     if (colWidth === "week") d.setUTCDate(d.getUTCDate() + i * 7)
     else d.setUTCDate(d.getUTCDate() + i)
-
     const label = d.toLocaleString("en-US", {
       month: "short",
       year: "2-digit",
       timeZone: "UTC",
     })
-
     if (label !== curLabel) {
-      if (curLabel) {
+      if (curLabel)
         labels.push({ label: curLabel, startCol: spanStart, span: i - spanStart })
-      }
       curLabel = label
       spanStart = i
     }
   }
-  if (curLabel) {
+  if (curLabel)
     labels.push({ label: curLabel, startCol: spanStart, span: totalCols - spanStart })
-  }
   return labels
 }
 
-function getColLabel(
-  i: number,
-  gridStart: Date,
-  colWidth: "week" | "day"
-): string {
+function getColLabel(i: number, gridStart: Date, colWidth: "week" | "day"): string {
   const d = new Date(gridStart)
   if (colWidth === "week") d.setUTCDate(d.getUTCDate() + i * 7)
   else d.setUTCDate(d.getUTCDate() + i)
-
   if (colWidth === "week") {
-    const mo = d.getUTCMonth() + 1
-    const day = d.getUTCDate()
-    return `${mo}/${day}`
+    return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`
   }
   return ["S", "M", "T", "W", "T", "F", "S"][d.getUTCDay()]
+}
+
+// ── Source badge ────────────────────────────────────────────────────────────
+
+function SourceBadge({ source }: { source: string | null }) {
+  if (!source || source === "manual") return null
+  const map: Record<string, { label: string; color: string }> = {
+    vtiger: { label: "VT", color: "#f97316" },
+    airtable: { label: "AT", color: "#eab308" },
+    airtable_sync: { label: "AT", color: "#eab308" },
+    gateway: { label: "GW", color: "#6366f1" },
+    mcp: { label: "MC", color: "#8b5cf6" },
+  }
+  const badge = map[source.toLowerCase()]
+  if (!badge) return null
+  return (
+    <span
+      className="text-[8px] font-bold px-1 rounded shrink-0"
+      style={{ background: badge.color + "33", color: badge.color, border: `1px solid ${badge.color}44` }}
+    >
+      {badge.label}
+    </span>
+  )
 }
 
 // ── Main Component ────────────────────────────────────────────────────────
@@ -134,13 +173,22 @@ export default function GanttHUD({
   const activePhasesSet = useMemo(() => {
     const s = new Set<number>()
     tasks.forEach((t) => {
-      if (t.status === "in progress") s.add(t.phase_no)
+      if (normalizeStatus(t.status) === "in progress") s.add(t.phase_no)
     })
     return s
   }, [tasks])
 
   const onProjectSelect = (projectNo: string) => {
     router.push(`/admin/vtiger-crm-optimization-HUD?project=${projectNo}`)
+  }
+
+  const onTaskClick = (task: HUDTask) => {
+    if (task.vtiger_task_id) {
+      window.open(VTIGER_TASK_URL(task.vtiger_task_id), "_blank", "noopener")
+    } else {
+      const dest = activeProject.slug ?? activeProjectNo
+      router.push(`/portal/projects/${dest}`)
+    }
   }
 
   if (!grid) {
@@ -169,7 +217,6 @@ export default function GanttHUD({
     getColLabel(i, gridStart, colWidth)
   )
 
-  // CSS repeating-gradient for vertical grid lines (no extra DOM elements)
   const gridLineBg: React.CSSProperties = {
     backgroundImage: `repeating-linear-gradient(to right, transparent 0px, transparent ${COL_PX - 1}px, rgba(148,163,184,0.07) ${COL_PX - 1}px, rgba(148,163,184,0.07) ${COL_PX}px)`,
     backgroundSize: `${COL_PX}px 100%`,
@@ -177,22 +224,19 @@ export default function GanttHUD({
 
   return (
     <>
-      {/* Keyframe animations */}
       <style>{`
         @keyframes ganttGlow {
           0%, 100% { box-shadow: 0 0 4px 2px var(--glow-color); opacity: 0.9; }
           50%       { box-shadow: 0 0 18px 7px var(--glow-color); opacity: 1; }
         }
-        .gantt-bar-active {
-          animation: ganttGlow 2.2s ease-in-out infinite;
-        }
+        .gantt-bar-active { animation: ganttGlow 2.2s ease-in-out infinite; }
         @keyframes todayPulse {
           0%, 100% { opacity: 0.65; }
           50%       { opacity: 1; }
         }
-        .today-line {
-          animation: todayPulse 2s ease-in-out infinite;
-        }
+        .today-line { animation: todayPulse 2s ease-in-out infinite; }
+        .gantt-task-row { cursor: pointer; }
+        .gantt-task-row:hover .gantt-bar-fill { filter: brightness(1.2); }
       `}</style>
 
       <div className="min-h-screen bg-slate-950 flex flex-col">
@@ -203,13 +247,10 @@ export default function GanttHUD({
           activeProject={activeProject}
         />
 
-        {/* ── Gantt scrollable body ── */}
         <div className="flex-1 overflow-auto">
-          <div
-            className="flex"
-            style={{ minWidth: LABEL_W + totalGridWidth }}
-          >
-            {/* ── Left sticky label column ── */}
+          <div className="flex" style={{ minWidth: LABEL_W + totalGridWidth }}>
+
+            {/* ── Sticky left label column ── */}
             <div
               className="shrink-0 bg-slate-950 border-r border-slate-800 z-20"
               style={{ width: LABEL_W, position: "sticky", left: 0 }}
@@ -223,87 +264,85 @@ export default function GanttHUD({
                   Task / Phase
                 </span>
               </div>
-              {/* Column header spacer */}
-              <div
-                className="bg-slate-900/50 border-b border-slate-800"
-                style={{ height: HEADER_COL_H }}
-              />
+              {/* Col header spacer */}
+              <div className="bg-slate-900/50 border-b border-slate-800" style={{ height: HEADER_COL_H }} />
 
-              {/* Phase + task label rows */}
               {phases.map((phaseNo) => {
                 const pc = PHASE_COLORS[phaseNo] ?? PHASE_COLORS[1]
                 const isActive = activePhasesSet.has(phaseNo)
                 const phaseTasks = tasksByPhase[phaseNo] ?? []
+                const phaseLabel =
+                  phaseTasks[0]?.phase_name?.replace(/^Phase \d+:\s*/, "") ||
+                  PHASE_LABELS[phaseNo] ||
+                  `Phase ${phaseNo}`
 
                 return (
                   <div key={phaseNo}>
-                    {/* Phase header label */}
+                    {/* Phase header */}
                     <div
-                      className={`flex items-center gap-2 px-3 border-b border-slate-800 ${
-                        isActive ? "bg-slate-900" : "bg-slate-900/30"
-                      }`}
-                      style={{
-                        height: PHASE_H,
-                        borderLeft: `3px solid ${isActive ? pc.hex : "transparent"}`,
-                      }}
+                      className={`flex items-center gap-2 px-3 border-b border-slate-800 ${isActive ? "bg-slate-900" : "bg-slate-900/30"}`}
+                      style={{ height: PHASE_H, borderLeft: `3px solid ${isActive ? pc.hex : "transparent"}` }}
                     >
                       <span
                         className="text-[11px] font-bold w-5 h-5 rounded flex items-center justify-center shrink-0"
-                        style={{
-                          background: pc.hex + "28",
-                          color: pc.hex,
-                          border: `1px solid ${pc.hex}44`,
-                        }}
+                        style={{ background: pc.hex + "28", color: pc.hex, border: `1px solid ${pc.hex}44` }}
                       >
                         {phaseNo}
                       </span>
-                      <span className="text-xs font-semibold text-white truncate flex-1">
-                        {PHASE_LABELS[phaseNo] ?? `Phase ${phaseNo}`}
-                      </span>
+                      <span className="text-xs font-semibold text-white truncate flex-1">{phaseLabel}</span>
                       {isActive && (
                         <span className="flex items-center gap-1 shrink-0">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                          <span className="text-[10px] font-bold text-green-400">
-                            LIVE
-                          </span>
+                          <span className="text-[10px] font-bold text-green-400">LIVE</span>
                         </span>
                       )}
                     </div>
 
                     {/* Task labels */}
                     {phaseTasks.map((task) => {
-                      const isInProgress = task.status === "in progress"
+                      const ns = normalizeStatus(task.status)
+                      const isInProgress = ns === "in progress"
+                      const displayName = cleanTaskName(task.task_name, activeProjectNo)
+
                       return (
                         <div
                           key={task.id}
-                          className={`flex items-center gap-2 px-3 pl-5 border-b border-slate-800/50 hover:bg-slate-900/40 transition-colors ${
-                            isInProgress ? "bg-blue-950/20" : ""
-                          }`}
+                          className={`gantt-task-row flex items-center gap-1.5 px-2 pl-4 border-b border-slate-800/50 hover:bg-slate-900/50 transition-colors ${isInProgress ? "bg-blue-950/20" : ""}`}
                           style={{ height: ROW_H }}
-                          title={`${task.task_no} — ${task.status}${task.assigned_to ? ` · ${task.assigned_to}` : ""}`}
+                          onClick={() => onTaskClick(task)}
+                          title={`${task.task_no} — ${task.task_name}\nStatus: ${task.status}${task.assigned_to ? `\nAssigned: ${task.assigned_to}` : ""}${task.vtiger_task_id ? "\n↗ Click to open in VTiger" : ""}`}
                         >
-                          {task.is_milestone ? (
-                            <span
-                              className="text-[11px] shrink-0"
-                              style={{ color: pc.hex }}
-                            >
-                              ◆
-                            </span>
-                          ) : (
-                            <span
-                              className="w-1 h-3 rounded-sm shrink-0"
-                              style={{ background: pc.hex + "99" }}
-                            />
-                          )}
+                          {/* task_no pill — always visible, bound before name */}
                           <span
-                            className={`text-[11px] truncate ${
-                              isInProgress
-                                ? "text-white font-medium"
-                                : "text-slate-400"
-                            }`}
+                            className="text-[9px] font-mono font-bold px-1 rounded shrink-0 tabular-nums"
+                            style={{
+                              background: pc.hex + "22",
+                              color: pc.hex,
+                              border: `1px solid ${pc.hex}33`,
+                              minWidth: 26,
+                              textAlign: "center",
+                            }}
                           >
-                            {task.task_name}
+                            {task.task_no}
                           </span>
+
+                          {task.is_milestone && (
+                            <span className="text-[10px] shrink-0" style={{ color: pc.hex }}>◆</span>
+                          )}
+
+                          <span
+                            className={`text-[11px] truncate flex-1 ${isInProgress ? "text-white font-medium" : "text-slate-400"}`}
+                          >
+                            {displayName}
+                          </span>
+
+                          {/* Source badge: VT / AT */}
+                          <SourceBadge source={task.modified_source} />
+
+                          {/* VTiger link icon */}
+                          {task.vtiger_task_id && (
+                            <span className="text-[9px] text-orange-400/60 shrink-0" title="Open in VTiger">↗</span>
+                          )}
                         </div>
                       )
                     })}
@@ -313,15 +352,10 @@ export default function GanttHUD({
             </div>
 
             {/* ── Timeline area ── */}
-            <div
-              className="relative flex-shrink-0"
-              style={{ width: totalGridWidth }}
-            >
-              {/* Period header (month labels) */}
-              <div
-                className="flex bg-slate-900 border-b border-slate-700"
-                style={{ height: HEADER_PERIOD_H }}
-              >
+            <div className="relative flex-shrink-0" style={{ width: totalGridWidth }}>
+
+              {/* Period header */}
+              <div className="flex bg-slate-900 border-b border-slate-700" style={{ height: HEADER_PERIOD_H }}>
                 {periodLabels.map((p, i) => (
                   <div
                     key={i}
@@ -333,54 +367,39 @@ export default function GanttHUD({
                 ))}
               </div>
 
-              {/* Column header (week/day labels) */}
-              <div
-                className="flex bg-slate-900/50 border-b border-slate-800"
-                style={{ height: HEADER_COL_H }}
-              >
-                {colLabels.map((lbl, i) => {
-                  const isToday = i === todayCol
-                  return (
-                    <div
-                      key={i}
-                      className={`flex items-center justify-center shrink-0 border-r border-slate-800/30 text-[9px] ${
-                        isToday
-                          ? "text-red-400 font-bold bg-red-500/10"
-                          : "text-slate-600"
-                      }`}
-                      style={{ width: COL_PX }}
-                    >
-                      {lbl}
-                    </div>
-                  )
-                })}
+              {/* Column header */}
+              <div className="flex bg-slate-900/50 border-b border-slate-800" style={{ height: HEADER_COL_H }}>
+                {colLabels.map((lbl, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-center justify-center shrink-0 border-r border-slate-800/30 text-[9px] ${i === todayCol ? "text-red-400 font-bold bg-red-500/10" : "text-slate-600"}`}
+                    style={{ width: COL_PX }}
+                  >
+                    {lbl}
+                  </div>
+                ))}
               </div>
 
-              {/* Phase + task bar rows */}
+              {/* Phase + task rows */}
               {phases.map((phaseNo) => {
                 const pc = PHASE_COLORS[phaseNo] ?? PHASE_COLORS[1]
                 const isActive = activePhasesSet.has(phaseNo)
                 const phaseTasks = tasksByPhase[phaseNo] ?? []
 
-                // Phase span bar: min start → max end of all tasks with dates
                 const starts = phaseTasks
                   .map((t) => dateToCol(t.start_date, gridStart, colWidth))
                   .filter((c) => c >= 0)
                 const ends = phaseTasks
-                  .map((t) =>
-                    dateToCol(t.due_date ?? t.end_date, gridStart, colWidth)
-                  )
+                  .map((t) => dateToCol(t.due_date ?? t.end_date, gridStart, colWidth))
                   .filter((c) => c >= 0)
                 const phaseBarStart = starts.length > 0 ? Math.min(...starts) : -1
                 const phaseBarEnd = ends.length > 0 ? Math.max(...ends) + 1 : -1
 
                 return (
                   <div key={phaseNo}>
-                    {/* Phase header row */}
+                    {/* Phase span row */}
                     <div
-                      className={`relative border-b border-slate-800 ${
-                        isActive ? "bg-slate-900/80" : "bg-slate-900/25"
-                      }`}
+                      className={`relative border-b border-slate-800 ${isActive ? "bg-slate-900/80" : "bg-slate-900/25"}`}
                       style={{ height: PHASE_H, ...gridLineBg }}
                     >
                       {phaseBarStart >= 0 && phaseBarEnd > phaseBarStart && (
@@ -388,10 +407,7 @@ export default function GanttHUD({
                           className="absolute top-1/2 -translate-y-1/2 rounded"
                           style={{
                             left: phaseBarStart * COL_PX + 2,
-                            width: Math.max(
-                              (phaseBarEnd - phaseBarStart) * COL_PX - 4,
-                              8
-                            ),
+                            width: Math.max((phaseBarEnd - phaseBarStart) * COL_PX - 4, 8),
                             height: 16,
                             background: pc.hex + "18",
                             border: `1px solid ${pc.hex}33`,
@@ -402,11 +418,13 @@ export default function GanttHUD({
 
                     {/* Task rows */}
                     {phaseTasks.map((task) => {
-                      const barStartCol = dateToCol(
-                        task.start_date,
-                        gridStart,
-                        colWidth
-                      )
+                      const ns = normalizeStatus(task.status)
+                      const isInProgress = ns === "in progress"
+                      const isCompleted = ns === "completed"
+                      const isDeferred = ns === "deferred" || ns === "cancelled"
+                      const hasNoDate = !task.start_date && !task.due_date && !task.end_date
+
+                      const barStartCol = dateToCol(task.start_date, gridStart, colWidth)
                       const rawEnd = task.due_date ?? task.end_date
                       const barEndCol =
                         rawEnd !== null
@@ -416,24 +434,41 @@ export default function GanttHUD({
                           : -1
 
                       const hasDates = barStartCol >= 0
-                      const isInProgress = task.status === "in progress"
-                      const isCompleted = task.status === "completed"
                       const barPx = hasDates
                         ? Math.max((barEndCol - barStartCol) * COL_PX - 4, 10)
                         : 0
 
+                      const barColor = isCompleted
+                        ? pc.hex + "88"
+                        : isInProgress
+                        ? pc.hex
+                        : isDeferred
+                        ? "#475569"
+                        : pc.hex + "55"
+
                       return (
                         <div
                           key={task.id}
-                          className={`relative border-b border-slate-800/40 hover:bg-slate-900/20 transition-colors ${
-                            isInProgress ? "bg-blue-950/10" : ""
-                          }`}
+                          className={`gantt-task-row relative border-b border-slate-800/40 hover:bg-slate-900/20 transition-colors ${isInProgress ? "bg-blue-950/10" : ""}`}
                           style={{ height: ROW_H, ...gridLineBg }}
+                          onClick={() => onTaskClick(task)}
                         >
+                          {/* No-date placeholder: dashed line across full width */}
+                          {hasNoDate && (
+                            <div
+                              className="absolute top-1/2 -translate-y-1/2 rounded-sm"
+                              style={{
+                                left: 2,
+                                right: 2,
+                                height: 4,
+                                backgroundImage: `repeating-linear-gradient(90deg, ${pc.hex}33 0px, ${pc.hex}33 6px, transparent 6px, transparent 12px)`,
+                              }}
+                            />
+                          )}
+
                           {hasDates && (
                             <>
                               {task.is_milestone ? (
-                                /* Milestone: pulsing diamond */
                                 <div
                                   className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rotate-45 z-10"
                                   style={{
@@ -443,32 +478,25 @@ export default function GanttHUD({
                                   }}
                                 />
                               ) : (
-                                /* Regular task bar */
                                 <div
-                                  className={`absolute top-1/2 -translate-y-1/2 rounded-sm flex items-center px-1.5 overflow-hidden ${
-                                    isInProgress ? "gantt-bar-active" : ""
-                                  }`}
-                                  title={`${task.task_name} (${task.status})`}
+                                  className={`gantt-bar-fill absolute top-1/2 -translate-y-1/2 rounded-sm flex items-center px-1.5 overflow-hidden ${isInProgress ? "gantt-bar-active" : ""}`}
                                   style={
                                     {
                                       left: barStartCol * COL_PX + 2,
                                       width: barPx,
                                       height: 22,
-                                      background: isCompleted
-                                        ? pc.hex + "66"
-                                        : isInProgress
-                                        ? pc.hex
-                                        : pc.hex + "55",
+                                      background: barColor,
                                       border: isInProgress
                                         ? `1px solid rgba(255,255,255,0.3)`
                                         : `1px solid ${pc.hex}44`,
                                       "--glow-color": pc.glow,
                                       zIndex: isInProgress ? 3 : 1,
+                                      opacity: isDeferred ? 0.5 : 1,
                                     } as React.CSSProperties
                                   }
                                 >
                                   {barPx > 28 && (
-                                    <span className="text-[9px] text-white/80 font-medium truncate">
+                                    <span className="text-[9px] text-white/80 font-mono font-medium truncate">
                                       {task.task_no}
                                     </span>
                                   )}
@@ -487,30 +515,15 @@ export default function GanttHUD({
               {todayCol >= 0 && todayCol < totalCols && (
                 <div
                   className="today-line absolute top-0 bottom-0 z-10 pointer-events-none"
-                  style={{
-                    left: todayCol * COL_PX + Math.floor(COL_PX / 2) - 1,
-                    width: 2,
-                  }}
+                  style={{ left: todayCol * COL_PX + Math.floor(COL_PX / 2) - 1, width: 2 }}
                 >
-                  {/* TODAY badge */}
                   <div
                     className="absolute bg-red-500 text-white font-bold rounded whitespace-nowrap"
-                    style={{
-                      top: HEADER_PERIOD_H + 2,
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      fontSize: 8,
-                      padding: "1px 4px",
-                      lineHeight: 1.4,
-                    }}
+                    style={{ top: HEADER_PERIOD_H + 2, left: "50%", transform: "translateX(-50%)", fontSize: 8, padding: "1px 4px", lineHeight: 1.4 }}
                   >
                     TODAY
                   </div>
-                  {/* Vertical line */}
-                  <div
-                    className="absolute w-0.5 bg-red-500/70"
-                    style={{ top: 0, bottom: 0 }}
-                  />
+                  <div className="absolute w-0.5 bg-red-500/70" style={{ top: 0, bottom: 0 }} />
                 </div>
               )}
             </div>
@@ -537,6 +550,7 @@ function HUDHeader({
   const statusColor: Record<string, string> = {
     active: "text-green-400",
     "in progress": "text-blue-400",
+    in_progress: "text-blue-400",
     completed: "text-slate-500",
     on_hold: "text-amber-400",
     cancelled: "text-red-400",
@@ -546,20 +560,16 @@ function HUDHeader({
 
   return (
     <div className="bg-slate-900 border-b border-slate-800 px-5 py-3 flex items-center gap-5 shrink-0 flex-wrap">
-      {/* Icon + title */}
       <div className="flex items-center gap-2.5">
         <GanttIcon className="w-5 h-5 text-blue-400 shrink-0" />
         <div>
-          <h1 className="text-sm font-bold text-white leading-tight">
-            CRM Optimization HUD
-          </h1>
+          <h1 className="text-sm font-bold text-white leading-tight">CRM Optimization HUD</h1>
           <p className="text-[10px] text-slate-500">Project Gantt Timeline</p>
         </div>
       </div>
 
       <div className="w-px h-8 bg-slate-800 hidden sm:block" />
 
-      {/* Project selector */}
       <div className="flex items-center gap-2">
         <span className="text-xs text-slate-400 shrink-0">Project:</span>
         <select
@@ -577,7 +587,6 @@ function HUDHeader({
 
       <div className="w-px h-8 bg-slate-800 hidden sm:block" />
 
-      {/* Project metadata */}
       <div className="flex items-center gap-5 text-xs flex-wrap">
         {activeProject.client_name && (
           <div className="flex items-center gap-1.5">
@@ -587,11 +596,7 @@ function HUDHeader({
         )}
         <div className="flex items-center gap-1.5">
           <span className="text-slate-500">Status</span>
-          <span
-            className={
-              statusColor[activeProject.project_status] ?? "text-slate-300"
-            }
-          >
+          <span className={statusColor[activeProject.project_status] ?? "text-slate-300"}>
             {activeProject.project_status}
           </span>
         </div>
@@ -600,8 +605,7 @@ function HUDHeader({
             <span className="text-slate-500">Phase</span>
             <span className="font-semibold" style={{ color: pc.hex }}>
               {activeProject.current_phase} —{" "}
-              {PHASE_LABELS[activeProject.current_phase] ??
-                `Phase ${activeProject.current_phase}`}
+              {PHASE_LABELS[activeProject.current_phase] ?? `Phase ${activeProject.current_phase}`}
             </span>
           </div>
         )}
@@ -609,9 +613,7 @@ function HUDHeader({
           <div className="flex items-center gap-1.5">
             <span className="text-slate-500">Target Close</span>
             <span className="text-slate-200">
-              {new Date(
-                activeProject.target_close_date + "T12:00:00Z"
-              ).toLocaleDateString("en-US", {
+              {new Date(activeProject.target_close_date + "T12:00:00Z").toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
@@ -624,17 +626,11 @@ function HUDHeader({
   )
 }
 
-// ── Gantt Icon SVG ─────────────────────────────────────────────────────────
+// ── Gantt Icon ─────────────────────────────────────────────────────────────
 
 function GanttIcon({ className }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 20 20"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    >
+    <svg className={className} fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5">
       <rect x="1" y="3" width="10" height="3" rx="0.5" />
       <rect x="5" y="9" width="12" height="3" rx="0.5" />
       <rect x="2" y="15" width="9" height="3" rx="0.5" />

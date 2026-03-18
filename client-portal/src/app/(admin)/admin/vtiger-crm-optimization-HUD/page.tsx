@@ -29,6 +29,9 @@ export type HUDTask = {
   is_milestone: boolean
   assigned_to: string | null
   priority: string | null
+  vtiger_task_id: string | null
+  airtable_record_id: string | null
+  modified_source: string | null
 }
 
 export type GridConfig = {
@@ -125,7 +128,7 @@ export default async function VtigerCRMHUDPage({
   const { data: tasks } = await adminClient
     .from("asi360_project_tasks")
     .select(
-      "id, task_no, task_name, phase_no, phase_name, status, start_date, due_date, end_date, completed_date, is_milestone, assigned_to, priority"
+      "id, task_no, task_name, phase_no, phase_name, status, start_date, due_date, end_date, completed_date, is_milestone, assigned_to, priority, vtiger_task_id, airtable_record_id, modified_source"
     )
     .eq("project_id", activeProject.id)
     .order("phase_no", { ascending: true })
