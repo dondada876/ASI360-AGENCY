@@ -25,7 +25,7 @@ export default async function AdminLayout({
     .eq("user_id", user.id)
     .single()
 
-  if (!profile || profile.role !== "admin") {
+  if (!profile || !["admin", "owner"].includes(profile.role)) {
     redirect("/portal")
   }
 

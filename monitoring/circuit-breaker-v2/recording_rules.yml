@@ -1,0 +1,318 @@
+# recording_rules.yml — Pre-computed PromQL aggregations for Circuit Breaker v2.
+#
+# Recording rules run on Prometheus's evaluation interval (default 15s-1m)
+# and store results as new time series. This avoids expensive real-time
+# computation on dashboards/alerts, especially for:
+#   - SLO burn rate windows (1h, 6h, 24h, 30d)
+#   - Cross-service aggregations
+#   - Histogram quantiles
+#   - Multi-window rate calculations
+#
+# Deploy to: /opt/prometheus/rules/cb_recording_rules.yml
+# Validate: promtool check rules recording_rules.yml
+# Reload:   curl -X POST http://localhost:9090/-/reload
+#
+# Naming convention (Prometheus best practice):
+#   level:metric:operations
+#   e.g., cb:service_availability:ratio_5m
+
+groups:
+
+  # ══════════════════════════════════════════════════════════════════
+  # SLO & Availability — Multi-Window Burn Rate (Google SRE book, Ch28)
+  #
+  # SLO targets:
+  #   Critical (gateway, security, monitoring): 99.5% = 3.65h/month
+  #   Business (comms, orchestration, background): 99.0% = 7.31h/month
+  #   Support  (tools, on_demand): 95.0% = 36h/month
+  #
+  # Error budget burn rate = (error_rate / (1 - SLO))
+  # Burn rate 1.0 = consuming budget at exactly the allowed pace
+  # Burn rate > 1.0 = burning too fast → alert
+  #
+  # Multi-window: short window (fast detect) + long window (sustained)
+  # ══════════════════════════════════════════════════════════════════
+  - name: cb_slo_recording
+    interval: 30s
+    rules:
+
+      # ── Availability ratio (fraction of time service is UP) ─────
+      # Used as the foundation for all SLO calculations.
+      # Value: 0.0 (always down) to 1.0 (always up)
+
+      - record: cb:service_up:bool
+        expr: cb_service_state == bool 1
+
+      # 5m availability (fast window — for real-time gauges)
+      - record: cb:service_availability:ratio_5m
+        expr: avg_over_time(cb:service_up:bool[5m:30s])
+
+      # 1h availability (short burn rate window)
+      - record: cb:service_availability:ratio_1h
+        expr: avg_over_time(cb:service_up:bool[1h:30s])
+
+      # 6h availability (medium burn rate window)
+      - record: cb:service_availability:ratio_6h
+        expr: avg_over_time(cb:service_up:bool[6h:30s])
+
+      # 24h availability (daily SLO window)
+      - record: cb:service_availability:ratio_24h
+        expr: avg_over_time(cb:service_up:bool[24h:30s])
+
+      # 7d availability (weekly trend)
+      - record: cb:service_availability:ratio_7d
+        expr: avg_over_time(cb:service_up:bool[7d:1m])
+
+      # 30d availability (monthly SLO target)
+      - record: cb:service_availability:ratio_30d
+        expr: avg_over_time(cb:service_up:bool[30d:5m])
+
+      # ── Burn Rate Calculations ──────────────────────────────────
+      # Burn rate = error_rate / error_budget
+      # error_rate = 1 - availability
+      # error_budget = 1 - SLO
+
+      # Critical services: SLO 99.5%, error budget = 0.005
+      - record: cb:burn_rate:critical_1h
+        expr: |
+          (1 - cb:service_availability:ratio_1h{group=~"gateway|security|monitoring"})
+          / 0.005
+
+      - record: cb:burn_rate:critical_6h
+        expr: |
+          (1 - cb:service_availability:ratio_6h{group=~"gateway|security|monitoring"})
+          / 0.005
+
+      # Business services: SLO 99.0%, error budget = 0.01
+      - record: cb:burn_rate:business_1h
+        expr: |
+          (1 - cb:service_availability:ratio_1h{group=~"comms|orchestration|background"})
+          / 0.01
+
+      - record: cb:burn_rate:business_6h
+        expr: |
+          (1 - cb:service_availability:ratio_6h{group=~"comms|orchestration|background"})
+          / 0.01
+
+      # Support/tools: SLO 95.0%, error budget = 0.05
+      - record: cb:burn_rate:support_1h
+        expr: |
+          (1 - cb:service_availability:ratio_1h{group="tools"})
+          / 0.05
+
+      # ── Error Budget Remaining ──────────────────────────────────
+      # How much monthly error budget has been consumed?
+      # 0.0 = none consumed, 1.0 = fully consumed, >1.0 = breached
+
+      - record: cb:error_budget_consumed:critical_30d
+        expr: |
+          (1 - cb:service_availability:ratio_30d{group=~"gateway|security|monitoring"})
+          / 0.005
+
+      - record: cb:error_budget_consumed:business_30d
+        expr: |
+          (1 - cb:service_availability:ratio_30d{group=~"comms|orchestration|background"})
+          / 0.01
+
+      - record: cb:error_budget_consumed:support_30d
+        expr: |
+          (1 - cb:service_availability:ratio_30d{group="tools"})
+          / 0.05
+
+  # ══════════════════════════════════════════════════════════════════
+  # Fleet Aggregations — Pre-computed summaries for dashboard stat panels
+  # ══════════════════════════════════════════════════════════════════
+  - name: cb_fleet_recording
+    interval: 30s
+    rules:
+
+      # ── Fleet Counts by State ───────────────────────────────────
+      - record: cb:fleet:total
+        expr: count(cb_service_state)
+
+      - record: cb:fleet:healthy
+        expr: count(cb_service_state == 1)
+
+      - record: cb:fleet:degraded
+        expr: count(cb_service_state == 2)
+
+      - record: cb:fleet:down
+        expr: count(cb_service_state == 0)
+
+      - record: cb:fleet:hibernating
+        expr: count(cb_service_state == 3)
+
+      - record: cb:fleet:maintenance
+        expr: count(cb_service_state == 4)
+
+      - record: cb:fleet:starting
+        expr: count(cb_service_state == 5)
+
+      # ── Fleet Counts by Mode ────────────────────────────────────
+      - record: cb:fleet:always_on_count
+        expr: count(cb_service_state{mode="always_on"})
+
+      - record: cb:fleet:on_demand_count
+        expr: count(cb_service_state{mode="on_demand"})
+
+      - record: cb:fleet:manual_count
+        expr: count(cb_service_state{mode="manual"})
+
+      # ── Fleet Health Percentage ─────────────────────────────────
+      - record: cb:fleet:health_pct
+        expr: |
+          (
+            count(cb_service_state == 1)
+            / count(cb_service_state)
+          ) * 100
+
+      # ── Always-on uptime ratio ──────────────────────────────────
+      - record: cb:fleet:always_on_health_pct
+        expr: |
+          (
+            count(cb_service_state{mode="always_on"} == 1)
+            / count(cb_service_state{mode="always_on"})
+          ) * 100
+
+      # ── Total Resource Usage ────────────────────────────────────
+      - record: cb:fleet:total_memory_mb
+        expr: sum(cb_service_memory_bytes) / 1024 / 1024
+
+      - record: cb:fleet:avg_latency_ms
+        expr: |
+          avg(cb_service_latency_ms{service!=""} > 0) or vector(0)
+
+      - record: cb:fleet:max_latency_ms
+        expr: |
+          max(cb_service_latency_ms{service!=""} > 0) or vector(0)
+
+  # ══════════════════════════════════════════════════════════════════
+  # Lifecycle Rate Calculations — Pre-computed rates for time series
+  # ══════════════════════════════════════════════════════════════════
+  - name: cb_lifecycle_recording
+    interval: 60s
+    rules:
+
+      # ── Restart Rate (per service, per hour) ────────────────────
+      - record: cb:restarts:rate_1h
+        expr: increase(cb_restart_total[1h])
+
+      - record: cb:restarts:rate_24h
+        expr: increase(cb_restart_total[24h])
+
+      # ── Fleet-wide restart rate ─────────────────────────────────
+      - record: cb:fleet:restarts_1h
+        expr: sum(increase(cb_restart_total[1h]))
+
+      - record: cb:fleet:restarts_24h
+        expr: sum(increase(cb_restart_total[24h]))
+
+      # ── Failure Rate (per service, per hour) ────────────────────
+      - record: cb:failures:rate_1h
+        expr: increase(cb_breaker_failures_total[1h])
+
+      # ── Trip Rate ───────────────────────────────────────────────
+      - record: cb:trips:rate_24h
+        expr: increase(cb_breaker_trips_total[24h])
+
+      - record: cb:fleet:trips_24h
+        expr: sum(increase(cb_breaker_trips_total[24h]))
+
+      # ── Recovery Rate ───────────────────────────────────────────
+      - record: cb:recoveries:rate_24h
+        expr: increase(cb_breaker_recovery_total[24h])
+
+      # ── Hibernate/Wake Activity ─────────────────────────────────
+      - record: cb:hibernations:rate_24h
+        expr: increase(cb_hibernate_total[24h])
+
+      - record: cb:wakes:rate_24h
+        expr: increase(cb_wake_total[24h])
+
+      # ── Event Totals ────────────────────────────────────────────
+      - record: cb:events:rate_1h
+        expr: sum by (event_type) (increase(cb_event_total[1h]))
+
+      - record: cb:fleet:events_24h
+        expr: sum(increase(cb_event_total[24h]))
+
+  # ══════════════════════════════════════════════════════════════════
+  # Latency & Performance — Histogram quantiles, per-service trends
+  # ══════════════════════════════════════════════════════════════════
+  - name: cb_latency_recording
+    interval: 30s
+    rules:
+
+      # ── Health Check Latency Percentiles ────────────────────────
+      # (cb_service_latency_ms is a gauge, not histogram, so we track trends)
+      - record: cb:latency:max_by_group
+        expr: max by (group) (cb_service_latency_ms > 0)
+
+      - record: cb:latency:avg_by_group
+        expr: avg by (group) (cb_service_latency_ms > 0)
+
+      # ── Wake Latency Histogram Quantiles ────────────────────────
+      - record: cb:wake_latency:p50
+        expr: histogram_quantile(0.50, sum by (le) (rate(cb_wake_latency_seconds_bucket[1h])))
+
+      - record: cb:wake_latency:p95
+        expr: histogram_quantile(0.95, sum by (le) (rate(cb_wake_latency_seconds_bucket[1h])))
+
+      - record: cb:wake_latency:p99
+        expr: histogram_quantile(0.99, sum by (le) (rate(cb_wake_latency_seconds_bucket[1h])))
+
+      # ── Per-service wake latency p95 ────────────────────────────
+      - record: cb:wake_latency:p95_by_service
+        expr: |
+          histogram_quantile(0.95,
+            sum by (service, le) (rate(cb_wake_latency_seconds_bucket[1h]))
+          )
+
+  # ══════════════════════════════════════════════════════════════════
+  # Idle Tracking — Resource optimization insights
+  # ══════════════════════════════════════════════════════════════════
+  - name: cb_idle_recording
+    interval: 60s
+    rules:
+
+      # ── ON_DEMAND services: avg idle time ───────────────────────
+      - record: cb:idle:avg_on_demand
+        expr: avg(cb_idle_seconds{mode="on_demand"})
+
+      # ── Services near hibernate threshold ───────────────────────
+      # (idle > 80% of their timeout — about to sleep)
+      - record: cb:idle:near_hibernate_count
+        expr: |
+          count(
+            cb_idle_seconds{mode="on_demand"} > 240
+            and cb_service_state{mode="on_demand"} == 1
+          ) or vector(0)
+
+      # ── Estimated RAM saved by hibernation ──────────────────────
+      - record: cb:fleet:hibernated_ram_saved_mb
+        expr: |
+          sum(cb_service_memory_bytes{mode="on_demand"} * (cb_service_state{mode="on_demand"} == bool 3))
+          / 1024 / 1024
+          or vector(0)
+
+  # ══════════════════════════════════════════════════════════════════
+  # Dependency Health — Cascade impact pre-computation
+  # ══════════════════════════════════════════════════════════════════
+  - name: cb_dependency_recording
+    interval: 30s
+    rules:
+
+      # ── Total blocked services ──────────────────────────────────
+      - record: cb:deps:blocked_total
+        expr: count(cb_dependency_blocked == 1) or vector(0)
+
+      # ── Blocked count per dependency root cause ─────────────────
+      - record: cb:deps:blocked_by_service
+        expr: count by (blocked_by) (cb_dependency_blocked == 1)
+
+      # ── Gateway cascade indicator ───────────────────────────────
+      # 1 if gateway is down (triggers cascade for ~12 services)
+      - record: cb:deps:gateway_cascade_active
+        expr: |
+          (cb_service_state{service="mcp-gateway"} == bool 0)
+          + (cb_service_state{service="key-custodian"} == bool 0)

@@ -24,6 +24,9 @@ const ADMIN_ITEMS = [
   { href: "/admin", label: "Admin Overview", icon: AdminIcon },
   { href: "/admin/clients", label: "Manage Clients", icon: UsersIcon },
   { href: "/admin/invite", label: "Invite Client", icon: InviteIcon },
+  { href: "/admin/cases", label: "All Cases", icon: CasesIcon },
+  { href: "/admin/notifications", label: "Notifications", icon: BellIcon },
+  { href: "/admin/audit", label: "Audit Log", icon: AuditIcon },
 ]
 
 export default function PortalSidebar({ profile }: { profile: Profile }) {
@@ -31,6 +34,32 @@ export default function PortalSidebar({ profile }: { profile: Profile }) {
   const router = useRouter()
 
   async function handleSignOut() {
+    // Log logout with session ID for duration tracking
+    try {
+      const sessionId =
+        typeof window !== "undefined"
+          ? sessionStorage.getItem("portal_session_id")
+          : null
+      await fetch("/api/auth/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_type: "logout",
+          email: profile.email,
+          session_id: sessionId,
+          metadata: {
+            role: profile.role,
+            display_name: profile.display_name,
+          },
+        }),
+      })
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("portal_session_id")
+      }
+    } catch {
+      // Silent — never block sign-out
+    }
+
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/login")
@@ -78,7 +107,7 @@ export default function PortalSidebar({ profile }: { profile: Profile }) {
           )
         })}
 
-        {profile.role === "admin" && (
+        {["admin", "owner"].includes(profile.role) && (
           <>
             <div className="h-px bg-gray-200 dark:bg-slate-800 my-3" />
             <p className="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider px-3 mb-2">
@@ -186,6 +215,26 @@ function InviteIcon({ className }: { className?: string }) {
       <path d="M2 15c0-3.3 2.7-6 6-6s6 2.7 6 6" />
       <line x1="13" y1="2" x2="13" y2="6" />
       <line x1="11" y1="4" x2="15" y2="4" />
+    </svg>
+  )
+}
+
+function BellIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1.5">
+      <path d="M8 1.5a4 4 0 014 4v3l1.5 2H2.5L4 8.5v-3a4 4 0 014-4z" />
+      <path d="M6 13a2 2 0 004 0" />
+    </svg>
+  )
+}
+
+function AuditIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1.5">
+      <rect x="2" y="1" width="12" height="14" rx="1" />
+      <line x1="5" y1="5" x2="11" y2="5" />
+      <line x1="5" y1="8" x2="11" y2="8" />
+      <line x1="5" y1="11" x2="9" y2="11" />
     </svg>
   )
 }

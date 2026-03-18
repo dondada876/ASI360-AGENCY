@@ -10,7 +10,7 @@ function generateTempPassword(): string {
   for (let i = 0; i < 12; i++) {
     password += chars.charAt(Math.floor(Math.random() * chars.length))
   }
-  return password + "!"
+  return password + "#1"
 }
 
 export async function POST(request: NextRequest) {
@@ -31,7 +31,10 @@ export async function POST(request: NextRequest) {
       .eq("user_id", user.id)
       .single()
 
-    if (!callerProfile || callerProfile.role !== "admin") {
+    if (
+      !callerProfile ||
+      !["admin", "owner"].includes(callerProfile.role)
+    ) {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 })
     }
 
@@ -116,6 +119,28 @@ export async function POST(request: NextRequest) {
         // Don't fail the entire invite — user is created, access can be fixed
       }
     }
+
+    // Log audit events
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (adminClient as any).from("auth_audit_log").insert([
+      {
+        user_id: newUser.user.id,
+        email,
+        event_type: "account_created",
+        metadata: {
+          invited_by: user.id,
+          role: role || "client",
+          company_name,
+          projects_assigned: projects?.length || 0,
+        },
+      },
+      {
+        user_id: user.id,
+        email: user.email,
+        event_type: "invite_sent",
+        metadata: { invited_email: email, role: role || "client" },
+      },
+    ])
 
     // Create welcome notification (appears in-app on first login)
     if (profile) {
