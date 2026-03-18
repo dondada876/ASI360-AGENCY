@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useMemo } from "react"
+import { useState, useMemo } from "react"
 import { useTheme } from "next-themes"
 import type { HUDProject, HUDTask, GridConfig } from "@/app/(admin)/admin/vtiger-crm-optimization-HUD/page"
 
@@ -118,16 +118,21 @@ export default function GanttHUD({
   activeProject,
   tasks,
   grid,
+  ticketCount,
+  caseCount,
 }: {
   projects: HUDProject[]
   activeProjectNo: string
   activeProject: HUDProject
   tasks: HUDTask[]
   grid: GridConfig | null
+  ticketCount: number
+  caseCount: number
 }) {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
+  const [briefOpen, setBriefOpen] = useState(false)
 
   const tasksByPhase = useMemo(() => {
     const g: Record<number, HUDTask[]> = {}
@@ -167,6 +172,7 @@ export default function GanttHUD({
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col">
         <HUDHeader projects={projects} activeProjectNo={activeProjectNo} onSelect={onProjectSelect} activeProject={activeProject} />
+        <ProjectBrief project={activeProject} ticketCount={ticketCount} caseCount={caseCount} open={briefOpen} onToggle={() => setBriefOpen(!briefOpen)} />
         <div className="flex-1 flex items-center justify-center text-gray-400 dark:text-slate-500 text-sm">
           No timeline data — project is missing start or end dates.
         </div>
@@ -207,6 +213,7 @@ export default function GanttHUD({
 
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col">
         <HUDHeader projects={projects} activeProjectNo={activeProjectNo} onSelect={onProjectSelect} activeProject={activeProject} />
+        <ProjectBrief project={activeProject} ticketCount={ticketCount} caseCount={caseCount} open={briefOpen} onToggle={() => setBriefOpen(!briefOpen)} />
 
         <div className="flex-1 overflow-auto">
           <div className="flex" style={{ minWidth: LABEL_W + totalGridWidth }}>
@@ -505,6 +512,144 @@ export default function GanttHUD({
   )
 }
 
+// ── Project Brief ──────────────────────────────────────────────────────────
+
+function ProjectBrief({
+  project,
+  ticketCount,
+  caseCount,
+  open,
+  onToggle,
+}: {
+  project: HUDProject
+  ticketCount: number
+  caseCount: number
+  open: boolean
+  onToggle: () => void
+}) {
+  const pc = PHASE_COLORS[project.current_phase ?? 1] ?? PHASE_COLORS[1]
+  const healthColor =
+    project.health_score === null ? "text-gray-400" :
+    project.health_score >= 80 ? "text-green-500" :
+    project.health_score >= 50 ? "text-amber-500" : "text-red-500"
+
+  const description = project.scope_description || project.description
+  const [descExpanded, setDescExpanded] = useState(false)
+  const descTrimmed = description && description.length > 300 && !descExpanded
+    ? description.slice(0, 300) + "…"
+    : description
+
+  return (
+    <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shrink-0">
+      {/* Toggle bar */}
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center gap-2 px-5 py-1.5 text-left hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+      >
+        <span
+          className={`text-[9px] transition-transform duration-200 ${open ? "rotate-90" : ""} text-gray-400 dark:text-slate-500`}
+        >
+          ▶
+        </span>
+        <span className="text-[10px] font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+          Project Brief
+        </span>
+        {(ticketCount > 0 || caseCount > 0) && (
+          <span className="flex items-center gap-1.5 ml-2">
+            {ticketCount > 0 && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                {ticketCount} ticket{ticketCount !== 1 ? "s" : ""}
+              </span>
+            )}
+            {caseCount > 0 && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                {caseCount} case{caseCount !== 1 ? "s" : ""}
+              </span>
+            )}
+          </span>
+        )}
+        {project.health_score !== null && (
+          <span className={`text-[10px] font-bold ml-auto ${healthColor}`}>
+            Health {project.health_score}%
+          </span>
+        )}
+      </button>
+
+      {/* Expanded content */}
+      {open && (
+        <div className="px-5 pb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+          {/* Description / Scope */}
+          {description && (
+            <div className="lg:col-span-2">
+              <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1">
+                {project.scope_description ? "Scope" : "Description"}
+              </p>
+              <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
+                {descTrimmed}
+                {description.length > 300 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setDescExpanded(!descExpanded) }}
+                    className="ml-1 text-blue-500 hover:underline text-[10px]"
+                  >
+                    {descExpanded ? "less" : "more"}
+                  </button>
+                )}
+              </p>
+            </div>
+          )}
+
+          {/* Meta column */}
+          <div className="flex flex-col gap-2">
+            {project.site_address && (
+              <div>
+                <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Site</p>
+                <p className="text-gray-700 dark:text-slate-300">{project.site_address}</p>
+              </div>
+            )}
+            {project.contact_name && (
+              <div>
+                <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Contact</p>
+                <p className="text-gray-700 dark:text-slate-300">
+                  {project.contact_name}
+                  {project.contact_phone && (
+                    <span className="text-gray-400 dark:text-slate-500 ml-1">· {project.contact_phone}</span>
+                  )}
+                </p>
+              </div>
+            )}
+            <div>
+              <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Phase</p>
+              <p className="font-semibold" style={{ color: pc.hex }}>
+                {project.current_phase
+                  ? `${project.current_phase} — ${PHASE_LABELS[project.current_phase] ?? `Phase ${project.current_phase}`}`
+                  : "Not started"}
+              </p>
+            </div>
+            {(ticketCount > 0 || caseCount > 0) && (
+              <div>
+                <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Open Work</p>
+                <a href="/admin/cases" className="flex items-center gap-2 hover:underline">
+                  {ticketCount > 0 && (
+                    <span className="text-amber-600 dark:text-amber-400">
+                      {ticketCount} open ticket{ticketCount !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                  {ticketCount > 0 && caseCount > 0 && <span className="text-gray-300 dark:text-slate-600">·</span>}
+                  {caseCount > 0 && (
+                    <span className="text-red-600 dark:text-red-400">
+                      {caseCount} open case{caseCount !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── HUD Header ─────────────────────────────────────────────────────────────
 
 function HUDHeader({
@@ -534,8 +679,8 @@ function HUDHeader({
       <div className="flex items-center gap-2.5">
         <GanttIcon className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0" />
         <div>
-          <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">CRM Optimization HUD</h1>
-          <p className="text-[10px] text-gray-400 dark:text-slate-500">Project Gantt Timeline</p>
+          <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">Project Tracker</h1>
+          <p className="text-[10px] text-gray-400 dark:text-slate-500">Gantt — Airtable · Supabase · VTiger</p>
         </div>
       </div>
 
