@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
 import { getServiceClient } from "@/lib/vault"
-import SyncStatusCell from "@/components/admin/SyncStatusCell"
 
 // ── Status badge styles ────────────────────────────────────────────────────
 
