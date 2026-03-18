@@ -80,10 +80,12 @@ export async function loadSecrets(
   }
 
   if (data) {
-    for (const row of data as { name: string; secret: string }[]) {
-      result[row.name] = row.secret
-      secretCache[row.name] = {
-        value: row.secret,
+    // get_secrets returns a jsonb dict {name: value}, not an array of rows
+    const dict = data as Record<string, string>
+    for (const name of Object.keys(dict)) {
+      result[name] = dict[name]
+      secretCache[name] = {
+        value: dict[name],
         expiresAt: now + CACHE_TTL_MS,
       }
     }

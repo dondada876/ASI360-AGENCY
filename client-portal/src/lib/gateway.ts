@@ -15,7 +15,7 @@ let _gatewayKey: string | null = null
 
 async function getGatewayKey(): Promise<string> {
   if (!_gatewayKey) {
-    _gatewayKey = (await getSecret("gateway_api_key")) || ""
+    _gatewayKey = (await getSecret("asi360_gateway_key")) || ""
   }
   return _gatewayKey
 }
