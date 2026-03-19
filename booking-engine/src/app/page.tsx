@@ -125,7 +125,12 @@ export default function BookingPage() {
       <WeatherBadge />
 
       {/* Athena voice concierge — floating button, right side */}
-      <AthenaButton />
+      <AthenaButton
+        onSelectZone={(zoneId) => {
+          setActive360(null) // close 360 if open
+          setTimeout(() => setSelectedZone(zoneId), 300)
+        }}
+      />
 
       {/* Zone selection prompt — visible when no zone selected, only after intro */}
       <AnimatePresence>
