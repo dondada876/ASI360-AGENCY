@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAPBOX_CONFIG, ZONES, ZONE_COLORS } from '@/lib/zones'
 
 interface BookingMapProps {
@@ -17,7 +18,13 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
 
   // Initialize map
   useEffect(() => {
-    if (map.current || !mapContainer.current) return
+    if (!mapContainer.current) return
+
+    // Clean up any existing map (handles React strict mode remount)
+    if (map.current) {
+      map.current.remove()
+      map.current = null
+    }
 
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
@@ -205,7 +212,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
     // ── Zone hover interaction ──
     let hoveredFeatureId: string | number | null = null
 
-    map.current.on('mousemove', 'zone-fills', (e) => {
+    map.current.on('mousemove', 'zone-fills', (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.GeoJSONFeature[] }) => {
       if (!map.current || !e.features?.length) return
       map.current.getCanvas().style.cursor = 'pointer'
 
@@ -241,22 +248,24 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
     })
 
     // ── Zone click ──
-    map.current.on('click', 'zone-fills', (e) => {
+    map.current.on('click', 'zone-fills', (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.GeoJSONFeature[] }) => {
       if (!e.features?.length) return
       const zoneId = e.features[0].properties?.zone
       if (zoneId) onZoneSelect(zoneId)
     })
 
     // ── Click outside zones to deselect ──
-    map.current.on('click', (e) => {
+    map.current.on('click', (e: mapboxgl.MapMouseEvent) => {
       if (!map.current) return
       const features = map.current.queryRenderedFeatures(e.point, { layers: ['zone-fills'] })
       if (!features.length) onZoneSelect(null)
     })
 
     return () => {
-      map.current?.remove()
-      map.current = null
+      if (map.current) {
+        map.current.remove()
+        map.current = null
+      }
     }
   }, [onZoneSelect])
 
@@ -282,7 +291,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
       const selectedFeatures = features.filter(
         (f) => f.properties?.zone === selectedZone && f.properties?.type === 'booking_zone'
       )
-      selectedFeatures.forEach((f) => {
+      selectedFeatures.forEach((f: any) => {
         if (f.id != null) {
           map.current!.setFeatureState(
             { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.dataset, id: f.id },

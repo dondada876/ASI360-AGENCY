@@ -45,12 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
-      <head>
-        <link
-          href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css"
-          rel="stylesheet"
-        />
-      </head>
+      <head />
       <body>{children}</body>
     </html>
   )
