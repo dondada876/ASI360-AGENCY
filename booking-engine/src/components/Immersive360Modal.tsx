@@ -224,34 +224,12 @@ export default function Immersive360Modal({
               </button>
             </div>
 
-            {/* Bottom overlay — weather + book now */}
-            <div className="absolute bottom-4 left-4 right-4 z-30 flex items-center justify-between gap-3">
-              {/* Weather chip */}
-              {todayForecast && (
-                <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl shrink-0"
-                  style={{
-                    backdropFilter: 'blur(12px)',
-                    background: 'rgba(0,0,0,0.6)',
-                    border: '1px solid rgba(212,175,55,0.2)',
-                  }}
-                >
-                  <span className="text-base">{getWeatherIcon(todayForecast.day_type, todayForecast.condition)}</span>
-                  <div className="flex items-center gap-2 text-[11px]">
-                    <span className="text-white font-medium">{Math.round(todayForecast.high_f)}°F</span>
-                    <span className="text-white/40 hidden sm:inline">{todayForecast.condition}</span>
-                    {todaySun && (
-                      <span className="text-amber-400/70">🌅{todaySun.sunset}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Book Now CTA */}
-              {onBookNow && (
+            {/* Book Now CTA — top area, below header, always visible above video controls */}
+            {onBookNow && (
+              <div className="absolute top-14 left-5 z-30">
                 <button
                   onClick={onBookNow}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:scale-105 active:scale-95 shrink-0"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:scale-105 active:scale-95"
                   style={{
                     background: 'linear-gradient(135deg, #D4AF37, #B8962E)',
                     color: '#1A1A2E',
@@ -262,8 +240,24 @@ export default function Immersive360Modal({
                   <span>☂️</span>
                   <span>Book This Spot</span>
                 </button>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Weather chip — top-right, below close button */}
+            {todayForecast && (
+              <div
+                className="absolute top-14 right-5 z-30 flex items-center gap-2 px-3 py-1.5 rounded-full"
+                style={{
+                  backdropFilter: 'blur(12px)',
+                  background: 'rgba(0,0,0,0.6)',
+                  border: '1px solid rgba(212,175,55,0.2)',
+                }}
+              >
+                <span className="text-sm">{getWeatherIcon(todayForecast.day_type, todayForecast.condition)}</span>
+                <span className="text-white font-medium text-[11px]">{Math.round(todayForecast.high_f)}°F</span>
+                {todaySun && <span className="text-amber-400/70 text-[10px]">🌅{todaySun.sunset}</span>}
+              </div>
+            )}
 
             {/* Photo Sphere Viewer container — fills entire modal */}
             <div

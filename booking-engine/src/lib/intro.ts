@@ -59,20 +59,28 @@ export function runGlobe(map: any): Promise<void> {
 
 export function runDescent(map: any): Promise<void> {
   return new Promise((resolve) => {
-    // Remove globe projection for the descent
+    let resolved = false
+    const done = () => { if (!resolved) { resolved = true; resolve() } }
+
+    // Switch projection first, wait, then fly
     map.setProjection('mercator')
     map.setFog({})
 
-    map.flyTo({
-      center: [-122.2509, 37.8073],
-      zoom: 17.5,
-      pitch: 50,
-      bearing: -30,
-      duration: 3500,
-      essential: true,
-      curve: 1.8,
-    })
-    map.once('moveend', () => resolve())
+    // Small delay to let projection settle before flyTo
+    setTimeout(() => {
+      map.flyTo({
+        center: [-122.2509, 37.8073],
+        zoom: 17.5,
+        pitch: 70,
+        bearing: -30,
+        duration: 3500,
+        essential: true,
+        curve: 1.8,
+      })
+      map.once('moveend', done)
+      // Safety timeout — resolve even if moveend doesn't fire
+      setTimeout(done, 5000)
+    }, 500)
   })
 }
 

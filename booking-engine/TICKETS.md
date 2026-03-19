@@ -191,6 +191,49 @@ Generated from Playwright audit on 2026-03-19.
 | BK-009 | P2 HIGH | Planned | Voice Agent |
 | BK-010 | P3 MEDIUM | Open | Testing |
 
-**Critical path:** BK-001 → BK-003 → BK-004 (map must work, buttons must be tappable)
-**Next sprint:** BK-005 → BK-009 (live weather, voice agent)
+## BK-011: Timezone mismatch — UTC vs Pacific (MEDIUM)
+
+**Status:** Open
+**Priority:** P3
+
+**Problem:** Droplet runs UTC. `/api/weather` route uses `new Date().toISOString().split('T')[0]` which returns UTC date. After 5pm PDT (midnight UTC), "today" becomes tomorrow's date, so no weather data matches.
+
+**Fix:**
+- Use `America/Los_Angeles` timezone in the weather API route
+- `new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })` returns `YYYY-MM-DD` in Pacific time
+- Apply consistently to all date comparisons in weather + booking code
+
+---
+
+## BK-012: "Book This Spot" hidden behind 360° video controls (HIGH)
+
+**Status:** Open
+**Priority:** P2
+
+**Problem:** In the 360° modal, the "Book This Spot" gold button is at the bottom — behind the Photo Sphere Viewer's navbar (play/pause, volume, timeline, gyroscope, fullscreen controls). Users can't tap it.
+
+**Fix:**
+- Move "Book This Spot" to **top-left below the 360° badge**, not the bottom
+- Or place it as a floating pill between the header and the viewer
+- Keep weather chip at the bottom-left (it's less critical than the CTA)
+
+---
+
+## BK-013: Weather Jockey not fetching new forecasts (MEDIUM)
+
+**Status:** Open
+**Priority:** P3
+
+**Problem:** WJ sync service is running but last forecast data is 2026-03-17 (2 days stale). The service may be syncing Airtable but not fetching fresh weather.
+
+**Investigation:**
+- Check WJ logs: `journalctl -u wj-sync.service --since "2 hours ago"`
+- The WJ sync service handles Supabase→Airtable sync, not weather fetching
+- The weather fetch may be a separate cron or N8N workflow
+- Need to find and restart the weather fetch process
+
+---
+
+**Critical path:** BK-001 → BK-003 → BK-004 → BK-012 (map must work, buttons must be tappable, CTA visible)
+**Next sprint:** BK-005 → BK-009 → BK-011 (live weather, voice agent, timezone)
 **Tech debt:** BK-007 → BK-010 (error handling, tests)

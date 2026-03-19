@@ -20,8 +20,8 @@ export default function AthenaButton() {
 
   return (
     <>
-      {/* Floating Athena button — right side, above bottom controls */}
-      <div className="fixed right-4 bottom-24 z-40 flex flex-col items-end gap-2">
+      {/* Floating Athena button — right side, well above nav controls and legend */}
+      <div className="fixed right-4 bottom-48 sm:bottom-40 z-40 flex flex-col items-end gap-2">
         {/* Welcome tooltip */}
         <AnimatePresence>
           {showTooltip && !showModal && (
