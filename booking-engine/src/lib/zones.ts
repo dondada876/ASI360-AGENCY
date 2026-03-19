@@ -8,6 +8,7 @@ export const MAPBOX_CONFIG = {
   style: 'mapbox://styles/asi360said/cmmx3trjt001i01r97yv10e7i',
   tileset: 'asi360said.cmmx2qu5g0leg1olhtkj83bs5-03u9l',
   dataset: 'cmmx2qu5g0leg1olhtkj83bs5',
+  sourceLayer: '500GL-Social-Club',
   center: [-122.2509, 37.8073] as [number, number],
   zoom: 17.5,
   bearing: -30, // angle the map to face the sunset direction

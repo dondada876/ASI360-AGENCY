@@ -75,7 +75,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
         id: 'service-boundary',
         type: 'line',
         source: 'booking-zones',
-        'source-layer': MAPBOX_CONFIG.dataset,
+        'source-layer': MAPBOX_CONFIG.sourceLayer,
         filter: ['==', ['get', 'type'], 'service_boundary'],
         paint: {
           'line-color': '#D4AF37',
@@ -90,7 +90,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
         id: 'zone-fills',
         type: 'fill',
         source: 'booking-zones',
-        'source-layer': MAPBOX_CONFIG.dataset,
+        'source-layer': MAPBOX_CONFIG.sourceLayer,
         filter: ['==', ['get', 'type'], 'booking_zone'],
         paint: {
           'fill-color': [
@@ -115,7 +115,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
         id: 'zone-outlines',
         type: 'line',
         source: 'booking-zones',
-        'source-layer': MAPBOX_CONFIG.dataset,
+        'source-layer': MAPBOX_CONFIG.sourceLayer,
         filter: ['==', ['get', 'type'], 'booking_zone'],
         paint: {
           'line-color': [
@@ -138,7 +138,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
         id: 'zone-labels',
         type: 'symbol',
         source: 'booking-zones',
-        'source-layer': MAPBOX_CONFIG.dataset,
+        'source-layer': MAPBOX_CONFIG.sourceLayer,
         filter: ['==', ['get', 'type'], 'booking_zone'],
         layout: {
           'text-field': ['get', 'zone'],
@@ -159,7 +159,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
         id: 'pole-markers',
         type: 'circle',
         source: 'booking-zones',
-        'source-layer': MAPBOX_CONFIG.dataset,
+        'source-layer': MAPBOX_CONFIG.sourceLayer,
         filter: ['==', ['get', 'type'], 'light_pole'],
         paint: {
           'circle-radius': 5,
@@ -175,7 +175,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
         id: 'pole-labels',
         type: 'symbol',
         source: 'booking-zones',
-        'source-layer': MAPBOX_CONFIG.dataset,
+        'source-layer': MAPBOX_CONFIG.sourceLayer,
         filter: ['==', ['get', 'type'], 'light_pole'],
         layout: {
           'text-field': ['get', 'pole_id'],
@@ -196,7 +196,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
         id: 'infrastructure',
         type: 'circle',
         source: 'booking-zones',
-        'source-layer': MAPBOX_CONFIG.dataset,
+        'source-layer': MAPBOX_CONFIG.sourceLayer,
         filter: ['==', ['get', 'type'], 'infrastructure'],
         paint: {
           'circle-radius': 7,
@@ -219,14 +219,14 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
       const feature = e.features[0]
       if (hoveredFeatureId !== null) {
         map.current.setFeatureState(
-          { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.dataset, id: hoveredFeatureId },
+          { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.sourceLayer, id: hoveredFeatureId },
           { hover: false }
         )
       }
       hoveredFeatureId = feature.id ?? null
       if (hoveredFeatureId !== null) {
         map.current.setFeatureState(
-          { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.dataset, id: hoveredFeatureId },
+          { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.sourceLayer, id: hoveredFeatureId },
           { hover: true }
         )
       }
@@ -239,7 +239,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
       map.current.getCanvas().style.cursor = ''
       if (hoveredFeatureId !== null) {
         map.current.setFeatureState(
-          { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.dataset, id: hoveredFeatureId },
+          { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.sourceLayer, id: hoveredFeatureId },
           { hover: false }
         )
       }
@@ -275,12 +275,12 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
 
     // Clear all selections
     const features = map.current.querySourceFeatures('booking-zones', {
-      sourceLayer: MAPBOX_CONFIG.dataset,
+      sourceLayer: MAPBOX_CONFIG.sourceLayer,
     })
     features.forEach((f) => {
       if (f.id != null) {
         map.current!.setFeatureState(
-          { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.dataset, id: f.id },
+          { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.sourceLayer, id: f.id },
           { selected: false }
         )
       }
@@ -294,7 +294,7 @@ export default function BookingMap({ onZoneSelect, selectedZone }: BookingMapPro
       selectedFeatures.forEach((f: any) => {
         if (f.id != null) {
           map.current!.setFeatureState(
-            { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.dataset, id: f.id },
+            { source: 'booking-zones', sourceLayer: MAPBOX_CONFIG.sourceLayer, id: f.id },
             { selected: true }
           )
         }
