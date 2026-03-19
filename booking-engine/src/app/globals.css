@@ -1,0 +1,184 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════
+   500 Grand Live Social Club — Booking Engine
+   Aesthetic: Golden Hour Lakeside Luxury
+   ═══════════════════════════════════════════════ */
+
+@theme inline {
+  --color-gold: #D4AF37;
+  --color-gold-light: #E8C84A;
+  --color-gold-dark: #B8962E;
+  --color-ember: #FF6B35;
+  --color-ember-light: #FF8F5E;
+  --color-lake: #1B3A4B;
+  --color-lake-deep: #0F2937;
+  --color-lake-surface: #2A5468;
+  --color-dusk: #1A1A2E;
+  --color-dusk-light: #252540;
+  --color-cream: #FFF8F0;
+  --color-cream-muted: #F5EDE3;
+  --color-sage: #6B8F6B;
+  --color-sage-light: #8FB88F;
+  --color-available: #4CAF50;
+  --color-reserved: #F59E0B;
+  --color-booked: #EF4444;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--color-dusk);
+    color: var(--color-cream);
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-dusk);
+  }
+}
+
+/* ── Mapbox Overrides ────────────────────────── */
+
+.mapboxgl-popup-content {
+  background: rgba(15, 41, 55, 0.95) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 12px !important;
+  padding: 16px 20px !important;
+  color: #FFF8F0 !important;
+  font-family: 'DM Sans', system-ui, sans-serif !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: rgba(15, 41, 55, 0.95) !important;
+}
+
+.mapboxgl-ctrl-group {
+  background: rgba(15, 41, 55, 0.9) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.mapboxgl-ctrl-group button {
+  background: transparent !important;
+  border-color: rgba(212, 175, 55, 0.15) !important;
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background: rgba(212, 175, 55, 0.1) !important;
+}
+
+.mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+  filter: invert(1) brightness(0.9) sepia(0.3);
+}
+
+.mapboxgl-ctrl-attrib {
+  background: rgba(15, 41, 55, 0.7) !important;
+  color: rgba(255, 248, 240, 0.5) !important;
+  border-radius: 8px 0 0 0 !important;
+  font-size: 10px !important;
+}
+
+.mapboxgl-ctrl-attrib a {
+  color: rgba(212, 175, 55, 0.6) !important;
+}
+
+/* ── Glass Morphism ──────────────────────────── */
+
+.glass {
+  background: rgba(15, 41, 55, 0.82);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.glass-dark {
+  background: rgba(10, 20, 30, 0.88);
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.glass-gold {
+  background: rgba(212, 175, 55, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+/* ── Custom Scrollbar ────────────────────────── */
+
+.booking-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.booking-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.booking-scroll::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 99px;
+}
+
+.booking-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
+}
+
+/* ── Animations ──────────────────────────────── */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(212, 175, 55, 0); }
+}
+
+/* ── Utility Classes ─────────────────────────── */
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #E8C84A, #D4AF37, #FF6B35);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.border-glow-gold {
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.15),
+    0 0 20px rgba(212, 175, 55, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.3);
+}
