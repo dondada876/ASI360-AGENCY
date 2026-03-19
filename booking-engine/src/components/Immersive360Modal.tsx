@@ -68,8 +68,8 @@ export default function Immersive360Modal({
     const viewer = new Viewer({
       container: viewerContainerRef.current,
       adapter: [EquirectangularVideoAdapter, {
-        autoplay: false,
-        muted: true,
+        autoplay: true,   // Auto-play video when modal opens
+        muted: false,     // Sound ON for immersive experience
       }],
       panorama: {
         source: videoUrl,
@@ -77,19 +77,21 @@ export default function Immersive360Modal({
       plugins: [
         [VideoPlugin, {
           progressbar: true,
-          bigbutton: true,
+          bigbutton: false,     // No big play button — auto-plays immediately
+          volume: true,         // Show volume control
         }],
         [GyroscopePlugin, {
-          touchmove: true,
-          absolutePosition: false,
+          touchmove: true,      // Phone gyro controls the view
+          absolutePosition: true, // Match phone orientation to camera orientation
+          moveMode: 'smooth',   // Smooth gyro tracking, not jerky
         }],
         [AutorotatePlugin, {
-          autorotateSpeed: '0.5rpm',
-          autostartDelay: 3000,
-          autostartOnIdle: true,
+          autorotateSpeed: '0.3rpm',    // Slow, cinematic rotation
+          autostartDelay: 1000,         // Start rotating after 1 second
+          autostartOnIdle: true,        // Resume rotation when user stops interacting
         }],
       ],
-      navbar: ['videoPlay', 'videoVolume', 'videoTime', 'gyroscope', 'caption', 'fullscreen'],
+      navbar: ['videoPlay', 'videoVolume', 'videoTime', 'gyroscope', 'autorotate', 'caption', 'fullscreen'],
 
       // ── Initial Camera Position ──
       // Yaw = horizontal rotation (radians). 0 = center of equirectangular
