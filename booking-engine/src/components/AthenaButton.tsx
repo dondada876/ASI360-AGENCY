@@ -27,6 +27,8 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
   const [textInput, setTextInput] = useState('')
   const [connecting, setConnecting] = useState(false)
   const [volumeLevel, setVolumeLevel] = useState(0)
+  const [chatLoading, setChatLoading] = useState(false)
+  const [micError, setMicError] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -76,27 +78,71 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // Send text message via Claude API
+  const sendTextMessage = useCallback(async (text: string) => {
+    const userMsg = { role: 'user' as const, text }
+    const updatedMessages = [...messages, userMsg]
+    setMessages(updatedMessages)
+    setChatLoading(true)
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: updatedMessages }),
+      })
+      const data = await res.json()
+      if (data.reply) {
+        setMessages(prev => [...prev, { role: 'agent', text: data.reply }])
+      }
+    } catch {
+      setMessages(prev => [...prev, { role: 'agent', text: "Sorry, I had trouble responding. Try again or call (510) 288-0994!" }])
+    } finally {
+      setChatLoading(false)
+    }
+  }, [messages])
+
+  // Start voice conversation with mic permission check
   const startConversation = useCallback(async () => {
+    setMicError(null)
+
+    // Check mic permission first
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      stream.getTracks().forEach(t => t.stop()) // Release immediately, just testing permission
+    } catch (err: any) {
+      const errorName = err?.name || ''
+      if (errorName === 'NotAllowedError' || errorName === 'PermissionDeniedError') {
+        setMicError('Microphone access was denied. Go to your browser Settings > Privacy > Microphone and allow this site. Or use text chat below!')
+      } else if (errorName === 'NotFoundError') {
+        setMicError('No microphone found. You can use text chat instead!')
+      } else {
+        setMicError('Couldn\'t access microphone. Try text chat or call (510) 288-0994.')
+      }
+      // Still switch to conversation view — text chat works without mic
+      setView('conversation')
+      setMessages([{ role: 'agent', text: 'Hi! I\'m Athena. I couldn\'t access your microphone, but you can type your questions below and I\'ll help you find the perfect spot at Lake Merritt! ☂️' }])
+      return
+    }
+
     setView('conversation')
     setConnecting(true)
     setMessages([])
 
     try {
-      // Fetch signed URL or agent ID from our API
       const res = await fetch('/api/voice-token')
       const data = await res.json()
 
       if (data.signedUrl) {
         await conversation.startSession({ signedUrl: data.signedUrl })
       } else if (data.agentId) {
-        // Signed URL not available — use direct agent ID with URL workaround
         const directUrl = `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${data.agentId}`
         await conversation.startSession({ signedUrl: directUrl })
       }
     } catch (err) {
-      console.error('Failed to start Athena session:', err)
+      console.error('Failed to start Athena voice session:', err)
       setConnecting(false)
-      setMessages([{ role: 'agent', text: 'I couldn\'t connect right now. Try tapping one of the quick action buttons, or call me at (510) 288-0994!' }])
+      setMessages([{ role: 'agent', text: 'Voice connection didn\'t work this time, but you can type your questions below! I\'m Athena, here to help you find shade at the lake. ☂️' }])
     }
   }, [conversation])
 
@@ -323,19 +369,32 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
 
                   {/* Talk to Athena CTA */}
                   <div className="pt-2 border-t border-white/10">
-                    <button
-                      onClick={startConversation}
-                      className="w-full flex items-center justify-center gap-2 rounded-full py-3.5 font-semibold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-                      style={{ background: 'linear-gradient(135deg, #D4AF37, #B8962E)', color: '#1A1A2E', boxShadow: '0 4px 20px rgba(212,175,55,0.3)' }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <rect x="9" y="2" width="6" height="12" rx="3" fill="#1A1A2E" />
-                        <path d="M5 10a7 7 0 0 0 14 0" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round" />
-                        <path d="M12 17v4M8 21h8" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                      Talk to Athena
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={startConversation}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-full py-3 font-semibold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        style={{ background: 'linear-gradient(135deg, #D4AF37, #B8962E)', color: '#1A1A2E', boxShadow: '0 4px 20px rgba(212,175,55,0.3)' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <rect x="9" y="2" width="6" height="12" rx="3" fill="#1A1A2E" />
+                          <path d="M5 10a7 7 0 0 0 14 0" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                        Talk
+                      </button>
+                      <button
+                        onClick={() => {
+                          setView('conversation')
+                          setMessages([{ role: 'agent', text: 'Hi! I\'m Athena, Guardian of Innocence. ☂️ Ask me anything about zones, pricing, sunset spots, weather, or the Umbrella Project mission. What would you like to know?' }])
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-full py-3 font-semibold text-sm transition-all hover:scale-[1.02] active:scale-[0.98] border-2"
+                        style={{ background: 'transparent', color: '#D4AF37', borderColor: 'rgba(212,175,55,0.4)' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        Text
+                      </button>
+                    </div>
                     <div className="text-center text-cream/30 text-[9px] mt-2">
-                      Voice conversation · Or call (510) 288-0994
+                      Voice or text · Or call (510) 288-0994
                     </div>
                   </div>
                 </div>
@@ -414,10 +473,8 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                           value={textInput}
                           onChange={(e) => setTextInput(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter' && textInput.trim()) {
-                              setMessages(prev => [...prev, { role: 'user', text: textInput.trim() }])
-                              // If connected, the agent processes voice — text is shown for reference
-                              // Future: send text to agent via REST API for text-only mode
+                            if (e.key === 'Enter' && textInput.trim() && !chatLoading) {
+                              sendTextMessage(textInput.trim())
                               setTextInput('')
                             }
                           }}
@@ -426,8 +483,8 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                         />
                         <button
                           onClick={() => {
-                            if (textInput.trim()) {
-                              setMessages(prev => [...prev, { role: 'user', text: textInput.trim() }])
+                            if (textInput.trim() && !chatLoading) {
+                              sendTextMessage(textInput.trim())
                               setTextInput('')
                             }
                           }}
@@ -439,8 +496,23 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                         </button>
                       </div>
                     </div>
+                    {micError && (
+                      <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 mt-2">
+                        <div className="text-amber-300 text-[10px] leading-tight">{micError}</div>
+                      </div>
+                    )}
+                    {chatLoading && (
+                      <div className="flex items-center gap-1.5 mt-1.5 px-1">
+                        <div className="flex gap-1">
+                          {[0,1,2].map(i => (
+                            <div key={i} className="w-1.5 h-1.5 rounded-full bg-gold/40 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                          ))}
+                        </div>
+                        <span className="text-cream/30 text-[9px]">Athena is thinking...</span>
+                      </div>
+                    )}
                     <div className="text-center text-cream/20 text-[8px] mt-1.5">
-                      {conversation.status === 'connected' ? 'Listening... speak naturally' : 'Tap mic to start voice · Type to text'}
+                      {conversation.status === 'connected' ? 'Listening... speak naturally · Or type below' : 'Type a message · Or tap mic for voice'}
                     </div>
                   </div>
                 </div>
