@@ -517,114 +517,77 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="w-full h-full" />
 
-      {/* Hover tooltip */}
+      {/* Hover tooltip — compact, bottom center on mobile */}
       {zoneData && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 glass rounded-xl px-5 py-3 border-glow-gold pointer-events-none">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ background: ZONE_COLORS[zoneData.sunsetQuality] }}
-            />
-            <span className="font-[family-name:var(--font-display)] text-lg font-medium text-cream">
-              {zoneData.label}
-            </span>
-            <span className="text-cream/60 text-sm">—</span>
-            <span className="text-cream/70 text-sm">{zoneData.name}</span>
-            {zoneData.sunsetQuality === 'golden' && (
-              <span className="text-xs bg-gold/20 text-gold px-2 py-0.5 rounded-full">
-                🌅 Golden Hour +2hrs
-              </span>
-            )}
-          </div>
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 rounded-full px-3 py-1.5 pointer-events-none flex items-center gap-2"
+             style={{ backdropFilter: 'blur(16px)', background: 'rgba(15,41,55,0.85)', border: '1px solid rgba(212,175,55,0.3)' }}>
+          <div className="w-2 h-2 rounded-full shrink-0" style={{ background: ZONE_COLORS[zoneData.sunsetQuality] }} />
+          <span className="text-xs font-semibold text-cream">{zoneData.label}</span>
+          <span className="text-[10px] text-cream/50">{zoneData.name}</span>
+          {zoneData.sunsetQuality === 'golden' && <span className="text-[10px]">🌅</span>}
         </div>
       )}
 
-      {/* ── Toggle Controls — top-left ── */}
-      <div className="absolute top-20 left-4 z-10 flex flex-col gap-2">
-        {/* Auto-Rotate Toggle */}
+      {/* ── Toggle Controls — compact icon buttons, top-left ── */}
+      <div className="absolute top-16 left-3 z-10 flex flex-col gap-1.5">
         <button
           onClick={() => setAutoRotate(!autoRotate)}
-          className={`glass rounded-lg px-3 py-2 text-xs font-medium transition-all duration-300 flex items-center gap-2 ${
+          title={autoRotate ? 'Stop rotating' : 'Auto-rotate'}
+          className={`rounded-lg w-9 h-9 flex items-center justify-center transition-all duration-300 ${
             autoRotate
-              ? 'border border-gold/50 text-gold shadow-[0_0_12px_rgba(212,175,55,0.3)]'
-              : 'border border-cream/10 text-cream/60 hover:text-cream/80 hover:border-cream/20'
+              ? 'text-gold shadow-[0_0_10px_rgba(212,175,55,0.3)]'
+              : 'text-cream/50 hover:text-cream/80'
           }`}
+          style={{ backdropFilter: 'blur(12px)', background: autoRotate ? 'rgba(212,175,55,0.15)' : 'rgba(15,41,55,0.7)', border: `1px solid ${autoRotate ? 'rgba(212,175,55,0.4)' : 'rgba(255,248,240,0.1)'}` }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
           </svg>
-          {autoRotate ? 'ROTATING' : 'AUTO-ROTATE'}
         </button>
 
-        {/* 3D Terrain Toggle */}
         <button
           onClick={() => setTerrain3D(!terrain3D)}
-          className={`glass rounded-lg px-3 py-2 text-xs font-medium transition-all duration-300 flex items-center gap-2 ${
+          title={terrain3D ? '3D Terrain ON' : 'Flat map'}
+          className={`rounded-lg w-9 h-9 flex items-center justify-center transition-all duration-300 ${
             terrain3D
-              ? 'border border-gold/50 text-gold shadow-[0_0_12px_rgba(212,175,55,0.3)]'
-              : 'border border-cream/10 text-cream/60 hover:text-cream/80 hover:border-cream/20'
+              ? 'text-gold shadow-[0_0_10px_rgba(212,175,55,0.3)]'
+              : 'text-cream/50 hover:text-cream/80'
           }`}
+          style={{ backdropFilter: 'blur(12px)', background: terrain3D ? 'rgba(212,175,55,0.15)' : 'rgba(15,41,55,0.7)', border: `1px solid ${terrain3D ? 'rgba(212,175,55,0.4)' : 'rgba(255,248,240,0.1)'}` }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
           </svg>
-          {terrain3D ? '3D TERRAIN' : 'FLAT MAP'}
         </button>
-
-        {/* Pitch presets */}
-        <div className="glass rounded-lg border border-cream/10 p-1.5 flex flex-col gap-1">
-          <div className="text-[8px] uppercase tracking-widest text-cream/30 text-center mb-0.5">PITCH</div>
-          {[
-            { label: 'TOP', pitch: 0, bearing: 0 },
-            { label: '30°', pitch: 30, bearing: -20 },
-            { label: '45°', pitch: 45, bearing: -30 },
-            { label: '60°', pitch: 60, bearing: -40 },
-          ].map((preset) => (
-            <button
-              key={preset.label}
-              onClick={() => {
-                map.current?.easeTo({
-                  pitch: preset.pitch,
-                  bearing: preset.bearing,
-                  duration: 800,
-                })
-              }}
-              className="text-[10px] text-cream/60 hover:text-gold hover:bg-gold/10 rounded px-2 py-1 transition-colors"
-            >
-              {preset.label}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {/* Map legend — updated with infrastructure colors */}
-      <div className="absolute bottom-24 left-4 glass rounded-xl p-3 z-10">
-        <div className="text-[10px] uppercase tracking-[0.15em] text-cream/40 mb-2">Zones</div>
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: ZONE_COLORS.golden }} />
-            <span className="text-xs text-cream/70">Golden Hour (+2hrs sunset)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: ZONE_COLORS.partial }} />
-            <span className="text-xs text-cream/70">Partial Sun</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: ZONE_COLORS.shaded }} />
-            <span className="text-xs text-cream/70">Shaded</span>
-          </div>
-          <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-cream/10">
-            <div className="w-2.5 h-2.5 rounded-full bg-gold" />
-            <span className="text-xs text-cream/70">Light Pole / QR</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#DC2626' }} />
-            <span className="text-xs text-cream/70">Restroom (code required)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#2563EB' }} />
-            <span className="text-xs text-cream/70">Hand Wash Station</span>
-          </div>
+      {/* Map legend — compact icon row, bottom-left */}
+      <div className="absolute bottom-4 left-3 z-10 rounded-lg px-2 py-1.5 flex items-center gap-3"
+           style={{ backdropFilter: 'blur(12px)', background: 'rgba(15,41,55,0.75)', border: '1px solid rgba(255,248,240,0.08)' }}>
+        <div className="flex items-center gap-1" title="Golden Hour (+2hrs sunset)">
+          <div className="w-2 h-2 rounded-full" style={{ background: ZONE_COLORS.golden }} />
+          <span className="text-[9px] text-cream/50">🌅</span>
+        </div>
+        <div className="flex items-center gap-1" title="Partial Sun">
+          <div className="w-2 h-2 rounded-full" style={{ background: ZONE_COLORS.partial }} />
+          <span className="text-[9px] text-cream/50">⛅</span>
+        </div>
+        <div className="flex items-center gap-1" title="Shaded">
+          <div className="w-2 h-2 rounded-full" style={{ background: ZONE_COLORS.shaded }} />
+          <span className="text-[9px] text-cream/50">🌳</span>
+        </div>
+        <div className="w-px h-3 bg-cream/10" />
+        <div className="flex items-center gap-1" title="Restroom (code required)">
+          <div className="w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
+          <span className="text-[9px]">🚻</span>
+        </div>
+        <div className="flex items-center gap-1" title="Hand Wash">
+          <div className="w-2 h-2 rounded-full" style={{ background: '#2563EB' }} />
+          <span className="text-[9px]">🧼</span>
+        </div>
+        <div className="flex items-center gap-1" title="Light Pole / QR">
+          <div className="w-2 h-2 rounded-full bg-gold" />
+          <span className="text-[9px]">📍</span>
         </div>
       </div>
     </div>

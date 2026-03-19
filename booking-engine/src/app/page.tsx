@@ -102,6 +102,12 @@ export default function BookingPage() {
         <Immersive360Modal
           isOpen={!!active360}
           onClose={() => setActive360(null)}
+          onBookNow={() => {
+            // Close 360° modal and open booking panel for nearest zone
+            const nearestZone = active360.id.startsWith('a') ? 'A1' : 'B1'
+            setActive360(null)
+            setTimeout(() => setSelectedZone(nearestZone), 300) // Wait for modal close animation
+          }}
           videoUrl={active360.videoUrl}
           title={active360.title}
           subtitle={active360.subtitle}

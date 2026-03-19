@@ -7,6 +7,7 @@ import { useWeather } from '@/hooks/useWeather'
 interface Immersive360ModalProps {
   isOpen: boolean
   onClose: () => void
+  onBookNow?: () => void
   videoUrl: string
   title?: string
   subtitle?: string
@@ -21,6 +22,7 @@ interface Immersive360ModalProps {
 export default function Immersive360Modal({
   isOpen,
   onClose,
+  onBookNow,
   videoUrl,
   title = 'Lake Merritt — Live 360° View',
   subtitle = 'Explore the golden hour experience',
@@ -222,27 +224,46 @@ export default function Immersive360Modal({
               </button>
             </div>
 
-            {/* Weather chip — bottom-left overlay */}
-            {todayForecast && (
-              <div
-                className="absolute bottom-4 left-4 z-30 flex items-center gap-2 px-3 py-2 rounded-xl"
-                style={{
-                  backdropFilter: 'blur(12px)',
-                  background: 'rgba(0,0,0,0.6)',
-                  border: '1px solid rgba(212,175,55,0.2)',
-                }}
-              >
-                <span className="text-lg">{getWeatherIcon(todayForecast.day_type, todayForecast.condition)}</span>
-                <div className="flex items-center gap-3 text-[11px]">
-                  <span className="text-white font-medium">{Math.round(todayForecast.high_f)}&deg;F</span>
-                  <span className="text-white/50">{todayForecast.condition}</span>
-                  <span className="text-white/40">UV {todayForecast.uv_index}</span>
-                  {todaySun && (
-                    <span className="text-amber-400/80">Sunset {todaySun.sunset}</span>
-                  )}
+            {/* Bottom overlay — weather + book now */}
+            <div className="absolute bottom-4 left-4 right-4 z-30 flex items-center justify-between gap-3">
+              {/* Weather chip */}
+              {todayForecast && (
+                <div
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl shrink-0"
+                  style={{
+                    backdropFilter: 'blur(12px)',
+                    background: 'rgba(0,0,0,0.6)',
+                    border: '1px solid rgba(212,175,55,0.2)',
+                  }}
+                >
+                  <span className="text-base">{getWeatherIcon(todayForecast.day_type, todayForecast.condition)}</span>
+                  <div className="flex items-center gap-2 text-[11px]">
+                    <span className="text-white font-medium">{Math.round(todayForecast.high_f)}°F</span>
+                    <span className="text-white/40 hidden sm:inline">{todayForecast.condition}</span>
+                    {todaySun && (
+                      <span className="text-amber-400/70">🌅{todaySun.sunset}</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* Book Now CTA */}
+              {onBookNow && (
+                <button
+                  onClick={onBookNow}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 hover:scale-105 active:scale-95 shrink-0"
+                  style={{
+                    background: 'linear-gradient(135deg, #D4AF37, #B8962E)',
+                    color: '#1A1A2E',
+                    boxShadow: '0 4px 20px rgba(212,175,55,0.4), 0 0 40px rgba(212,175,55,0.15)',
+                    border: '1px solid rgba(255,248,240,0.3)',
+                  }}
+                >
+                  <span>☂️</span>
+                  <span>Book This Spot</span>
+                </button>
+              )}
+            </div>
 
             {/* Photo Sphere Viewer container — fills entire modal */}
             <div
