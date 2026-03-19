@@ -8,6 +8,7 @@ import BookingPanel from '@/components/BookingPanel'
 import ZonePrompt from '@/components/ZonePrompt'
 import Immersive360Modal from '@/components/Immersive360Modal'
 import WeatherBadge from '@/components/WeatherBadge'
+import AthenaButton from '@/components/AthenaButton'
 import { getIntroSequence, incrementVisitCount } from '@/lib/intro'
 import type { IntroSequence } from '@/lib/intro'
 import type { Video360Hotspot } from '@/components/BookingMap'
@@ -120,8 +121,11 @@ export default function BookingPage() {
       {/* Floating header */}
       <Header />
 
-      {/* Weather badge — top-right, below header — only after intro */}
-      {introComplete && <WeatherBadge />}
+      {/* Weather badge — always visible */}
+      <WeatherBadge />
+
+      {/* Athena voice concierge — floating button, right side */}
+      <AthenaButton />
 
       {/* Zone selection prompt — visible when no zone selected, only after intro */}
       <AnimatePresence>
