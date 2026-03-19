@@ -167,6 +167,154 @@
   50% { box-shadow: 0 0 0 12px rgba(212, 175, 55, 0); }
 }
 
+/* ── Photo Sphere Viewer Theme ──────────────── */
+
+.viewer-360 .psv-container {
+  background: #000 !important;
+}
+
+.viewer-360 .psv-navbar {
+  background: rgba(10, 20, 30, 0.85) !important;
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(212, 175, 55, 0.15) !important;
+}
+
+.viewer-360 .psv-button {
+  color: rgba(255, 248, 240, 0.7) !important;
+}
+
+.viewer-360 .psv-button:hover {
+  color: #D4AF37 !important;
+  background: rgba(212, 175, 55, 0.1) !important;
+}
+
+.viewer-360 .psv-button--active {
+  color: #D4AF37 !important;
+}
+
+.viewer-360 .psv-video-progressbar {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.viewer-360 .psv-video-progressbar__buffer {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.viewer-360 .psv-video-progressbar__progress {
+  background: #D4AF37 !important;
+}
+
+.viewer-360 .psv-video-bigbutton {
+  color: #D4AF37 !important;
+}
+
+.viewer-360 .psv-video-bigbutton__button {
+  background: rgba(10, 20, 30, 0.7) !important;
+  border: 2px solid rgba(212, 175, 55, 0.4) !important;
+  transition: all 0.2s ease !important;
+}
+
+.viewer-360 .psv-video-bigbutton__button:hover {
+  border-color: rgba(212, 175, 55, 0.8) !important;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.2) !important;
+}
+
+.viewer-360 .psv-caption-content {
+  background: rgba(10, 20, 30, 0.7) !important;
+  color: rgba(255, 248, 240, 0.6) !important;
+  font-family: 'DM Sans', system-ui, sans-serif !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
+}
+
+.viewer-360 .psv-loader {
+  color: #D4AF37 !important;
+}
+
+.viewer-360 .psv-video-time {
+  color: rgba(255, 248, 240, 0.5) !important;
+  font-family: 'DM Sans', system-ui, sans-serif !important;
+  font-size: 11px !important;
+}
+
+/* ── 360° Marker Bubble ─────────────────────── */
+
+.marker-360-bubble {
+  cursor: pointer;
+  z-index: 10;
+}
+
+.marker-360-outer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.marker-360-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  animation: pulse360 2.5s ease-out infinite;
+}
+
+.marker-360-ring-delayed {
+  animation-delay: 1.2s;
+}
+
+.marker-360-core {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(10, 20, 30, 0.9);
+  backdrop-filter: blur(12px);
+  border: 2px solid rgba(212, 175, 55, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  box-shadow:
+    0 0 20px rgba(212, 175, 55, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.marker-360-bubble:hover .marker-360-core {
+  border-color: rgba(212, 175, 55, 1);
+  background: rgba(212, 175, 55, 0.15);
+  box-shadow:
+    0 0 30px rgba(212, 175, 55, 0.3),
+    0 4px 20px rgba(0, 0, 0, 0.5);
+  transform: scale(1.1);
+}
+
+.marker-360-label {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #D4AF37;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+@keyframes pulse360 {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0;
+  }
+}
+
 /* ── Utility Classes ─────────────────────────── */
 
 .text-gradient-gold {

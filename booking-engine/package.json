@@ -9,12 +9,18 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@photo-sphere-viewer/autorotate-plugin": "^5.14.1",
+    "@photo-sphere-viewer/core": "^5.14.1",
+    "@photo-sphere-viewer/equirectangular-video-adapter": "^5.14.1",
+    "@photo-sphere-viewer/gyroscope-plugin": "^5.14.1",
+    "@photo-sphere-viewer/video-plugin": "^5.14.1",
     "@types/mapbox-gl": "^3.4.1",
     "framer-motion": "^12.38.0",
     "mapbox-gl": "^3.20.0",
     "next": "16.2.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "three": "^0.183.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

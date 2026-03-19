@@ -4,6 +4,14 @@ export type SpotType = 'umbrella' | 'canopy' | 'vip'
 export type TimeSlot = 'morning' | 'afternoon' | 'sunset' | 'fullday'
 export type SpotStatus = 'available' | 'reserved' | 'booked'
 
+export interface ZoneElevation {
+  streetLevelFt: number       // Grand Ave reference (~25ft)
+  zoneLevelFt: number         // zone ground level
+  slopeFromStreetFt: number   // drop from street to zone
+  relativeToWalkwayFt: number // +/- relative to lakeside walkway (~10ft)
+  terrain: 'steep-slope' | 'moderate-slope' | 'gentle' | 'flat'
+}
+
 export interface Zone {
   id: string
   name: string
@@ -12,6 +20,9 @@ export interface Zone {
   poleIds: string[]
   sunsetQuality: 'golden' | 'partial' | 'shaded'
   maxCapacity: number
+  elevation?: ZoneElevation
+  shadowOffsetHours?: number  // hours offset from astronomical sunset (+/- from city sunset)
+  effectiveSunsetNote?: string // human-readable sunset note
 }
 
 export interface BookingSpot {
