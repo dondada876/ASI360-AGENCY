@@ -10,6 +10,32 @@
 ### Mission
 Conscious capitalism — every umbrella booked funds judicial reform advocacy.
 **"Prosecution of Perjury Prevents Perjury"** — The Four Ps.
+**Athena, Guardian of Innocence** — AI voice concierge powered by ElevenLabs.
+
+### HARD RULE: Modular Multi-Location Design
+
+**Every component, table, API route, and config MUST support multiple locations.**
+No hardcoded Lake Merritt coordinates, zone IDs, or pricing outside of a location config.
+
+```
+Phase 1: Empowerment Park (Zones A1-A2, B1-B5)     ← CURRENT FOCUS
+Phase 2: Golden Sunset Strip (Zones C1-C4)
+Phase 3: Full Lake Merritt (180 poles, A-Z zones)
+Phase 4: Oakland Parks Network (multiple parks)
+Phase 5: Multi-city (franchise model)
+Phase 6: White-label platform (any operator, any park)
+```
+
+**Implementation pattern:**
+- `locations` table in Supabase — each location has its own Mapbox tileset, timezone, pricing
+- `zones` table FK → `locations` — zones belong to a location
+- `light_poles` table FK → `zones` — poles belong to a zone
+- URL routing: `bookit.500grandlive.com/[location-slug]`
+- All coordinates, tileset IDs, pricing loaded from DB at runtime, not hardcoded
+- Same Docker container serves ALL locations — just different data
+
+**Current state:** Config is in `lib/zones.ts` and `lib/pricing.ts` (hardcoded for Phase 1).
+When TT-992 executes, these move to Supabase. Until then, the structure supports it.
 
 ---
 

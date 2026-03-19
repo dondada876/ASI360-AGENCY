@@ -31,10 +31,20 @@ export interface SunTime {
   golden_hour_start: string
 }
 
+export interface WeatherMeta {
+  timezone: string
+  today: string
+  currentHour: number
+  dataStale: boolean
+  locationLat: number
+  locationLng: number
+}
+
 export interface WeatherData {
   daily: DailyForecast[]
   hourly: HourlyForecast[]
   sunTimes: SunTime[]
+  meta?: WeatherMeta
 }
 
 export function useWeather() {
@@ -60,9 +70,12 @@ export function useWeather() {
   const getSunTime = (date: string) => weather?.sunTimes.find(s => s.date === date)
 
   const getTodayForecast = () => {
-    const today = new Date().toISOString().split('T')[0]
+    // Use the timezone-correct today from the API meta
+    const today = weather?.meta?.today || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })
     return getDayForecast(today)
   }
+
+  const isDataStale = () => weather?.meta?.dataStale ?? true
 
   const getWeatherIcon = (dayType: string, condition: string) => {
     if (condition?.toLowerCase().includes('rain')) return '\u{1F327}\u{FE0F}'
@@ -85,6 +98,6 @@ export function useWeather() {
   return {
     weather, loading, error,
     getDayForecast, getHourlyForDate, getSunTime, getTodayForecast,
-    getWeatherIcon, getComfortLabel,
+    getWeatherIcon, getComfortLabel, isDataStale,
   }
 }
