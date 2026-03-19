@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useWeather } from '@/hooks/useWeather'
 
 interface Immersive360ModalProps {
   isOpen: boolean
@@ -29,6 +30,11 @@ export default function Immersive360Modal({
 }: Immersive360ModalProps) {
   const viewerContainerRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<any>(null)
+  const { getTodayForecast, getWeatherIcon, getSunTime } = useWeather()
+
+  const todayForecast = getTodayForecast()
+  const today = new Date().toISOString().split('T')[0]
+  const todaySun = getSunTime(today)
 
   // Close on Escape
   useEffect(() => {
@@ -215,6 +221,28 @@ export default function Immersive360Modal({
                 </svg>
               </button>
             </div>
+
+            {/* Weather chip — bottom-left overlay */}
+            {todayForecast && (
+              <div
+                className="absolute bottom-4 left-4 z-30 flex items-center gap-2 px-3 py-2 rounded-xl"
+                style={{
+                  backdropFilter: 'blur(12px)',
+                  background: 'rgba(0,0,0,0.6)',
+                  border: '1px solid rgba(212,175,55,0.2)',
+                }}
+              >
+                <span className="text-lg">{getWeatherIcon(todayForecast.day_type, todayForecast.condition)}</span>
+                <div className="flex items-center gap-3 text-[11px]">
+                  <span className="text-white font-medium">{Math.round(todayForecast.high_f)}&deg;F</span>
+                  <span className="text-white/50">{todayForecast.condition}</span>
+                  <span className="text-white/40">UV {todayForecast.uv_index}</span>
+                  {todaySun && (
+                    <span className="text-amber-400/80">Sunset {todaySun.sunset}</span>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Photo Sphere Viewer container — fills entire modal */}
             <div

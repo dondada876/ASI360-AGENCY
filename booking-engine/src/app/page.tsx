@@ -7,6 +7,7 @@ import Header from '@/components/Header'
 import BookingPanel from '@/components/BookingPanel'
 import ZonePrompt from '@/components/ZonePrompt'
 import Immersive360Modal from '@/components/Immersive360Modal'
+import WeatherBadge from '@/components/WeatherBadge'
 import type { Video360Hotspot } from '@/components/BookingMap'
 
 // Dynamic import for map (SSR disabled — Mapbox needs window)
@@ -77,6 +78,9 @@ export default function BookingPage() {
 
       {/* Floating header */}
       <Header />
+
+      {/* Weather badge — top-right, below header */}
+      <WeatherBadge />
 
       {/* Zone selection prompt — visible when no zone selected */}
       <AnimatePresence>

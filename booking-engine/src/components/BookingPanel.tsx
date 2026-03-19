@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ZONES, ZONE_COLORS } from '@/lib/zones'
 import { PRICING_TIERS, ADD_ONS, TIME_SLOTS, RESTAURANT_PARTNERS, calculateTotal } from '@/lib/pricing'
+import { useWeather } from '@/hooks/useWeather'
+import { useProductRecommendations } from '@/hooks/useProductRecommendations'
 import type { SpotType, TimeSlot } from '@/types/booking'
 
 interface BookingPanelProps {
@@ -18,16 +20,77 @@ export default function BookingPanel({ selectedZone, onClose }: BookingPanelProp
   const [selectedTier, setSelectedTier] = useState<SpotType | null>(null)
   const [selectedTime, setSelectedTime] = useState<TimeSlot | null>(null)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [memberCode, setMemberCode] = useState('')
+
+  const { getDayForecast, getHourlyForDate, getSunTime, getWeatherIcon, getComfortLabel, loading: weatherLoading } = useWeather()
 
   const zone = ZONES.find((z) => z.id === selectedZone)
   if (!zone) return null
 
+  // Weather data for the selected date
+  const dateForecast = selectedDate ? getDayForecast(selectedDate) : null
+  const dateHourly = selectedDate ? getHourlyForDate(selectedDate) : []
+  const dateSunTime = selectedDate ? getSunTime(selectedDate) : null
+
+  // Weather-driven product recommendations
+  const { products: recommendedProducts, loading: productsLoading } = useProductRecommendations(
+    dateForecast?.day_type ?? null,
+    selectedTime ?? null,
+    dateForecast?.high_f ?? null,
+    dateForecast?.uv_index ?? null,
+    dateForecast?.wind_mph ?? null,
+    dateForecast?.precip_pct ?? null,
+  )
+
+  const toggleProduct = (sku: string) => {
+    setSelectedProducts((prev) =>
+      prev.includes(sku) ? prev.filter((s) => s !== sku) : [...prev, sku]
+    )
+  }
+
+  // Calculate product add-on total
+  const productsTotal = useMemo(() => {
+    return recommendedProducts
+      .filter(p => selectedProducts.includes(p.sku))
+      .reduce((sum, p) => sum + p.price, 0)
+  }, [selectedProducts, recommendedProducts])
+
+  // Helper: get average comfort + temp range for a time slot's hours
+  const getSlotWeather = (slotId: string) => {
+    if (!dateHourly.length) return null
+    const ranges: Record<string, [number, number]> = {
+      morning: [8, 12],
+      afternoon: [12, 17],
+      sunset: [17, 20],
+      fullday: [8, 20],
+    }
+    const [start, end] = ranges[slotId] || [0, 24]
+    const hours = dateHourly.filter(h => h.hour >= start && h.hour < end)
+    if (!hours.length) return null
+    const avgComfort = hours.reduce((s, h) => s + h.comfort_score, 0) / hours.length
+    const temps = hours.map(h => h.temp_f)
+    const avgPrecip = hours.reduce((s, h) => s + h.precip_pct, 0) / hours.length
+    const avgWind = hours.reduce((s, h) => s + h.wind_mph, 0) / hours.length
+    return {
+      tempLow: Math.round(Math.min(...temps)),
+      tempHigh: Math.round(Math.max(...temps)),
+      comfort: avgComfort,
+      precip: Math.round(avgPrecip),
+      wind: Math.round(avgWind),
+    }
+  }
+
   const totals = useMemo(() => {
     if (!selectedTier || !selectedTime) return { subtotal: 0, discount: 0, total: 0 }
-    return calculateTotal(selectedTier, selectedTime, selectedAddOns, memberCode)
-  }, [selectedTier, selectedTime, selectedAddOns, memberCode])
+    const base = calculateTotal(selectedTier, selectedTime, selectedAddOns, memberCode)
+    // Add weather product prices to subtotal (member discount applies)
+    const isValidMember = memberCode.startsWith('500GL') && memberCode.length >= 7
+    const subWithProducts = base.subtotal + productsTotal
+    const disc = isValidMember ? subWithProducts * 0.20 : base.discount > 0 ? (base.discount + productsTotal * 0.20) : 0
+    return { subtotal: subWithProducts, discount: disc, total: subWithProducts - disc }
+  }, [selectedTier, selectedTime, selectedAddOns, memberCode, productsTotal])
 
   const toggleAddOn = (id: string) => {
     setSelectedAddOns((prev) =>
@@ -201,9 +264,60 @@ export default function BookingPanel({ selectedZone, onClose }: BookingPanelProp
                 className="w-full glass rounded-xl px-4 py-3 text-cream bg-transparent outline-none focus:border-gold/40 transition-colors text-sm"
               />
 
+              {/* Weather forecast for selected date */}
+              {selectedDate && dateForecast && (
+                <div className="glass rounded-xl px-4 py-3 flex items-center gap-3 mt-2"
+                     style={{ border: '1px solid rgba(212,175,55,0.15)' }}>
+                  <span className="text-2xl">{getWeatherIcon(dateForecast.day_type, dateForecast.condition)}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-cream">
+                        {Math.round(dateForecast.high_f)}&deg; / {Math.round(dateForecast.low_f)}&deg;F
+                      </span>
+                      <span className="text-xs text-cream/40">{dateForecast.condition}</span>
+                    </div>
+                    <div className="text-[11px] text-cream/50 flex gap-3 mt-0.5">
+                      <span>Rain {dateForecast.precip_pct}%</span>
+                      <span>Wind {dateForecast.wind_mph}mph</span>
+                      <span>UV {dateForecast.uv_index}</span>
+                    </div>
+                  </div>
+                  {dateSunTime && (
+                    <div className="text-right">
+                      <div className="text-[10px] text-amber-400/80">Sunset {dateSunTime.sunset}</div>
+                      <div className="text-[10px] text-amber-400/60">Golden {dateSunTime.golden_hour_start}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Rain warning */}
+              {selectedDate && dateForecast && dateForecast.precip_pct > 30 && (
+                <div className="rounded-xl px-3 py-2 mt-1 flex items-center gap-2"
+                     style={{ background: 'rgba(244,67,54,0.12)', border: '1px solid rgba(244,67,54,0.25)' }}>
+                  <span className="text-sm">&#x1F327;&#xFE0F;</span>
+                  <span className="text-xs text-red-300">
+                    {dateForecast.precip_pct}% chance of rain &mdash; consider a canopy tent for coverage
+                  </span>
+                </div>
+              )}
+
+              {/* Wind warning */}
+              {selectedDate && dateForecast && dateForecast.wind_mph > 15 && (
+                <div className="rounded-xl px-3 py-2 mt-1 flex items-center gap-2"
+                     style={{ background: 'rgba(255,152,0,0.12)', border: '1px solid rgba(255,152,0,0.25)' }}>
+                  <span className="text-sm">&#x1F4A8;</span>
+                  <span className="text-xs text-orange-300">
+                    Windy ({dateForecast.wind_mph}mph) &mdash; canopy tent recommended over umbrella
+                  </span>
+                </div>
+              )}
+
               <div className="space-y-2 mt-4">
                 {TIME_SLOTS.map((slot) => {
                   const price = tier?.prices[slot.id]
+                  const slotWeather = selectedDate ? getSlotWeather(slot.id) : null
+                  const comfortInfo = slotWeather ? getComfortLabel(slotWeather.comfort) : null
                   return (
                     <button
                       key={slot.id}
@@ -225,6 +339,36 @@ export default function BookingPanel({ selectedZone, onClose }: BookingPanelProp
                         <div className="text-lg font-semibold text-gold">${price}</div>
                       </div>
                       <p className="text-xs text-cream/40 mt-2 ml-9">{slot.description}</p>
+
+                      {/* Weather info for this time slot */}
+                      {slotWeather && (
+                        <div className="ml-9 mt-2 flex items-center gap-3 flex-wrap">
+                          <span className="text-[11px] text-cream/50">
+                            {slotWeather.tempLow}&deg;&ndash;{slotWeather.tempHigh}&deg;F
+                          </span>
+                          {comfortInfo && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                                  style={{ background: comfortInfo.color + '22', color: comfortInfo.color }}>
+                              {comfortInfo.label}
+                            </span>
+                          )}
+                          {slotWeather.precip > 30 && (
+                            <span className="text-[10px] text-red-400">
+                              &#x1F327;&#xFE0F; {slotWeather.precip}%
+                            </span>
+                          )}
+                          {slotWeather.wind > 15 && (
+                            <span className="text-[10px] text-orange-400">
+                              &#x1F4A8; {slotWeather.wind}mph
+                            </span>
+                          )}
+                          {slot.id === 'sunset' && dateSunTime && (
+                            <span className="text-[10px] text-amber-400">
+                              Sunset {dateSunTime.sunset}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </button>
                   )
                 })}
@@ -245,6 +389,58 @@ export default function BookingPanel({ selectedZone, onClose }: BookingPanelProp
                 Enhance Your Experience
               </h3>
 
+              {/* Weather-driven product recommendations */}
+              {recommendedProducts.length > 0 && (
+                <div className="mb-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs text-cream/30 uppercase tracking-widest">For Your Weather</span>
+                    {dateForecast && (
+                      <span className="text-xs text-cream/50">
+                        {getWeatherIcon(dateForecast.day_type, dateForecast.condition)} {Math.round(dateForecast.high_f)}&deg;F
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide sm:grid sm:grid-cols-2 sm:overflow-x-visible sm:pb-0">
+                    {recommendedProducts.slice(0, 6).map((product) => {
+                      const isSelected = selectedProducts.includes(product.sku)
+                      return (
+                        <button
+                          key={product.sku}
+                          onClick={() => toggleProduct(product.sku)}
+                          className={`snap-start shrink-0 w-[140px] sm:w-auto text-left rounded-xl p-3 transition-all duration-200 ${
+                            isSelected
+                              ? 'glass-gold border-glow-gold'
+                              : 'glass hover:border-cream/20'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-1">
+                            <span className="text-lg leading-none">{product.icon}</span>
+                            <span className="text-[10px] font-semibold text-ember">
+                              ${product.price}{product.unit || ''}
+                            </span>
+                          </div>
+                          <div className="text-xs font-medium text-cream leading-tight">{product.name}</div>
+                          {product.badge && (
+                            <span className="text-[9px] text-gold/80 mt-1 block">{product.badge}</span>
+                          )}
+                          <div className={`mt-2 w-full h-5 rounded-md flex items-center justify-center text-[10px] font-medium transition-colors ${
+                            isSelected ? 'bg-gold text-dusk' : 'bg-cream/8 text-cream/40'
+                          }`}>
+                            {isSelected ? 'Added' : 'Add'}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {selectedProducts.length > 0 && (
+                    <div className="text-right text-[11px] text-gold/70 mt-2">
+                      {selectedProducts.length} item{selectedProducts.length > 1 ? 's' : ''} &middot; +${productsTotal.toFixed(2)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Essentials add-ons */}
               {['comfort', 'food', 'entertainment'].map((category) => (
                 <div key={category} className="mb-4">
                   <div className="text-xs text-cream/30 uppercase tracking-widest mb-2">
@@ -405,6 +601,21 @@ export default function BookingPanel({ selectedZone, onClose }: BookingPanelProp
                             {addon?.icon} {addon?.name}
                           </span>
                         )
+                      })}
+                    </div>
+                  </div>
+                )}
+                {selectedProducts.length > 0 && (
+                  <div className="pt-2 border-t border-cream/10">
+                    <span className="text-xs text-cream/40">Weather picks:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {selectedProducts.map((sku) => {
+                        const product = recommendedProducts.find((p) => p.sku === sku)
+                        return product ? (
+                          <span key={sku} className="text-[10px] bg-cream/5 text-cream/60 px-2 py-0.5 rounded-full">
+                            {product.icon} {product.name}
+                          </span>
+                        ) : null
                       })}
                     </div>
                   </div>
