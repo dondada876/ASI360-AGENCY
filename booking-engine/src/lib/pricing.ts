@@ -41,6 +41,26 @@ export const PRICING_TIERS: PricingTier[] = [
     color: '#FF6B35',
   },
   {
+    type: 'cabana',
+    label: 'Cabana',
+    description: 'Pop-up cabana tent with sectional couch, rug, and shade.',
+    icon: '🏕️',
+    prices: {
+      morning: 45,
+      afternoon: 55,
+      sunset: 65,
+      fullday: 99,
+    },
+    includes: [
+      '10×10 cabana tent',
+      'Sectional couch',
+      'Area rug',
+      'Side table',
+      'Full shade coverage',
+    ],
+    color: '#C084FC',
+  },
+  {
     type: 'vip',
     label: 'VIP Lounge',
     description: 'The full experience. Premium everything, sunset guaranteed.',

@@ -323,6 +323,40 @@
   }
 }
 
+/* ── Globe Intro Overlay ─────────────────────── */
+
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.intro-title {
+  font-family: var(--font-display);
+  color: var(--color-cream);
+  text-align: center;
+  opacity: 0;
+  animation: introFadeIn 1.5s ease-out 0.5s forwards;
+}
+
+@keyframes introFadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  50% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.intro-subtitle {
+  font-size: 0.75rem;
+  color: rgba(212, 175, 55, 0.7);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
 /* ── Utility Classes ─────────────────────────── */
 
 .text-gradient-gold {

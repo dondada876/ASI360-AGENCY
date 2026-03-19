@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence } from 'framer-motion'
 import Header from '@/components/Header'
@@ -8,6 +8,8 @@ import BookingPanel from '@/components/BookingPanel'
 import ZonePrompt from '@/components/ZonePrompt'
 import Immersive360Modal from '@/components/Immersive360Modal'
 import WeatherBadge from '@/components/WeatherBadge'
+import { getIntroSequence, incrementVisitCount } from '@/lib/intro'
+import type { IntroSequence } from '@/lib/intro'
 import type { Video360Hotspot } from '@/components/BookingMap'
 
 // Dynamic import for map (SSR disabled — Mapbox needs window)
@@ -32,10 +34,10 @@ const BookingMap = dynamic(() => import('@/components/BookingMap'), {
 const VIDEO_360_HOTSPOTS: Video360Hotspot[] = [
   {
     id: 'a1-walkway-view',
-    label: '360° WALKWAY',
+    label: '360\u00B0 WALKWAY',
     lngLat: [-122.25150, 37.80835],  // A1/A2 boundary — on the walkway where you stood
     videoUrl: '/360/zone-a2-360.mp4',
-    title: 'Zone A1 — Walkway 360° View',
+    title: 'Zone A1 \u2014 Walkway 360\u00B0 View',
     subtitle: '7-second immersive view from the lakeside walkway',
     startYaw: 135,      // Face the lake/sunset (west-southwest)
     startPitch: -3,     // Slightly below horizon
@@ -43,10 +45,10 @@ const VIDEO_360_HOTSPOTS: Video360Hotspot[] = [
   },
   {
     id: 'a1-tents-view',
-    label: '360° TENTS',
+    label: '360\u00B0 TENTS',
     lngLat: [-122.25210, 37.80820],  // A1 — near the pergola, tent/umbrella area
     videoUrl: '/360/zone-a2-tents-360.mp4',
-    title: 'Zone A1 — Tent & Umbrella Setup',
+    title: 'Zone A1 \u2014 Tent & Umbrella Setup',
     subtitle: '45-second immersive view of canopy tents and umbrellas',
     startYaw: 90,       // Face east toward the tents
     startPitch: -5,     // Slightly down to see ground setup
@@ -57,6 +59,22 @@ const VIDEO_360_HOTSPOTS: Video360Hotspot[] = [
 export default function BookingPage() {
   const [selectedZone, setSelectedZone] = useState<string | null>(null)
   const [active360, setActive360] = useState<Video360Hotspot | null>(null)
+  const [introSequence] = useState<IntroSequence>(() => getIntroSequence())
+  const [introComplete, setIntroComplete] = useState(false)
+  const [showIntroOverlay, setShowIntroOverlay] = useState(() => introSequence === 'globe-full')
+
+  // Increment visit count on mount
+  useEffect(() => {
+    incrementVisitCount()
+  }, [])
+
+  // Hide intro overlay after globe phase
+  useEffect(() => {
+    if (showIntroOverlay) {
+      const timer = setTimeout(() => setShowIntroOverlay(false), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showIntroOverlay])
 
   const handleZoneSelect = useCallback((zoneId: string | null) => {
     setSelectedZone(zoneId)
@@ -64,6 +82,16 @@ export default function BookingPage() {
 
   const handleOpen360 = useCallback((hotspot: Video360Hotspot) => {
     setActive360(hotspot)
+  }, [])
+
+  const handleIntroDive360 = useCallback(() => {
+    // Open the A1 walkway 360° hotspot automatically at end of globe intro
+    const a1Hotspot = VIDEO_360_HOTSPOTS.find(h => h.id === 'a1-walkway-view')
+    if (a1Hotspot) setActive360(a1Hotspot)
+  }, [])
+
+  const handleIntroComplete = useCallback(() => {
+    setIntroComplete(true)
   }, [])
 
   return (
@@ -74,17 +102,30 @@ export default function BookingPage() {
         selectedZone={selectedZone}
         onOpen360={handleOpen360}
         video360Hotspots={VIDEO_360_HOTSPOTS}
+        introSequence={introSequence}
+        onIntroDive360={handleIntroDive360}
+        onIntroComplete={handleIntroComplete}
       />
+
+      {/* Globe intro overlay text — only on first visit during globe phase */}
+      {showIntroOverlay && (
+        <div className="intro-overlay">
+          <div>
+            <div className="intro-title text-3xl sm:text-5xl">500 Grand Live</div>
+            <div className="intro-subtitle text-center">Lake Merritt Social Club</div>
+          </div>
+        </div>
+      )}
 
       {/* Floating header */}
       <Header />
 
-      {/* Weather badge — top-right, below header */}
-      <WeatherBadge />
+      {/* Weather badge — top-right, below header — only after intro */}
+      {introComplete && <WeatherBadge />}
 
-      {/* Zone selection prompt — visible when no zone selected */}
+      {/* Zone selection prompt — visible when no zone selected, only after intro */}
       <AnimatePresence>
-        {!selectedZone && <ZonePrompt />}
+        {!selectedZone && introComplete && <ZonePrompt />}
       </AnimatePresence>
 
       {/* Booking panel — slides in from right when zone selected */}

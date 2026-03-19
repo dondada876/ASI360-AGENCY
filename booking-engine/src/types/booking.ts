@@ -1,6 +1,6 @@
 // 500 Grand Live — Booking Engine Types
 
-export type SpotType = 'umbrella' | 'canopy' | 'vip'
+export type SpotType = 'umbrella' | 'canopy' | 'cabana' | 'vip'
 export type TimeSlot = 'morning' | 'afternoon' | 'sunset' | 'fullday'
 export type SpotStatus = 'available' | 'reserved' | 'booked'
 

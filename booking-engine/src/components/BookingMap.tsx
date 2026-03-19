@@ -4,6 +4,8 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAPBOX_CONFIG, ZONES, ZONE_COLORS } from '@/lib/zones'
+import type { IntroSequence } from '@/lib/intro'
+import { runIntro } from '@/lib/intro'
 
 export interface Video360Hotspot {
   id: string
@@ -22,17 +24,48 @@ interface BookingMapProps {
   selectedZone: string | null
   onOpen360?: (hotspot: Video360Hotspot) => void
   video360Hotspots?: Video360Hotspot[]
+  introSequence?: IntroSequence
+  onIntroDive360?: () => void
+  onIntroComplete?: () => void
 }
 
-export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, video360Hotspots = [] }: BookingMapProps) {
+// Load/save HUD collapse states from localStorage
+function loadHudState(key: string, fallback: boolean): boolean {
+  if (typeof window === 'undefined') return fallback
+  const stored = localStorage.getItem(key)
+  if (stored === null) return fallback
+  return stored === 'true'
+}
+
+function saveHudState(key: string, value: boolean): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(key, String(value))
+}
+
+export default function BookingMap({
+  onZoneSelect,
+  selectedZone,
+  onOpen360,
+  video360Hotspots = [],
+  introSequence = 'instant',
+  onIntroDive360,
+  onIntroComplete,
+}: BookingMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [hoveredZone, setHoveredZone] = useState<string | null>(null)
-  const [autoRotate, setAutoRotate] = useState(false)
+  const [autoRotate, setAutoRotate] = useState(true) // ON by default
   const [terrain3D, setTerrain3D] = useState(true)
   const autoRotateRef = useRef(false)
   const animFrameRef = useRef<number | null>(null)
+  const [introComplete, setIntroComplete] = useState(introSequence === 'instant')
+  const [hudExpanded, setHudExpanded] = useState(() => loadHudState('500gl_hud_expanded', true))
+  const [legendExpanded, setLegendExpanded] = useState(() => loadHudState('500gl_legend_expanded', true))
+
+  // Persist collapse states
+  useEffect(() => { saveHudState('500gl_hud_expanded', hudExpanded) }, [hudExpanded])
+  useEffect(() => { saveHudState('500gl_legend_expanded', legendExpanded) }, [legendExpanded])
 
   // Auto-rotate logic
   const startAutoRotate = useCallback(() => {
@@ -58,13 +91,14 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
 
   // Toggle auto-rotate
   useEffect(() => {
+    if (!introComplete) return // Don't start auto-rotate during intro
     if (autoRotate) {
       startAutoRotate()
     } else {
       stopAutoRotate()
     }
     return () => stopAutoRotate()
-  }, [autoRotate, startAutoRotate, stopAutoRotate])
+  }, [autoRotate, startAutoRotate, stopAutoRotate, introComplete])
 
   // Toggle 3D terrain
   useEffect(() => {
@@ -77,16 +111,18 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
     }
   }, [terrain3D, mapLoaded])
 
-  // Pause auto-rotate on user interaction
+  // Pause auto-rotate on user interaction, resume after 5s
   useEffect(() => {
     if (!map.current || !mapLoaded) return
     const m = map.current
 
+    let resumeTimeout: ReturnType<typeof setTimeout> | null = null
+
     const pauseRotate = () => {
       if (autoRotateRef.current && autoRotate) {
         stopAutoRotate()
-        // Resume after 5 seconds of no interaction
-        setTimeout(() => {
+        if (resumeTimeout) clearTimeout(resumeTimeout)
+        resumeTimeout = setTimeout(() => {
           if (autoRotate) startAutoRotate()
         }, 5000)
       }
@@ -100,6 +136,7 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
       m.off('mousedown', pauseRotate)
       m.off('touchstart', pauseRotate)
       m.off('wheel', pauseRotate)
+      if (resumeTimeout) clearTimeout(resumeTimeout)
     }
   }, [mapLoaded, autoRotate, startAutoRotate, stopAutoRotate])
 
@@ -114,17 +151,39 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
 
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
-    map.current = new mapboxgl.Map({
+    // Determine initial view based on intro sequence
+    let initOptions: mapboxgl.MapboxOptions & { container: HTMLElement } = {
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      antialias: true,
+      maxZoom: 20,
+      minZoom: 1,
       center: MAPBOX_CONFIG.center,
       zoom: MAPBOX_CONFIG.zoom,
       bearing: MAPBOX_CONFIG.bearing,
       pitch: MAPBOX_CONFIG.pitch,
-      antialias: true,
-      maxZoom: 20,
-      minZoom: 14,
-    })
+    }
+
+    if (introSequence === 'globe-full') {
+      initOptions = {
+        ...initOptions,
+        center: [30, 15],
+        zoom: 1.5,
+        pitch: 0,
+        bearing: 0,
+        projection: 'globe' as any,
+      }
+    } else if (introSequence === 'fly-orbit') {
+      initOptions = {
+        ...initOptions,
+        center: [-122.2509, 37.8073],
+        zoom: 10,
+        pitch: 0,
+        bearing: 0,
+      }
+    }
+
+    map.current = new mapboxgl.Map(initOptions)
 
     map.current.addControl(
       new mapboxgl.NavigationControl({ visualizePitch: true }),
@@ -325,7 +384,7 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
           ],
         ],
         layout: {
-          'text-field': '🚻',
+          'text-field': '\u{1F6BB}',
           'text-size': 12,
           'text-anchor': 'center',
           'text-allow-overlap': true,
@@ -333,10 +392,6 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
       })
 
       // ── Infrastructure: Hand Wash Station (BLUE) ──
-      // We'll also add hand wash markers as HTML markers since we need to
-      // differentiate restrooms from handwash in the tileset.
-      // For now, add the third infrastructure point as blue via a separate
-      // HTML marker positioned at the known handwash location.
       const handwashMarkerEl = document.createElement('div')
       handwashMarkerEl.innerHTML = `
         <div style="
@@ -348,7 +403,7 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
           font-size: 11px;
           box-shadow: 0 2px 8px rgba(37,99,235,0.5);
           cursor: pointer;
-        ">🧼</div>
+        ">\u{1F9FC}</div>
         <div style="
           font-size: 9px;
           color: #93C5FD;
@@ -359,15 +414,14 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
           font-weight: 600;
         ">HAND WASH</div>
       `
-      // Hand wash station is near the restrooms at the parking lot
       new mapboxgl.Marker({ element: handwashMarkerEl, anchor: 'center' })
         .setLngLat([-122.25128, 37.80902])
         .addTo(map.current!)
 
       // ── Restroom HTML markers for labels ──
       const restroomCoords: [number, number][] = [
-        [-122.25130, 37.80906],  // Restroom 1
-        [-122.25126, 37.80898],  // Restroom 2
+        [-122.25130, 37.80906],
+        [-122.25126, 37.80898],
       ]
       restroomCoords.forEach((coord, i) => {
         const el = document.createElement('div')
@@ -417,6 +471,21 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
       })
 
       setMapLoaded(true)
+
+      // Run the intro sequence after map is loaded
+      if (introSequence !== 'instant') {
+        runIntro(map.current!, introSequence, onIntroDive360).then(() => {
+          setIntroComplete(true)
+          onIntroComplete?.()
+          // Start auto-rotate after intro
+          if (autoRotate) startAutoRotate()
+        })
+      } else {
+        setIntroComplete(true)
+        onIntroComplete?.()
+        // Start auto-rotate immediately for instant
+        if (autoRotate) startAutoRotate()
+      }
     })
 
     // ── Zone hover interaction ──
@@ -524,72 +593,151 @@ export default function BookingMap({ onZoneSelect, selectedZone, onOpen360, vide
           <div className="w-2 h-2 rounded-full shrink-0" style={{ background: ZONE_COLORS[zoneData.sunsetQuality] }} />
           <span className="text-xs font-semibold text-cream">{zoneData.label}</span>
           <span className="text-[10px] text-cream/50">{zoneData.name}</span>
-          {zoneData.sunsetQuality === 'golden' && <span className="text-[10px]">🌅</span>}
+          {zoneData.sunsetQuality === 'golden' && <span className="text-[10px]">&#127749;</span>}
         </div>
       )}
 
-      {/* ── Toggle Controls — compact icon buttons, top-left ── */}
-      <div className="absolute top-16 left-3 z-10 flex flex-col gap-1.5">
-        <button
-          onClick={() => setAutoRotate(!autoRotate)}
-          title={autoRotate ? 'Stop rotating' : 'Auto-rotate'}
-          className={`rounded-lg w-9 h-9 flex items-center justify-center transition-all duration-300 ${
-            autoRotate
-              ? 'text-gold shadow-[0_0_10px_rgba(212,175,55,0.3)]'
-              : 'text-cream/50 hover:text-cream/80'
-          }`}
-          style={{ backdropFilter: 'blur(12px)', background: autoRotate ? 'rgba(212,175,55,0.15)' : 'rgba(15,41,55,0.7)', border: `1px solid ${autoRotate ? 'rgba(212,175,55,0.4)' : 'rgba(255,248,240,0.1)'}` }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
-          </svg>
-        </button>
+      {/* ── HUD Controls — expandable panel, top-left ── */}
+      {introComplete && (
+        <div className="absolute top-16 left-3 z-10">
+          {hudExpanded ? (
+            <div className="rounded-xl p-3 flex flex-col gap-2 w-[180px]"
+                 style={{ backdropFilter: 'blur(16px)', background: 'rgba(15,41,55,0.85)', border: '1px solid rgba(212,175,55,0.15)' }}>
+              {/* Header with collapse button */}
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9px] uppercase tracking-[0.2em] text-gold/60 font-semibold">CONTROLS</span>
+                <button onClick={() => setHudExpanded(false)}
+                        className="text-cream/30 hover:text-cream/60 text-xs">{'\u25BE'}</button>
+              </div>
 
-        <button
-          onClick={() => setTerrain3D(!terrain3D)}
-          title={terrain3D ? '3D Terrain ON' : 'Flat map'}
-          className={`rounded-lg w-9 h-9 flex items-center justify-center transition-all duration-300 ${
-            terrain3D
-              ? 'text-gold shadow-[0_0_10px_rgba(212,175,55,0.3)]'
-              : 'text-cream/50 hover:text-cream/80'
-          }`}
-          style={{ backdropFilter: 'blur(12px)', background: terrain3D ? 'rgba(212,175,55,0.15)' : 'rgba(15,41,55,0.7)', border: `1px solid ${terrain3D ? 'rgba(212,175,55,0.4)' : 'rgba(255,248,240,0.1)'}` }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
-          </svg>
-        </button>
-      </div>
+              {/* Auto-Rotate toggle */}
+              <button onClick={() => setAutoRotate(!autoRotate)}
+                      className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[11px] font-medium transition-all ${
+                        autoRotate ? 'bg-gold/15 text-gold border border-gold/30' : 'bg-white/5 text-cream/60 border border-white/5'
+                      }`}>
+                <span className="flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+                  </svg>
+                  Auto-Rotate
+                </span>
+                <span className={`w-8 h-4 rounded-full relative transition-colors ${autoRotate ? 'bg-gold/40' : 'bg-white/10'}`}>
+                  <span className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${autoRotate ? 'left-4 bg-gold' : 'left-0.5 bg-cream/40'}`} />
+                </span>
+              </button>
 
-      {/* Map legend — compact icon row, bottom-left */}
-      <div className="absolute bottom-4 left-3 z-10 rounded-lg px-2 py-1.5 flex items-center gap-3"
-           style={{ backdropFilter: 'blur(12px)', background: 'rgba(15,41,55,0.75)', border: '1px solid rgba(255,248,240,0.08)' }}>
-        <div className="flex items-center gap-1" title="Golden Hour (+2hrs sunset)">
-          <div className="w-2 h-2 rounded-full" style={{ background: ZONE_COLORS.golden }} />
-          <span className="text-[9px] text-cream/50">🌅</span>
+              {/* 3D Terrain toggle */}
+              <button onClick={() => setTerrain3D(!terrain3D)}
+                      className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[11px] font-medium transition-all ${
+                        terrain3D ? 'bg-gold/15 text-gold border border-gold/30' : 'bg-white/5 text-cream/60 border border-white/5'
+                      }`}>
+                <span className="flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
+                  </svg>
+                  3D Terrain
+                </span>
+                <span className={`w-8 h-4 rounded-full relative transition-colors ${terrain3D ? 'bg-gold/40' : 'bg-white/10'}`}>
+                  <span className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${terrain3D ? 'left-4 bg-gold' : 'left-0.5 bg-cream/40'}`} />
+                </span>
+              </button>
+
+              {/* Pitch control */}
+              <div className="mt-1">
+                <div className="text-[9px] text-cream/30 uppercase tracking-wider mb-1.5">Camera Angle</div>
+                <div className="flex gap-1">
+                  {[
+                    { label: 'Top', pitch: 0, bearing: 0 },
+                    { label: '30\u00B0', pitch: 30, bearing: -20 },
+                    { label: '45\u00B0', pitch: 45, bearing: -30 },
+                    { label: '60\u00B0', pitch: 60, bearing: -40 },
+                  ].map((p) => (
+                    <button key={p.label}
+                      onClick={() => map.current?.easeTo({ pitch: p.pitch, bearing: p.bearing, duration: 800 })}
+                      className="flex-1 text-[10px] text-cream/50 hover:text-gold hover:bg-gold/10 rounded py-1.5 transition-colors text-center border border-white/5 hover:border-gold/20"
+                    >{p.label}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Collapsed: single button to expand */
+            <button onClick={() => setHudExpanded(true)}
+                    className="rounded-lg w-9 h-9 flex items-center justify-center"
+                    style={{ backdropFilter: 'blur(12px)', background: 'rgba(15,41,55,0.8)', border: '1px solid rgba(212,175,55,0.2)' }}>
+              <span className="text-gold text-sm">{'\u2699'}</span>
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-1" title="Partial Sun">
-          <div className="w-2 h-2 rounded-full" style={{ background: ZONE_COLORS.partial }} />
-          <span className="text-[9px] text-cream/50">⛅</span>
+      )}
+
+      {/* ── Interactive Legend — expandable panel, bottom-left ── */}
+      {introComplete && (
+        <div className="absolute bottom-4 left-3 z-10">
+          {legendExpanded ? (
+            <div className="rounded-xl p-3 w-[200px]"
+                 style={{ backdropFilter: 'blur(16px)', background: 'rgba(15,41,55,0.85)', border: '1px solid rgba(212,175,55,0.15)' }}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[9px] uppercase tracking-[0.2em] text-gold/60 font-semibold">LEGEND</span>
+                <button onClick={() => setLegendExpanded(false)} className="text-cream/30 hover:text-cream/60 text-xs">{'\u25BE'}</button>
+              </div>
+              <div className="space-y-1.5">
+                {/* Zone types - tappable to highlight */}
+                <button className="flex items-center gap-2 w-full text-left hover:bg-white/5 rounded px-1.5 py-1 transition-colors">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#D4AF37' }} />
+                  <span className="text-[11px] text-cream/70">Golden Sunset (+2hrs)</span>
+                  <span className="text-[10px] ml-auto">&#127749;</span>
+                </button>
+                <button className="flex items-center gap-2 w-full text-left hover:bg-white/5 rounded px-1.5 py-1 transition-colors">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#4CAF50' }} />
+                  <span className="text-[11px] text-cream/70">Partial Sun</span>
+                  <span className="text-[10px] ml-auto">{'\u26C5'}</span>
+                </button>
+                <button className="flex items-center gap-2 w-full text-left hover:bg-white/5 rounded px-1.5 py-1 transition-colors">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#6B8F6B' }} />
+                  <span className="text-[11px] text-cream/70">Shaded / Trees</span>
+                  <span className="text-[10px] ml-auto">&#127795;</span>
+                </button>
+
+                <div className="border-t border-white/10 pt-1.5 mt-1.5" />
+
+                {/* Markers */}
+                <div className="flex items-center gap-2 px-1.5 py-0.5">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-gold" />
+                  <span className="text-[11px] text-cream/50">Umbrella Spot</span>
+                </div>
+                <div className="flex items-center gap-2 px-1.5 py-0.5">
+                  <div className="w-2.5 h-2.5 rounded-sm shrink-0 bg-gold" />
+                  <span className="text-[11px] text-cream/50">Cabana / Tent</span>
+                </div>
+
+                <div className="border-t border-white/10 pt-1.5 mt-1.5" />
+
+                {/* Infrastructure */}
+                <div className="flex items-center gap-2 px-1.5 py-0.5">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#DC2626' }} />
+                  <span className="text-[11px] text-cream/50">Restroom &#128699;</span>
+                </div>
+                <div className="flex items-center gap-2 px-1.5 py-0.5">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#2563EB' }} />
+                  <span className="text-[11px] text-cream/50">Hand Wash &#129532;</span>
+                </div>
+                <div className="flex items-center gap-2 px-1.5 py-0.5">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-gold/60" />
+                  <span className="text-[11px] text-cream/50">Light Pole / QR &#128205;</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setLegendExpanded(true)}
+                    className="rounded-lg px-3 py-2 flex items-center gap-2"
+                    style={{ backdropFilter: 'blur(12px)', background: 'rgba(15,41,55,0.8)', border: '1px solid rgba(212,175,55,0.2)' }}>
+              <span className="text-[10px] text-cream/60">Legend</span>
+              <span className="text-gold text-xs">{'\u25B8'}</span>
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-1" title="Shaded">
-          <div className="w-2 h-2 rounded-full" style={{ background: ZONE_COLORS.shaded }} />
-          <span className="text-[9px] text-cream/50">🌳</span>
-        </div>
-        <div className="w-px h-3 bg-cream/10" />
-        <div className="flex items-center gap-1" title="Restroom (code required)">
-          <div className="w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
-          <span className="text-[9px]">🚻</span>
-        </div>
-        <div className="flex items-center gap-1" title="Hand Wash">
-          <div className="w-2 h-2 rounded-full" style={{ background: '#2563EB' }} />
-          <span className="text-[9px]">🧼</span>
-        </div>
-        <div className="flex items-center gap-1" title="Light Pole / QR">
-          <div className="w-2 h-2 rounded-full bg-gold" />
-          <span className="text-[9px]">📍</span>
-        </div>
-      </div>
+      )}
     </div>
   )
 }
