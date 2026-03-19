@@ -56,8 +56,11 @@ export default function BookingMap({
   const [mapLoaded, setMapLoaded] = useState(false)
   const [hoveredZone, setHoveredZone] = useState<string | null>(null)
   const [autoRotate, setAutoRotate] = useState(true) // ON by default
+  const [rotateSpeed, setRotateSpeed] = useState(0.06) // degrees per frame (0.03=slow, 0.06=medium, 0.15=fast)
   const [terrain3D, setTerrain3D] = useState(true)
+  const [buildings3D, setBuildings3D] = useState(true)
   const autoRotateRef = useRef(false)
+  const rotateSpeedRef = useRef(0.06)
   const animFrameRef = useRef<number | null>(null)
   const [introComplete, setIntroComplete] = useState(introSequence === 'instant')
   const [hudExpanded, setHudExpanded] = useState(() => loadHudState('500gl_hud_expanded', true))
@@ -67,6 +70,9 @@ export default function BookingMap({
   useEffect(() => { saveHudState('500gl_hud_expanded', hudExpanded) }, [hudExpanded])
   useEffect(() => { saveHudState('500gl_legend_expanded', legendExpanded) }, [legendExpanded])
 
+  // Keep speed ref in sync
+  useEffect(() => { rotateSpeedRef.current = rotateSpeed }, [rotateSpeed])
+
   // Auto-rotate logic
   const startAutoRotate = useCallback(() => {
     if (!map.current) return
@@ -74,7 +80,7 @@ export default function BookingMap({
 
     const rotate = () => {
       if (!map.current || !autoRotateRef.current) return
-      const bearing = map.current.getBearing() + 0.15 // slow rotation
+      const bearing = map.current.getBearing() + rotateSpeedRef.current
       map.current.setBearing(bearing % 360)
       animFrameRef.current = requestAnimationFrame(rotate)
     }
@@ -110,6 +116,43 @@ export default function BookingMap({
       map.current.easeTo({ pitch: 0, duration: 800 })
     }
   }, [terrain3D, mapLoaded])
+
+  // Toggle 3D buildings
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return
+    const m = map.current
+
+    if (buildings3D) {
+      // Add 3D building extrusions if layer doesn't exist
+      if (!m.getLayer('3d-buildings')) {
+        // Use the composite source which includes building data
+        m.addLayer({
+          id: '3d-buildings',
+          source: 'composite',
+          'source-layer': 'building',
+          type: 'fill-extrusion',
+          minzoom: 14,
+          paint: {
+            'fill-extrusion-color': [
+              'interpolate', ['linear'], ['get', 'height'],
+              0, 'rgba(180, 170, 150, 0.6)',   // low buildings: warm stone
+              20, 'rgba(160, 155, 145, 0.7)',    // medium
+              50, 'rgba(140, 140, 140, 0.75)',   // tall buildings
+            ],
+            'fill-extrusion-height': ['get', 'height'],
+            'fill-extrusion-base': ['get', 'min_height'],
+            'fill-extrusion-opacity': 0.7,
+          },
+        })
+      } else {
+        m.setLayoutProperty('3d-buildings', 'visibility', 'visible')
+      }
+    } else {
+      if (m.getLayer('3d-buildings')) {
+        m.setLayoutProperty('3d-buildings', 'visibility', 'none')
+      }
+    }
+  }, [buildings3D, mapLoaded])
 
   // Pause auto-rotate on user interaction, resume after 5s
   useEffect(() => {
@@ -626,6 +669,30 @@ export default function BookingMap({
                 </span>
               </button>
 
+              {/* Speed slider — only visible when auto-rotate is on */}
+              {autoRotate && (
+                <div className="rounded-lg px-2.5 py-2 bg-white/5 border border-white/5">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[9px] text-cream/40 uppercase tracking-wider">Speed</span>
+                    <span className="text-[9px] text-gold/60">
+                      {rotateSpeed <= 0.03 ? 'Slow' : rotateSpeed <= 0.08 ? 'Medium' : 'Fast'}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.02"
+                    max="0.2"
+                    step="0.01"
+                    value={rotateSpeed}
+                    onChange={(e) => setRotateSpeed(parseFloat(e.target.value))}
+                    className="w-full h-1 rounded-full appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, rgba(212,175,55,0.6) 0%, rgba(212,175,55,0.6) ${((rotateSpeed - 0.02) / 0.18) * 100}%, rgba(255,255,255,0.1) ${((rotateSpeed - 0.02) / 0.18) * 100}%, rgba(255,255,255,0.1) 100%)`,
+                    }}
+                  />
+                </div>
+              )}
+
               {/* 3D Terrain toggle */}
               <button onClick={() => setTerrain3D(!terrain3D)}
                       className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[11px] font-medium transition-all ${
@@ -642,19 +709,47 @@ export default function BookingMap({
                 </span>
               </button>
 
-              {/* Pitch control */}
+              {/* 3D Buildings toggle */}
+              <button onClick={() => setBuildings3D(!buildings3D)}
+                      className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[11px] font-medium transition-all ${
+                        buildings3D ? 'bg-gold/15 text-gold border border-gold/30' : 'bg-white/5 text-cream/60 border border-white/5'
+                      }`}>
+                <span className="flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="8" width="7" height="13" rx="1" />
+                    <rect x="14" y="3" width="7" height="18" rx="1" />
+                    <path d="M10 14h4" />
+                  </svg>
+                  3D Buildings
+                </span>
+                <span className={`w-8 h-4 rounded-full relative transition-colors ${buildings3D ? 'bg-gold/40' : 'bg-white/10'}`}>
+                  <span className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${buildings3D ? 'left-4 bg-gold' : 'left-0.5 bg-cream/40'}`} />
+                </span>
+              </button>
+
+              {/* Camera Angle — highlighted active state */}
               <div className="mt-1">
-                <div className="text-[9px] text-cream/30 uppercase tracking-wider mb-1.5">Camera Angle</div>
+                <div className="text-[9px] text-cream/40 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gold/50">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                  Camera Angle
+                </div>
                 <div className="flex gap-1">
                   {[
                     { label: 'Top', pitch: 0, bearing: 0 },
                     { label: '30\u00B0', pitch: 30, bearing: -20 },
                     { label: '45\u00B0', pitch: 45, bearing: -30 },
-                    { label: '60\u00B0', pitch: 60, bearing: -40 },
+                    { label: '70\u00B0', pitch: 70, bearing: -30 },
                   ].map((p) => (
                     <button key={p.label}
                       onClick={() => map.current?.easeTo({ pitch: p.pitch, bearing: p.bearing, duration: 800 })}
-                      className="flex-1 text-[10px] text-cream/50 hover:text-gold hover:bg-gold/10 rounded py-1.5 transition-colors text-center border border-white/5 hover:border-gold/20"
+                      className={`flex-1 text-[10px] rounded py-1.5 transition-colors text-center border ${
+                        Math.abs((map.current?.getPitch() || 70) - p.pitch) < 10
+                          ? 'text-gold bg-gold/15 border-gold/30 font-semibold'
+                          : 'text-cream/50 hover:text-gold hover:bg-gold/10 border-white/5 hover:border-gold/20'
+                      }`}
                     >{p.label}</button>
                   ))}
                 </div>

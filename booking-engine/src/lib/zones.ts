@@ -12,7 +12,7 @@ export const MAPBOX_CONFIG = {
   center: [-122.2509, 37.8073] as [number, number],
   zoom: 17.5,
   bearing: -30, // angle the map to face the sunset direction
-  pitch: 45,
+  pitch: 70, // dramatic immersive angle
 }
 
 // Zone definitions — aligned with Mapbox dataset features
