@@ -346,7 +346,7 @@ export default function BookingMap({
           'text-padding': 8,
           'symbol-sort-key': ['match', ['get', 'zone'],
             'A1', 1, 'A2', 2, 'B1', 3, 'B2', 4, 'B3', 5, 'B4', 6,
-            'C', 7, 'C2', 8, 'D1', 9, 'D2', 10, 'D3', 11,
+            'B5', 7, 'C1', 8, 'C2', 9, 'C3', 10, 'C4', 11,
             99
           ],
         },
