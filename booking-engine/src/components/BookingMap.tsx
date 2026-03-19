@@ -228,15 +228,19 @@ export default function BookingMap({
 
     map.current = new mapboxgl.Map(initOptions)
 
+    // Nav controls: top-right on mobile (avoid bottom overlap), bottom-right on desktop
+    const isMobile = window.innerWidth < 640
     map.current.addControl(
       new mapboxgl.NavigationControl({ visualizePitch: true }),
-      'bottom-right'
+      isMobile ? 'top-right' : 'bottom-right'
     )
 
-    map.current.addControl(
-      new mapboxgl.ScaleControl({ maxWidth: 120 }),
-      'bottom-left'
-    )
+    if (!isMobile) {
+      map.current.addControl(
+        new mapboxgl.ScaleControl({ maxWidth: 120 }),
+        'bottom-left'
+      )
+    }
 
     map.current.on('load', () => {
       if (!map.current) return
@@ -766,79 +770,128 @@ export default function BookingMap({
         </div>
       )}
 
-      {/* ── Interactive Legend — expandable panel, bottom-left ── */}
+      {/* ── Interactive Legend ── */}
+      {/* Mobile: bottom center, full-width bar. Desktop: bottom-left panel */}
       {introComplete && (
-        <div className="absolute bottom-4 left-3 z-10">
+        <>
           {legendExpanded ? (
-            <div className="rounded-xl p-3 w-[200px]"
-                 style={{ backdropFilter: 'blur(16px)', background: 'rgba(15,41,55,0.85)', border: '1px solid rgba(212,175,55,0.15)' }}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] uppercase tracking-[0.2em] text-gold/60 font-semibold">LEGEND</span>
-                <button onClick={() => setLegendExpanded(false)}
-                        className="text-cream/40 hover:text-cream/80 text-[10px] px-2 py-0.5 rounded border border-white/10 hover:border-gold/20 hover:bg-gold/10 transition-all">
-                  Hide
-                </button>
-              </div>
-              <div className="space-y-1.5">
-                {/* Zone types - tappable to highlight */}
-                <button className="flex items-center gap-2 w-full text-left hover:bg-white/5 rounded px-1.5 py-1 transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#D4AF37' }} />
-                  <span className="text-[11px] text-cream/70">Golden Sunset (+2hrs)</span>
-                  <span className="text-[10px] ml-auto">&#127749;</span>
-                </button>
-                <button className="flex items-center gap-2 w-full text-left hover:bg-white/5 rounded px-1.5 py-1 transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#4CAF50' }} />
-                  <span className="text-[11px] text-cream/70">Partial Sun</span>
-                  <span className="text-[10px] ml-auto">{'\u26C5'}</span>
-                </button>
-                <button className="flex items-center gap-2 w-full text-left hover:bg-white/5 rounded px-1.5 py-1 transition-colors">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#6B8F6B' }} />
-                  <span className="text-[11px] text-cream/70">Shaded / Trees</span>
-                  <span className="text-[10px] ml-auto">&#127795;</span>
-                </button>
-
-                <div className="border-t border-white/10 pt-1.5 mt-1.5" />
-
-                {/* Markers */}
-                <div className="flex items-center gap-2 px-1.5 py-0.5">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-gold" />
-                  <span className="text-[11px] text-cream/50">Umbrella Spot</span>
+            <>
+              {/* Mobile: bottom sheet style */}
+              <div className="sm:hidden absolute bottom-0 left-0 right-0 z-20 rounded-t-xl p-3 pb-6"
+                   style={{ backdropFilter: 'blur(16px)', background: 'rgba(15,41,55,0.92)', borderTop: '1px solid rgba(212,175,55,0.2)' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[9px] uppercase tracking-[0.2em] text-gold/60 font-semibold">LEGEND</span>
+                  <button onClick={() => setLegendExpanded(false)}
+                          className="text-cream/50 hover:text-cream/80 text-[11px] px-3 py-1 rounded-full border border-white/10 hover:border-gold/20 hover:bg-gold/10 transition-all">
+                    Hide
+                  </button>
                 </div>
-                <div className="flex items-center gap-2 px-1.5 py-0.5">
-                  <div className="w-2.5 h-2.5 rounded-sm shrink-0 bg-gold" />
-                  <span className="text-[11px] text-cream/50">Cabana / Tent</span>
-                </div>
-
-                <div className="border-t border-white/10 pt-1.5 mt-1.5" />
-
-                {/* Infrastructure */}
-                <div className="flex items-center gap-2 px-1.5 py-0.5">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#DC2626' }} />
-                  <span className="text-[11px] text-cream/50">Restroom &#128699;</span>
-                </div>
-                <div className="flex items-center gap-2 px-1.5 py-0.5">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#2563EB' }} />
-                  <span className="text-[11px] text-cream/50">Hand Wash &#129532;</span>
-                </div>
-                <div className="flex items-center gap-2 px-1.5 py-0.5">
-                  <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-gold/60" />
-                  <span className="text-[11px] text-cream/50">Light Pole / QR &#128205;</span>
+                {/* 2-column grid for mobile */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#D4AF37' }} />
+                    <span className="text-[11px] text-cream/70">Golden Sunset 🌅</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#4CAF50' }} />
+                    <span className="text-[11px] text-cream/70">Partial Sun ⛅</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#6B8F6B' }} />
+                    <span className="text-[11px] text-cream/70">Shaded 🌳</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-gold" />
+                    <span className="text-[11px] text-cream/50">Umbrella ●</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-sm shrink-0 bg-gold" />
+                    <span className="text-[11px] text-cream/50">Cabana ■</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#DC2626' }} />
+                    <span className="text-[11px] text-cream/50">Restroom 🚻</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#2563EB' }} />
+                    <span className="text-[11px] text-cream/50">Hand Wash 🧼</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-gold/60" />
+                    <span className="text-[11px] text-cream/50">QR Pole 📍</span>
+                  </div>
                 </div>
               </div>
-            </div>
+
+              {/* Desktop: side panel */}
+              <div className="hidden sm:block absolute bottom-4 left-3 z-10">
+                <div className="rounded-xl p-3 w-[200px]"
+                     style={{ backdropFilter: 'blur(16px)', background: 'rgba(15,41,55,0.85)', border: '1px solid rgba(212,175,55,0.15)' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] uppercase tracking-[0.2em] text-gold/60 font-semibold">LEGEND</span>
+                    <button onClick={() => setLegendExpanded(false)}
+                            className="text-cream/40 hover:text-cream/80 text-[10px] px-2 py-0.5 rounded border border-white/10 hover:border-gold/20 hover:bg-gold/10 transition-all">
+                      Hide
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    <button className="flex items-center gap-2 w-full text-left hover:bg-white/5 rounded px-1.5 py-1 transition-colors">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#D4AF37' }} />
+                      <span className="text-[11px] text-cream/70">Golden Sunset (+2hrs)</span>
+                      <span className="text-[10px] ml-auto">🌅</span>
+                    </button>
+                    <button className="flex items-center gap-2 w-full text-left hover:bg-white/5 rounded px-1.5 py-1 transition-colors">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#4CAF50' }} />
+                      <span className="text-[11px] text-cream/70">Partial Sun</span>
+                      <span className="text-[10px] ml-auto">⛅</span>
+                    </button>
+                    <button className="flex items-center gap-2 w-full text-left hover:bg-white/5 rounded px-1.5 py-1 transition-colors">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#6B8F6B' }} />
+                      <span className="text-[11px] text-cream/70">Shaded / Trees</span>
+                      <span className="text-[10px] ml-auto">🌳</span>
+                    </button>
+                    <div className="border-t border-white/10 pt-1.5 mt-1.5" />
+                    <div className="flex items-center gap-2 px-1.5 py-0.5">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-gold" />
+                      <span className="text-[11px] text-cream/50">Umbrella Spot</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-1.5 py-0.5">
+                      <div className="w-2.5 h-2.5 rounded-sm shrink-0 bg-gold" />
+                      <span className="text-[11px] text-cream/50">Cabana / Tent</span>
+                    </div>
+                    <div className="border-t border-white/10 pt-1.5 mt-1.5" />
+                    <div className="flex items-center gap-2 px-1.5 py-0.5">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#DC2626' }} />
+                      <span className="text-[11px] text-cream/50">Restroom 🚻</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-1.5 py-0.5">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: '#2563EB' }} />
+                      <span className="text-[11px] text-cream/50">Hand Wash 🧼</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-1.5 py-0.5">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-gold/60" />
+                      <span className="text-[11px] text-cream/50">Light Pole / QR 📍</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
           ) : (
-            <button onClick={() => setLegendExpanded(true)}
-                    className="rounded-xl px-4 py-2.5 flex items-center gap-2.5 transition-all hover:scale-105 active:scale-95"
-                    style={{ backdropFilter: 'blur(16px)', background: 'rgba(15,41,55,0.85)', border: '1px solid rgba(212,175,55,0.25)' }}>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full" style={{ background: '#D4AF37' }} />
-                <div className="w-2 h-2 rounded-full" style={{ background: '#4CAF50' }} />
-                <div className="w-2 h-2 rounded-full" style={{ background: '#6B8F6B' }} />
-              </div>
-              <span className="text-[11px] text-cream/70 font-medium">Show Legend</span>
-            </button>
+            /* Collapsed: mobile = bottom-center, desktop = bottom-left */
+            <div className="absolute bottom-4 left-1/2 sm:left-3 -translate-x-1/2 sm:translate-x-0 z-10">
+              <button onClick={() => setLegendExpanded(true)}
+                      className="rounded-xl px-4 py-2.5 flex items-center gap-2.5 transition-all hover:scale-105 active:scale-95"
+                      style={{ backdropFilter: 'blur(16px)', background: 'rgba(15,41,55,0.85)', border: '1px solid rgba(212,175,55,0.25)' }}>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full" style={{ background: '#D4AF37' }} />
+                  <div className="w-2 h-2 rounded-full" style={{ background: '#4CAF50' }} />
+                  <div className="w-2 h-2 rounded-full" style={{ background: '#6B8F6B' }} />
+                </div>
+                <span className="text-[11px] text-cream/70 font-medium">Show Legend</span>
+              </button>
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   )
