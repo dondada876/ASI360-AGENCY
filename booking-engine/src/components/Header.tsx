@@ -1,51 +1,76 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [weather, setWeather] = useState<{ temp: number; condition: string; sunset?: string } | null>(null)
+
+  // Fetch weather for header badge
+  useEffect(() => {
+    fetch('/api/weather?days=1')
+      .then(r => r.json())
+      .then(data => {
+        const today = data.daily?.[0]
+        if (today) {
+          setWeather({
+            temp: Math.round(today.high_f || 72),
+            condition: today.condition || 'Sunny',
+            sunset: data.sunTimes?.[0]?.sunset,
+          })
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-40 pointer-events-none">
-        <div className="flex items-center justify-between p-4 sm:p-5">
-          {/* Logo */}
+        <div className="flex items-center justify-between px-3 py-2 sm:px-5 sm:py-3">
+          {/* Logo — official 500 Grand Live branding */}
           <div className="pointer-events-auto">
-            <div className="glass rounded-2xl px-5 py-3 border-glow-gold flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gold-light via-gold to-ember flex items-center justify-center">
-                <span className="text-dusk font-bold text-xs">500</span>
-              </div>
-              <div>
-                <div className="font-[family-name:var(--font-display)] text-base font-semibold text-cream leading-none">
-                  Grand Live
-                </div>
-                <div className="text-[9px] uppercase tracking-[0.25em] text-gold/70 mt-0.5">
-                  Social Club
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right side actions */}
-          <div className="pointer-events-auto flex items-center gap-2">
             <a
               href="https://www.500grandlive.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:flex glass rounded-xl px-4 py-2.5 text-xs text-cream/60 hover:text-cream transition-colors items-center gap-2"
+              className="glass rounded-xl px-3 py-1.5 border-glow-gold flex items-center gap-2 hover:scale-105 transition-transform"
             >
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                <path d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
-                <path d="M3.6 9h16.8M3.6 15h16.8" />
-                <path d="M12 3a15 15 0 014 9 15 15 0 01-4 9 15 15 0 01-4-9 15 15 0 014-9z" />
-              </svg>
-              500grandlive.com
+              <Image
+                src="/500gl-logo.png"
+                alt="500 Grand Live"
+                width={120}
+                height={32}
+                className="h-7 w-auto object-contain"
+                priority
+              />
             </a>
+          </div>
 
+          {/* Right side — weather pill + hamburger */}
+          <div className="pointer-events-auto flex items-center gap-2">
+            {/* Weather pill — compact, tap to expand later */}
+            {weather && (
+              <div
+                className="glass rounded-xl px-2.5 py-1.5 flex items-center gap-1.5 border-glow-gold"
+              >
+                <span className="text-xs">
+                  {weather.condition?.includes('Rain') ? '🌧' :
+                   weather.condition?.includes('Cloud') ? '⛅' : '☀️'}
+                </span>
+                <span className="text-cream font-semibold text-xs">{weather.temp}°F</span>
+                {weather.sunset && (
+                  <span className="text-gold/60 text-[9px] hidden sm:inline">🌅{weather.sunset}</span>
+                )}
+              </div>
+            )}
+
+            {/* Hamburger menu */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="glass rounded-xl w-10 h-10 flex items-center justify-center hover:border-cream/20 transition-all"
+              className="glass rounded-xl w-9 h-9 flex items-center justify-center hover:border-cream/20 transition-all"
+              aria-label="Menu"
             >
               <div className="flex flex-col gap-1">
                 <span className={`block w-4 h-[1.5px] bg-cream/70 transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[3.5px]' : ''}`} />
@@ -56,34 +81,50 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Menu dropdown */}
+      {/* Menu dropdown — translucent backdrop */}
       <AnimatePresence>
         {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="fixed top-20 right-4 sm:right-5 z-40 glass-dark rounded-2xl p-2 min-w-[200px] border-glow-gold"
-          >
-            {[
-              { label: 'Home', href: 'https://www.500grandlive.com', icon: '🏠' },
-              { label: 'Coach Sushi', href: 'https://coachsushi.500grandlive.com', icon: '🍣' },
-              { label: 'Membership', href: 'https://www.500grandlive.com/membership', icon: '💳' },
-              { label: 'Contact', href: 'https://www.500grandlive.com/contact', icon: '📞' },
-            ].map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-cream/70 hover:text-cream hover:bg-cream/5 transition-all"
-              >
-                <span>{item.icon}</span>
-                {item.label}
-              </a>
-            ))}
-          </motion.div>
+          <>
+            {/* Backdrop to close menu */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[39]"
+              onClick={() => setMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="fixed top-14 right-3 sm:right-5 z-40 glass-dark rounded-2xl p-2 min-w-[200px] border-glow-gold"
+              style={{
+                backdropFilter: 'blur(20px)',
+                background: 'rgba(10, 10, 26, 0.92)',
+              }}
+            >
+              {[
+                { label: 'Home', href: 'https://www.500grandlive.com', icon: '🏠' },
+                { label: 'Coach Sushi', href: 'https://coachsushi.500grandlive.com', icon: '🍣' },
+                { label: 'Membership', href: 'https://www.500grandlive.com/membership', icon: '💳' },
+                { label: 'The Umbrella Project', href: '#mission', icon: '☂️' },
+                { label: 'Call to Book', href: 'tel:+15102880994', icon: '📞' },
+              ].map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target={item.href.startsWith('http') ? '_blank' : undefined}
+                  rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-cream/70 hover:text-cream hover:bg-cream/5 transition-all"
+                >
+                  <span>{item.icon}</span>
+                  {item.label}
+                </a>
+              ))}
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
