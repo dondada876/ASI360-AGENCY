@@ -1,0 +1,79 @@
+{
+  "company": {
+    "name": "ASI 360",
+    "legal_name": "All Systems Integrated 360 LLC",
+    "tagline": "Systems Integration & Security Solutions",
+    "phone": "(510) 394-5404",
+    "email": "don@asi360.co",
+    "website": "asi360.co",
+    "address": {
+      "street": "",
+      "city": "Oakland",
+      "state": "CA",
+      "zip": ""
+    },
+    "logo": {
+      "filename": "asi360-logo.png",
+      "url_relative": "asi360-logo.png",
+      "url_cdn": ""
+    }
+  },
+  "proposal_defaults": {
+    "payment_terms": {
+      "hardware": "100% due on proposal acceptance — secures equipment order",
+      "labor_deposit": "50% due on proposal acceptance",
+      "labor_final": "50% due on project completion",
+      "recurring": "Billed annually from project completion date"
+    },
+    "tax_rate": 0.08625,
+    "tax_label": "CA Sales Tax (8.625%)",
+    "warranty": "1-year parts & labor warranty on all installed equipment",
+    "support_response": "Priority phone/email support, 4hr response"
+  },
+  "branding": {
+    "colors": {
+      "accent": "#0067FF",
+      "accent_dark": "#1B3A5C",
+      "accent_light": "#E7F6FF",
+      "green": "#16A34A",
+      "background": "#F5F7FA",
+      "surface": "#FFFFFF",
+      "text_heading": "#0F172A",
+      "text_body": "#364151",
+      "text_muted": "#64748B"
+    },
+    "fonts": {
+      "heading": "Fira Sans",
+      "body": "Inter"
+    }
+  },
+  "NEVER_client_facing": {
+    "_warning": "THESE FIELDS MUST NEVER APPEAR IN CLIENT-FACING DOCUMENTS",
+    "fields": [
+      "dealer_cost",
+      "adi_cost",
+      "direct_cost",
+      "purchase_price",
+      "distributor_name",
+      "margin",
+      "markup"
+    ],
+    "distributor_names": [
+      "ADI",
+      "ADI Global",
+      "Anixter",
+      "ScanSource"
+    ],
+    "replacement_term": "authorized manufacturing partner"
+  },
+  "NEVER_in_proposals": [
+    "California contractor license number",
+    "ACO number",
+    "DIR number",
+    "Bonded & Insured",
+    "dealer cost",
+    "purchase price",
+    "distributor name",
+    "internal margin"
+  ]
+}

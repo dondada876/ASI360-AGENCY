@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASI 360 — Diamond Heights Village Systems Integration Proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F7FA;
+  --surface: #FFFFFF;
+  --card-border: #E2E8F0;
+  --text-heading: #0F172A;
+  --text-body: #364151;
+  --text-muted: #64748B;
+  --accent: #0067FF;
+  --accent-dark: #1B3A5C;
+  --accent-light: #E7F6FF;
+  --green: #16A34A;
+  --yellow: #CA8A04;
+  --red: #DC2626;
+  --orange: #FDA256;
+  --divider: #0067FF;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.section {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 48px 56px;
+  margin: 24px auto;
+  max-width: 850px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+h1, h2, h3 {
+  font-family: 'Fira Sans', sans-serif;
+  color: var(--text-heading);
+}
+
+h1 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 8px;
+  margin-bottom: 20px;
+}
+
+h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  margin-top: 24px;
+}
+
+p { margin-bottom: 12px; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Cover Page ───────────────────────── */
+.cover {
+  text-align: center;
+  padding: 80px 56px;
+  position: relative;
+}
+.cover-logo { width: 200px; margin-bottom: 16px; }
+.cover-subtitle {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.cover-tagline {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  margin-bottom: 32px;
+}
+.cover-divider {
+  width: 80px;
+  height: 3px;
+  background: var(--accent);
+  margin: 0 auto 32px;
+  border-radius: 2px;
+}
+.cover-proposal-label {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.cover-title {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 32px;
+  line-height: 1.3;
+}
+.cover-meta {
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 2;
+}
+.cover-meta strong { color: var(--text-heading); font-weight: 600; }
+.cover-badge {
+  display: inline-block;
+  margin-top: 36px;
+  padding: 6px 20px;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Cover Letter ─────────────────────── */
+.letter-date { margin-bottom: 20px; color: var(--text-muted); font-size: 13px; }
+.letter-to { margin-bottom: 20px; line-height: 1.8; }
+.letter-body p { margin-bottom: 14px; }
+.diamond-list { list-style: none; padding: 0; margin: 16px 0; }
+.diamond-list li {
+  padding: 6px 0 6px 24px;
+  position: relative;
+  font-size: 13px;
+}
+.diamond-list li::before {
+  content: "◆";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-size: 10px;
+  top: 8px;
+}
+.signature-block {
+  margin-top: 32px;
+  padding-top: 16px;
+}
+.signature-name {
+  font-family: 'Fira Sans', sans-serif;
+  font-weight: 700;
+  color: var(--text-heading);
+  font-size: 15px;
+}
+.signature-title { font-size: 13px; color: var(--text-muted); }
+.contact-block {
+  margin-top: 20px;
+  padding: 14px 18px;
+  background: var(--bg);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+/* ── TOC ──────────────────────────────── */
+.toc-list { list-style: none; padding: 0; }
+.toc-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px dotted var(--card-border);
+  font-size: 14px;
+}
+.toc-list li:last-child { border-bottom: none; }
+.toc-list a { color: var(--text-heading); font-weight: 500; }
+.toc-list a:hover { color: var(--accent); }
+.toc-page { color: var(--text-muted); font-size: 12px; font-weight: 500; }
+
+/* ── Callout ──────────────────────────── */
+.callout {
+  background: var(--accent-light);
+  border-left: 4px solid var(--accent);
+  padding: 18px 22px;
+  border-radius: 0 6px 6px 0;
+  margin: 20px 0;
+}
+.callout-quote {
+  font-style: italic;
+  color: var(--text-body);
+  line-height: 1.7;
+  font-size: 14px;
+}
+.callout-attr {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-style: normal;
+}
+
+/* ── Stat Cards ───────────────────────── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+}
+.stat-card {
+  text-align: center;
+  padding: 20px 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+.stat-value {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Photos ───────────────────────────── */
+.photo-figure { margin: 20px 0; }
+.photo-figure img {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  display: block;
+}
+.photo-caption {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-style: italic;
+  line-height: 1.5;
+}
+.photo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+.photo-grid.triple { grid-template-columns: 1fr 1fr 1fr; }
+.photo-grid .photo-figure { margin: 0; }
+.photo-priority img { border: 2px solid var(--red); }
+.photo-priority .photo-caption { color: var(--red); font-weight: 500; }
+
+/* ── Pills ────────────────────────────── */
+.pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.pill-good { background: #DCFCE7; color: #16A34A; }
+.pill-fair { background: #FEF9C3; color: #CA8A04; }
+.pill-poor { background: #FEE2E2; color: #DC2626; }
+
+/* ── Tables ───────────────────────────── */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+thead { background: var(--accent-dark); color: #fff; }
+th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--card-border);
+}
+tr:nth-child(even) { background: #F8FAFC; }
+
+.table-highlight td { font-weight: 600; background: var(--accent-light); }
+
+/* ── Battle Card ──────────────────────── */
+.battle-table { font-size: 13px; }
+.battle-table th:nth-child(2) { background: #4B5563; }
+.battle-table th:nth-child(3) { background: var(--accent); }
+.battle-table td:nth-child(2) { background: #F9FAFB; }
+.battle-table td:nth-child(3) { background: var(--accent-light); }
+.check { color: var(--green); font-weight: 700; font-size: 16px; }
+.cross { color: var(--red); font-weight: 700; font-size: 16px; }
+.cost-bar-wrap { margin: 24px 0; }
+.cost-bar-label { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-heading); }
+.cost-bar-track { height: 28px; background: var(--bg); border-radius: 6px; overflow: hidden; border: 1px solid var(--card-border); position: relative; display: flex; }
+.cost-bar-fill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 6px 0 0 6px;
+}
+
+/* ── Editable ─────────────────────────── */
+.editable-field {
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: inherit;
+  width: 80px;
+  text-align: right;
+  pointer-events: none;
+}
+.edit-mode .editable-field {
+  pointer-events: auto;
+  background: #FFFDE7;
+  border: 1px solid var(--yellow);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+.add-row-btn, .remove-row-btn {
+  display: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+.edit-mode .add-row-btn,
+.edit-mode .remove-row-btn { display: inline-block; }
+.remove-row-btn { color: var(--red); border-color: #FEE2E2; background: #FEF2F2; }
+.add-row-btn:hover { background: var(--accent-light); color: var(--accent); }
+.remove-row-btn:hover { background: #FEE2E2; }
+
+/* ── Timeline ─────────────────────────── */
+.timeline { margin: 20px 0; }
+.timeline-row {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--card-border);
+  align-items: start;
+}
+.timeline-row:last-child { border-bottom: none; }
+.timeline-week {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  padding-top: 2px;
+}
+.timeline-content h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 4px;
+}
+.timeline-content p { font-size: 13px; margin-bottom: 0; color: var(--text-muted); }
+.timeline-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 16px 0 8px;
+}
+.timeline-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #38BDF8);
+  border-radius: 4px;
+  width: 0%;
+  transition: width 1s ease;
+}
+.hotline-callout {
+  margin-top: 24px;
+  padding: 18px 22px;
+  background: #FFF7ED;
+  border-left: 4px solid var(--orange);
+  border-radius: 0 6px 6px 0;
+}
+.hotline-callout strong { color: var(--text-heading); }
+
+/* ── Terms ────────────────────────────── */
+.terms-section h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin: 20px 0 6px;
+}
+.terms-section p, .terms-section li { font-size: 13px; color: var(--text-muted); }
+.terms-section ul { padding-left: 20px; }
+.terms-section li { margin-bottom: 6px; }
+
+/* ── Signatures ───────────────────────── */
+.sig-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin-top: 32px;
+}
+.sig-block { border-top: 2px solid var(--text-heading); padding-top: 12px; }
+.sig-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.sig-line {
+  border-bottom: 1px solid var(--card-border);
+  height: 36px;
+  margin-bottom: 8px;
+}
+
+/* ── Toolbar ──────────────────────────── */
+.toolbar {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  display: flex;
+  gap: 8px;
+}
+.toolbar button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--card-border);
+  transition: all 0.15s;
+}
+.btn-edit { background: var(--surface); color: var(--accent); }
+.btn-edit:hover { background: var(--accent-light); }
+.btn-edit.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-export { background: var(--surface); color: var(--text-body); }
+.btn-export:hover { background: var(--bg); }
+.btn-print { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-print:hover { background: #0052CC; }
+
+/* ── Section Numbers ──────────────────── */
+.section-number {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+/* ── Finding Box ──────────────────────── */
+.finding-box {
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin: 16px 0;
+  border: 1px solid var(--card-border);
+}
+.finding-box strong {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.finding-box p { margin: 6px 0 0; font-size: 13px; }
+
+/* ── Grand Total ──────────────────────── */
+.grand-total {
+  text-align: center;
+  padding: 24px;
+  background: var(--accent-dark);
+  color: #fff;
+  border-radius: 8px;
+  margin-top: 24px;
+}
+.grand-total-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+.grand-total-value {
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+/* ── Print ────────────────────────────── */
+@media print {
+  body { background: #fff !important; font-size: 12px; }
+  .section {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    border-radius: 0 !important;
+  }
+  .toolbar, .no-print, .add-row-btn, .remove-row-btn { display: none !important; }
+  .page-break { page-break-before: always; }
+  @page { size: letter; margin: 0.75in; }
+  @page :first { margin-top: 0.5in; }
+  h2 { font-size: 17px; }
+  .cover { padding: 60px 40px; }
+  .cover-title { font-size: 20px; }
+  .stat-card { padding: 12px 10px; }
+  .stat-value { font-size: 22px; }
+  .photo-figure img { max-height: 400px; object-fit: contain; }
+  .photo-grid .photo-figure img { max-height: 280px; }
+  .grand-total { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  thead { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .cost-bar-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* ── Fix: coloured badges/headers that go white without color printing ── */
+  .badge-recommended,
+  .reader-card-header.rec-kp { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .reader-card-header.with-kp,
+  .reader-card-header.no-kp { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .table-highlight td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .finding-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .option-card.recommended { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .reader-card img { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* ── Page break / flow fixes ── */
+  #investment { break-before: page; }
+  #acceptance { break-before: page; }
+  .reader-grid { break-inside: avoid; }
+  .option-card { break-inside: avoid; }
+  .option-cards { break-inside: avoid; }
+  .sig-grid { break-inside: avoid; }
+  .investment-stack { break-inside: avoid; }
+  .deposit-block { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* ── Page numbers ── */
+  @page { @bottom-center { content: "Page " counter(page) " of " counter(pages); font-family: sans-serif; font-size: 10px; color: #64748B; } }
+  /* ── Track A: additional page-break controls ── */
+  .investment-section { break-before: page !important; }
+  .investment-table-block { break-inside: avoid !important; }
+  .reader-grid .reader-card { break-inside: avoid !important; }
+  .acceptance-section { break-before: page !important; }
+}
+
+/* ── Responsive ───────────────────────── */
+@media (max-width: 700px) {
+  .section { padding: 28px 24px; margin: 12px 8px; }
+  .stat-row { grid-template-columns: 1fr; }
+  .photo-grid { grid-template-columns: 1fr; }
+  .sig-grid { grid-template-columns: 1fr; }
+  .toolbar { top: auto; bottom: 12px; right: 12px; }
+}
+
+/* smooth scroll */
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- TOOLBAR                                         -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="toolbar no-print">
+  <button class="btn-edit" onclick="toggleEdit()" id="editBtn">✎ Edit</button>
+  <button class="btn-export" onclick="exportJSON()">↓ Export</button>
+  <button class="btn-print" onclick="window.print()">⎙ Print / PDF</button>
+  <button class="btn-print" style="background:#16A34A; border-color:#16A34A; margin-left:8px;" onclick="sendForSignature()">✉ Send for Signature →</button>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 1: COVER                                   -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="section cover" id="cover">
+  <img src="asi360-logo.png" alt="ASI 360 Logo" class="cover-logo">
+  <div class="cover-subtitle">Allied Systems Integrations</div>
+  <div class="cover-tagline">One Source &nbsp;|&nbsp; Unlimited Solutions</div>
+  <div class="cover-divider"></div>
+  <div class="cover-proposal-label">S Y S T E M S <div class="cover-proposal-label">P R O P O S A L</div>nbsp; I N T E G R A T I O N <div class="cover-proposal-label">P R O P O S A L</div>nbsp; P R O P O S A L</div>
+  <div class="cover-title">Access Control System Assessment<br>&amp; Smart Migration</div>
+  <div class="cover-meta">
+    <div class="prop-number-badge" style="background:#1a3a5c;color:#fff;padding:4px 12px;border-radius:4px;font-size:11pt;font-weight:700;letter-spacing:0.05em;display:inline-block;margin-bottom:8px;">QUO202356</div><br>
+    <strong>Prepared for:</strong> Diamond Heights Village Association<br>Board of Directors<br><br>
+    <strong>Prepared by:</strong> ASI 360 — Integration &amp; Systems Division<br><br>
+    <strong>Date:</strong> March 2026<br>
+    <strong>Quote #:</strong> QUO202356
+  </div>
+  <div class="cover-badge">CONFIDENTIAL — Valid 30 Days</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 2: COVER LETTER                            -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="letter">
+  <div class="section-number">Cover Letter</div>
+  <h2 style="border-bottom:none; margin-bottom: 24px;">Allied Systems Integrations</h2>
+
+  <div class="letter-date">March 18, 2026</div>
+  <div class="letter-to">
+    Melissa Tolerton<br>
+    PMP Management<br>
+    Diamond Heights Village Association<br>
+    San Francisco, CA
+  </div>
+
+  <div class="letter-body">
+    <p>Dear Melissa,</p>
+    <p>Thank you for inviting ASI 360 to assess the access control infrastructure at Diamond Heights Village. Following our comprehensive site walkthrough on March 12, 2026, during which we documented and photographed every controller, reader, power supply, and wiring run, we are pleased to present this proposal for your board's review.</p>
+    <p>This document includes a full photographic assessment of your existing Keri Systems installation, a candid evaluation of each component's condition, and a phased migration plan that protects your existing investment while solving the immediate management gap.</p>
+    <p>Rather than recommending a costly full replacement ($13,500–$16,500 market range), our assessment-first approach identified that <strong>8 of 10 readers are fully functional</strong> and should not be replaced. We swap only the 2 weatherized main-entry readers — the ones that unlock mobile credential and keypad capability for the entire system. We replace the missing workstation, implement a backup protocol so this never happens again, and run a 30-day business-card-led fob transition that requires no appointments from residents. Total on-site installation: <strong>3–4 days</strong>.</p>
+
+    <h3 style="margin-top:24px;">Why ASI 360</h3>
+    <ul class="diamond-list">
+      <li><strong>Keri Systems Authorized Dealer</strong> — Direct factory support, firmware access, and priority parts sourcing</li>
+      <li><strong>20+ Years in Bay Area Security</strong> — Deep experience with HOA and multi-tenant residential properties</li>
+      <li><strong>Migration Hotline</strong> — Dedicated support line for residents during the fob transition period</li>
+      <li><strong>Transparent Pricing</strong> — Every line item visible, no hidden fees, all hardware at published MSRP</li>
+    </ul>
+
+    <p>We look forward to presenting this proposal at your upcoming board meeting. Please don't hesitate to reach out with any questions.</p>
+
+    <div class="signature-block">
+      <p>Respectfully,</p>
+      <div class="signature-name">Don Bucknor</div>
+      <div class="signature-title">COO, ASI 360 — Allied Systems Integrations</div>
+      <div style="margin-top:12px; font-size:13px; color:var(--text-body); line-height:1.7;">
+        2342 Shattuck Ave. #866<br>
+        Berkeley, CA 94704<br>
+        (510) 394-5404 &nbsp;|&nbsp; don@asi360.co<br>
+        asi360.co
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 3: TABLE OF CONTENTS                       -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="toc">
+  <div class="section-number">Contents</div>
+  <h2>Table of Contents</h2>
+  <ol class="toc-list">
+    <li><a href="#exec-summary">1. Executive Summary</a><span class="toc-page">4</span></li>
+    <li><a href="#equip-room">2. System Assessment — Equipment Room</a><span class="toc-page">5</span></li>
+    <li><a href="#controllers">3. System Assessment — Controllers</a><span class="toc-page">6</span></li>
+    <li><a href="#power">4. System Assessment — Power &amp; Backup</a><span class="toc-page">7</span></li>
+    <li><a href="#readers">5. System Assessment — Readers</a><span class="toc-page">8</span></li>
+    <li><a href="#battle-card">6. Head-to-Head Comparison</a><span class="toc-page">9</span></li>
+        <li><a href="#competitor-quote">6C. Competitor Quote Analysis — Apples to Apples</a><span class="toc-page">9</span></li>
+    <li><a href="#investment">7. Investment Summary</a><span class="toc-page">10</span></li>
+    <li><a href="#migration">8. Migration Plan</a><span class="toc-page">12</span></li>
+    <li><a href="#terms">9. Terms &amp; Conditions</a><span class="toc-page">13</span></li>
+    <li><a href="#acceptance">10. Acceptance</a><span class="toc-page">14</span></li>
+  </ol>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 4: EXECUTIVE SUMMARY                       -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="exec-summary">
+  <div class="section-number">Section 1</div>
+  <h2>Executive Summary</h2>
+
+  <h3>Problem Statement</h3>
+  <div class="callout">
+    <div class="callout-quote">The access control programming workstation has gone missing. Without it, no one can add, change, or revoke resident credentials on the existing Keri system — leaving the property unable to manage access for 396 units across 15 buildings.</div>
+    <p style="font-size:12px; color:var(--text-muted); margin-top:8px;"><strong>Community Scale:</strong> Diamond Heights Village comprises <strong>396 units across 15 buildings</strong>, serving an estimated <strong>700–800 residents</strong>. The scope of the credential migration is proportional to that scale.</p>
+  </div>
+
+  <h3>Root Cause Analysis — Two Failures, Not One</h3>
+  <p>The hardware is fine. Green LEDs are active on every controller. Wiring is intact. This is not a system failure — it is a <strong>data management failure</strong> caused by two compounding issues:</p>
+  <table style="margin:14px 0; font-size:13px;">
+    <thead><tr><th>Issue</th><th>What Happened</th><th>What It Cost</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. No Backup Protocol</strong></td><td>The credential database and Doors.NET configuration were stored only on one physical machine with no backup</td><td>All 900 resident credentials lost when workstation went missing</td></tr>
+      <tr><td><strong>2. Missing Workstation</strong></td><td>The sole programming station was misplaced</td><td>No one can add, change, or revoke access credentials</td></tr>
+    </tbody>
+  </table>
+  <div class="finding-box" style="margin:14px 0;">
+    <strong>The Preventable Scenario</strong>
+    <p>With a weekly automated backup in place, the recovery cost would have been approximately <strong>$750 in hardware + 3 hours of labor ≈ $1,000 total</strong> — system back online the same day. The absence of any backup turned a routine hardware replacement into a multi-week credential management crisis affecting 396 units across 15 buildings (~700–800 residents). ASI 360 will implement automated weekly backup as part of this engagement. If a workstation is ever lost or damaged again, recovery is a single afternoon.</p>
+  </div>
+
+  <h3>Our Approach — Field Intelligence First</h3>
+  <p>Because ASI 360 conducted a full field intelligence brief before drafting this proposal, we can state with confidence: <strong>there is no reason to replace all 10 door readers.</strong> Eight of 10 are functioning. Replacing them would be a misallocation of capital — roughly $4,000–$6,000 in unnecessary hardware and labor. We identified the 2 specific readers at weatherized main-entry positions that are swappable and that unlock mobile + keypad capability for the whole system.</p>
+  <p>On Keri Borealis cloud: we recommend it, but with transparency — it is a <strong>per-door license</strong> that gets expensive at full-campus scale. For this property, applying Borealis to 2 doors (the new readers) gives you cloud management where it matters most while keeping annual costs low. The hybrid approach — workstation for the 8 retained doors, Borealis for the 2 upgraded ones — is the right balance for 2026.</p>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-value">3</div>
+      <div class="stat-label">Entry Methods</div>
+      <p style="font-size:11px; color:var(--text-muted); margin-top:6px;">Fob + Mobile + PIN</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">~$13,290</div>
+      <div class="stat-label">Year 1 Investment</div>
+      <p style="font-size:11px; color:var(--text-muted); margin-top:6px;">Hardware + Migration</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">30 Day</div>
+      <div class="stat-label">Migration Window</div>
+      <p style="font-size:11px; color:var(--text-muted); margin-top:6px;">3–4 day install · 30-day fob transition</p>
+    </div>
+  </div>
+
+  <h3>Phase 1 — System Restore (Days 1–4)</h3>
+  <p>Replace workstation, reinstall Doors.NET, swap 2 identified readers, install keypad, configure Borealis on 2 doors. All installation concentrated in a single <strong>3–4 day window</strong>. Keypad PIN active from Day 1 — no resident is locked out at any point during the swap.</p>
+
+  <h3>Phase 2 — 30-Day Fob Migration</h3>
+  <p>ASI 360 prints and supplies <strong>1,000 business cards</strong> with the temporary keypad PIN and instructions. Management sends one letter per unit. Residents use the keypad code while transitioning their fob. To return an old fob: drop it in a labeled collection box in the lobby or mail slot — no appointment needed. Collected fobs are re-enrolled at the workstation via USB programmer and re-issued. We order only <strong>300 new NXT fobs</strong> to cover the gap. Mobile credential enrollment is offered to anyone who prefers app-based access. Guests and future residents get keypad PIN via email — no physical handoff required.</p>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 5: EQUIPMENT ROOM                          -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="equip-room">
+  <div class="section-number">Section 2</div>
+  <h2>System Assessment — Equipment Room</h2>
+
+  <div class="photo-figure">
+    <img src="photos/Keri Panels.jpeg" alt="Equipment Room Overview" loading="lazy">
+    <div class="photo-caption">Figure 1: Equipment Room — 4× PXL-500W Controllers, Tiger II Master Controller, KPS-11 Power Supply, and ESD battery backup enclosure. All units powered and operational.</div>
+  </div>
+
+  <h3>Equipment Inventory</h3>
+  <table>
+    <thead>
+      <tr><th>Component</th><th>Model</th><th>Qty</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Master Controller</td><td>Keri Tiger II</td><td>1</td><td><span class="pill pill-good">Good</span></td></tr>
+      <tr><td>Door Controllers</td><td>Keri PXL-500W</td><td>4</td><td><span class="pill pill-good">Good</span></td></tr>
+      <tr><td>Power Supply</td><td>Keri KPS-11</td><td>1</td><td><span class="pill pill-good">Good</span></td></tr>
+      <tr><td>Battery Backup</td><td>ESD 12V 7Ah (×2)</td><td>1</td><td><span class="pill pill-fair">Fair</span></td></tr>
+      <tr><td>Mullion Readers</td><td>Keri MS-5000</td><td>8</td><td><span class="pill pill-good">Good</span></td></tr>
+      <tr><td>NXT Readers</td><td>Keri NXT-3R</td><td>2</td><td><span class="pill pill-poor">Poor</span></td></tr>
+      <tr><td>Programming Station</td><td>PC + Doors.NET</td><td>0</td><td><span class="pill pill-poor">Missing</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="finding-box">
+    <strong>Key Finding — Hardware Is Not the Problem</strong>
+    <p>All core infrastructure (controllers, master unit, power supply) is operational with active green indicator LEDs. The system failure is entirely due to the missing programming workstation and the absence of any backup protocol. No hardware replacement is needed for these components. The fix is a new workstation (~$750), Doors.NET reinstall, and a backup system that ensures this never happens again.</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 6: CONTROLLERS                             -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="controllers">
+  <div class="section-number">Section 3</div>
+  <h2>System Assessment — Controllers</h2>
+
+  <div class="photo-grid">
+    <div class="photo-figure">
+      <img src="photos/Keri Tiger Controller.jpeg" alt="Tiger Controller Exterior" loading="lazy">
+      <div class="photo-caption">Figure 2: Tiger II Master Controller — exterior enclosure with status LEDs active.</div>
+    </div>
+    <div class="photo-figure">
+      <img src="photos/Keri Tiger Controller - Inside.jpeg" alt="Tiger Controller Interior" loading="lazy">
+      <div class="photo-caption">Figure 3: Tiger II interior — PCB board, RS-485 bus connections, and communication ports. Clean installation, no corrosion.</div>
+    </div>
+  </div>
+
+  <div class="photo-grid">
+    <div class="photo-figure">
+      <img src="photos/Keri Tiger Controller - Serial.jpeg" alt="Tiger Controller Serial" loading="lazy">
+      <div class="photo-caption">Figure 4: Tiger II serial number plate — used for Keri factory registration and Borealis cloud enrollment.</div>
+    </div>
+    <div class="photo-figure">
+      <img src="photos/Keri Tiger Controller - Drawing.jpeg" alt="Tiger Controller Wiring Diagram" loading="lazy">
+      <div class="photo-caption">Figure 5: Original wiring diagram found inside Tiger II enclosure — documents all RS-485 bus connections to PXL-500 panels.</div>
+    </div>
+  </div>
+
+  <h3>Serial Number Registry</h3>
+  <table>
+    <thead>
+      <tr><th>Component</th><th>Location</th><th>Condition</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Tiger II Master</td><td>Equipment Room</td><td><span class="pill pill-good">Good</span></td><td>Green LEDs active, RS-485 bus intact</td></tr>
+      <tr><td>PXL-500W #1</td><td>Equipment Room</td><td><span class="pill pill-good">Good</span></td><td>Doors 1–2, all indicators normal</td></tr>
+      <tr><td>PXL-500W #2</td><td>Equipment Room</td><td><span class="pill pill-good">Good</span></td><td>Doors 3–4, all indicators normal</td></tr>
+      <tr><td>PXL-500W #3</td><td>Equipment Room</td><td><span class="pill pill-good">Good</span></td><td>Doors 5–6, all indicators normal</td></tr>
+      <tr><td>PXL-500W #4</td><td>Equipment Room</td><td><span class="pill pill-good">Good</span></td><td>Doors 7–8, all indicators normal</td></tr>
+    </tbody>
+  </table>
+
+  <div class="finding-box">
+    <strong>Key Finding</strong>
+    <p>All controllers manufactured 2018–2019, all functional with green LEDs active. Wiring diagram preserved inside Tiger II enclosure confirms original installation was professional-grade. These units are fully compatible with Keri Borealis cloud migration — no controller replacement needed.</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 7: POWER & BACKUP                          -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="power">
+  <div class="section-number">Section 4</div>
+  <h2>System Assessment — Power &amp; Backup</h2>
+
+  <div class="photo-grid">
+    <div class="photo-figure">
+      <img src="photos/Keri Unknown Panel.jpeg" alt="Battery Enclosure Exterior" loading="lazy">
+      <div class="photo-caption">Figure 6: Battery backup enclosure — exterior view. Houses ESD transformer and dual 12V 7Ah sealed lead-acid batteries.</div>
+    </div>
+    <div class="photo-figure">
+      <img src="photos/Keri Unknown Panel - Inside.jpeg" alt="Battery Enclosure Interior" loading="lazy">
+      <div class="photo-caption">Figure 7: Battery enclosure interior — ESD transformer (120VAC → 16.5VAC), dual batteries, fused distribution. Clean wiring, no signs of overheating.</div>
+    </div>
+  </div>
+
+  <div class="photo-figure" style="max-width:420px;">
+    <img src="photos/Keri Unknown Panel Battery.jpeg" alt="Battery Close-up" loading="lazy">
+    <div class="photo-caption">Figure 8: Battery close-up — ESD 12V 7Ah sealed lead-acid. Date code indicates 2019 manufacture. Recommend proactive replacement (batteries typically last 3–5 years).</div>
+  </div>
+
+  <h3>Power Infrastructure Details</h3>
+  <table>
+    <thead>
+      <tr><th>Component</th><th>Specification</th><th>Condition</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Power Supply</td><td>Keri KPS-11, 3.5A @ 12VDC</td><td><span class="pill pill-good">Good</span></td></tr>
+      <tr><td>Transformer</td><td>ESD 120VAC → 16.5VAC</td><td><span class="pill pill-good">Good</span></td></tr>
+      <tr><td>Battery #1</td><td>ESD 12V 7Ah SLA (2019)</td><td><span class="pill pill-fair">Fair</span></td></tr>
+      <tr><td>Battery #2</td><td>ESD 12V 7Ah SLA (2019)</td><td><span class="pill pill-fair">Fair</span></td></tr>
+      <tr><td>Fuse Protection</td><td>Inline fuse on battery circuit</td><td><span class="pill pill-good">Good</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="finding-box">
+    <strong>Key Finding</strong>
+    <p>Power infrastructure in good overall condition — retain for migration. Batteries are approaching end of recommended service life (6+ years on 3–5 year rated units). Recommend proactive battery replacement during Phase 1 to ensure reliable backup power. Estimated cost: $45 for pair.</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 8: READERS                                 -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="readers">
+  <div class="section-number">Section 5</div>
+  <h2>System Assessment — Readers</h2>
+
+  <div class="photo-grid">
+    <div class="photo-figure">
+      <img src="photos/Keri Reader 1.jpeg" alt="Reader 1 - Best Condition" loading="lazy">
+      <div class="photo-caption">Figure 9: Reader 1 (Mullion MS-5000) — Best condition. Green LED active, housing intact, no UV degradation. Interior-mounted.</div>
+    </div>
+    <div class="photo-figure photo-priority">
+      <img src="photos/Keri Reader 3.jpeg" alt="Reader 3 - UV Degraded" loading="lazy">
+      <div class="photo-caption">⚠ Figure 10: Reader 3 (NXT-3R) — Worst condition. Severe UV degradation on housing, faded markings. Priority replacement. <span style="color:var(--red); font-weight:700;">⚠ NOTE: Reader installed upside-down — mounting orientation incorrect.</span></div>
+    </div>
+  </div>
+
+  <div class="photo-grid">
+    <div class="photo-figure photo-priority">
+      <img src="photos/Keri Reader 2.jpeg" alt="Reader 2 - UV Degraded" loading="lazy">
+      <div class="photo-caption">⚠ Figure 11: Reader 2 (NXT-3R) — UV degradation on housing, sun-facing installation. Priority replacement.</div>
+    </div>
+    <div class="photo-figure">
+      <img src="photos/Keri Reader 4.jpeg" alt="Reader 4" loading="lazy">
+      <div class="photo-caption">Figure 12: Reader 4 (Mullion MS-5000) — Good condition, sheltered mounting location.</div>
+    </div>
+  </div>
+
+  <h3>Reader Survey — All 10 Units</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Model</th><th>Location</th><th>LED</th><th>Condition</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>MS-5000</td><td>Main Entry — Interior</td><td>Green ✓</td><td><span class="pill pill-good">Good</span></td><td>Retain</td></tr>
+      <tr><td>2</td><td>NXT-3R</td><td>Side Gate — Sun Facing</td><td>Green ✓</td><td><span class="pill pill-poor">Poor</span></td><td style="color:var(--red);font-weight:600;">Replace</td></tr>
+      <tr><td>3</td><td>NXT-3R</td><td>Parking Entry — Exposed</td><td>Dim</td><td><span class="pill pill-poor">Poor</span></td><td style="color:var(--red);font-weight:600;">Replace</td></tr>
+      <tr><td>4</td><td>MS-5000</td><td>Pool Area — Sheltered</td><td>Green ✓</td><td><span class="pill pill-good">Good</span></td><td>Retain</td></tr>
+      <tr><td>5</td><td>MS-5000</td><td>Laundry Room</td><td>Green ✓</td><td><span class="pill pill-good">Good</span></td><td>Retain</td></tr>
+      <tr><td>6</td><td>MS-5000</td><td>Community Room</td><td>Green ✓</td><td><span class="pill pill-good">Good</span></td><td>Retain</td></tr>
+      <tr><td>7</td><td>MS-5000</td><td>Rear Entry — Sheltered</td><td>Green ✓</td><td><span class="pill pill-good">Good</span></td><td>Retain</td></tr>
+      <tr><td>8</td><td>MS-5000</td><td>Mail Room</td><td>Green ✓</td><td><span class="pill pill-good">Good</span></td><td>Retain</td></tr>
+      <tr><td>9</td><td>MS-5000</td><td>Gym Access</td><td>Green ✓</td><td><span class="pill pill-fair">Fair</span></td><td>Monitor</td></tr>
+      <tr><td>10</td><td>MS-5000</td><td>Storage Area</td><td>Green ✓</td><td><span class="pill pill-good">Good</span></td><td>Retain</td></tr>
+    </tbody>
+  </table>
+
+  <div class="photo-grid triple" style="margin-top:24px;">
+    <div class="photo-figure">
+      <img src="photos/Keri Reader 5.jpeg" alt="Reader 5" loading="lazy">
+      <div class="photo-caption">Figure 13: Reader 5</div>
+    </div>
+    <div class="photo-figure">
+      <img src="photos/Keri Reader 6.jpeg" alt="Reader 6" loading="lazy">
+      <div class="photo-caption">Figure 14: Reader 6</div>
+    </div>
+    <div class="photo-figure">
+      <img src="photos/Keri Reader 7.jpeg" alt="Reader 7" loading="lazy">
+      <div class="photo-caption">Figure 15: Reader 7</div>
+    </div>
+  </div>
+
+  <div class="photo-grid triple">
+    <div class="photo-figure">
+      <img src="photos/Keri Reader 8.jpeg" alt="Reader 8" loading="lazy">
+      <div class="photo-caption">Figure 16: Reader 8</div>
+    </div>
+    <div class="photo-figure">
+      <img src="photos/Keri Reader 9.jpeg" alt="Reader 9" loading="lazy">
+      <div class="photo-caption">Figure 17: Reader 9</div>
+    </div>
+    <div class="photo-figure">
+      <img src="photos/Keri Reader 10.jpeg" alt="Reader 10" loading="lazy">
+      <div class="photo-caption">Figure 18: Reader 10</div>
+    </div>
+  </div>
+
+  <div class="finding-box">
+    <strong>Key Finding — Field Intelligence Prevents Capital Misallocation</strong>
+    <p>8 of 10 readers are functional and should be retained. Only 2 NXT-series readers (positions 2 and 3) show UV degradation from outdoor exposure and are designated for strategic swap. Replacing all 10 readers — as a standard quote without a field assessment would suggest — would cost $4,000–$6,000 in unnecessary hardware and labor. This assessment alone saves the HOA more than ASI 360's survey fee. The 2 replacement readers are specifically chosen because they are at main entry positions where upgrading to Connect-Mobile series unlocks keypad and mobile credential capability for the entire system.</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 9: BATTLE CARD                             -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="battle-card">
+  <div class="section-number">Section 6</div>
+  <h2>Head-to-Head Comparison</h2>
+  <p style="margin-bottom:20px;">Market intelligence indicates competing quotes for this scope range between <strong>$13,500 and $16,500</strong>. Below is an objective capability comparison. ASI 360 offers three options starting at $7,500 — see Section 6B for full option details.</p>
+
+  <table class="battle-table">
+    <thead>
+      <tr><th style="width:40%">Capability</th><th style="width:30%">Market Range (Competitor)</th><th style="width:30%">ASI 360 Options</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Approach</strong></td><td>Full hardware replacement</td><td>Tiered options — restore, duplicate, or hybrid</td></tr>
+      <tr><td><strong>Cloud Management</strong></td><td><span class="check">✓</span> Included</td><td><span class="check">✓</span> Keri Borealis</td></tr>
+      <tr><td><strong>Mobile Credentials</strong></td><td><span class="cross">✗</span> Not offered</td><td><span class="check">✓</span> NXT BLE support</td></tr>
+      <tr><td><strong>Existing Hardware Reuse</strong></td><td><span class="cross">✗</span> Replace all</td><td><span class="check">✓</span> Retain 80%+ of installed base</td></tr>
+      <tr><td><strong>Keri Authorized Dealer</strong></td><td><span class="cross">✗</span> Unknown</td><td><span class="check">✓</span> Factory authorized</td></tr>
+      <tr><td><strong>Migration Support Hotline</strong></td><td><span class="cross">✗</span> Not offered</td><td><span class="check">✓</span> Dedicated line during rollout</td></tr>
+      <tr><td><strong>On-Site Fob Programming</strong></td><td>Unknown</td><td><span class="check">✓</span> Scheduled events</td></tr>
+      <tr><td><strong>Keypad Backup Access</strong></td><td><span class="cross">✗</span> Not offered</td><td><span class="check">✓</span> PIN entry at main door</td></tr>
+      <tr><td><strong>Email Credential Delivery</strong></td><td><span class="cross">✗</span> Not offered</td><td><span class="check">✓</span> Email pre-configured code, no physical pickup</td></tr>
+      <tr><td><strong>Reuse Existing Fob Inventory</strong></td><td><span class="cross">✗</span> Discard all</td><td><span class="check">✓</span> 900 existing fobs recouped via USB re-enrollment</td></tr>
+      <tr><td><strong>Year 1 Total Cost</strong></td><td>$13,500–$16,500 (market range)</td><td><strong>$7,500 · $11,750 · $14,000</strong></td></tr>
+      <tr><td><strong>Annual Recurring</strong></td><td>$1,800–$2,400/yr (est.)</td><td><strong>$1,200–$1,800/yr</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3>5-Year Total Cost of Ownership</h3>
+  <div class="cost-bar-wrap">
+    <div class="cost-bar-label">Market Range (Competitor) — Est. $21,000–$26,000</div>
+    <div class="cost-bar-track">
+      <div class="cost-bar-fill" style="width:78%; background:#6B7280;">$21K–$26K</div>
+    </div>
+  </div>
+  <div class="cost-bar-wrap">
+    <div class="cost-bar-label">ASI 360 Option C (Hybrid) — $21,200</div>
+    <div class="cost-bar-track">
+      <div class="cost-bar-fill" style="width:62%; background:var(--accent);">$21,200</div>
+    </div>
+  </div>
+  <div class="cost-bar-wrap">
+    <div class="cost-bar-label">ASI 360 Option A (Basic Restore) — $13,300</div>
+    <div class="cost-bar-track">
+      <div class="cost-bar-fill" style="width:40%; background:#22c97a;">$13,300</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:32px;">10-Year Total Cost of Ownership</h3>
+  <div class="cost-bar-wrap">
+    <div class="cost-bar-label">Market Range (Competitor) — Est. $30,000–$38,000</div>
+    <div class="cost-bar-track">
+      <div class="cost-bar-fill" style="width:85%; background:#6B7280;">$30K–$38K</div>
+    </div>
+  </div>
+  <div class="cost-bar-wrap">
+    <div class="cost-bar-label">ASI 360 Option C (Hybrid) — $30,200</div>
+    <div class="cost-bar-track">
+      <div class="cost-bar-fill" style="width:72%; background:var(--accent);">$30,200</div>
+    </div>
+  </div>
+  <div class="cost-bar-wrap">
+    <div class="cost-bar-label">ASI 360 Option A (Basic Restore) — $19,300</div>
+    <div class="cost-bar-track">
+      <div class="cost-bar-fill" style="width:48%; background:#22c97a;">$19,300</div>
+    </div>
+  </div>
+
+  <div class="finding-box" style="margin-top:24px;">
+    <strong>Bottom Line</strong>
+    <p>ASI 360 offers three options from $7,500 to $14,000. Option 2 at $11,750 undercuts the $13,500–$16,500 market range while adding mobile credentials. Option 3 at $14,000 matches the top-end competitor price but adds cloud management, all 3 forms of entry, and recovers $7,200–$9,000 in existing fob inventory value that competing quotes simply discard.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 9B: THREE-OPTION COMPARISON                -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="options">
+  <div class="section-number">Section 6B</div>
+  <h2>Three-Option Proposal</h2>
+  <p style="margin-bottom:20px;">ASI 360 presents three scoped options based on the field assessment. All three options confirm that existing wiring and controller infrastructure is serviceable (green LEDs active on all 5 panels during site walkthrough). Market intelligence indicates competing quotes for this scope range between <strong>$13,500–$16,500</strong>. Our options range from $7,500 to $14,000.</p>
+
+  <style>
+    .option-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 24px 0; }
+    .option-card { border: 1px solid var(--card-border); border-radius: 8px; padding: 20px; position: relative; min-width: 0; }
+    .option-card.recommended { border-color: #0067FF; box-shadow: 0 0 0 1px #0067FF20; }
+    .option-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px; }
+    .badge-basic { background: #F1F5F9; color: #64748B; }
+    .badge-standard { background: #EFF6FF; color: #1D4ED8; }
+    .badge-recommended { background: #0067FF; color: #fff; }
+    .option-letter { font-family: 'Fira Sans', sans-serif; font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 4px; }
+    .option-title { font-family: 'Fira Sans', sans-serif; font-size: 18px; font-weight: 700; color: var(--text-heading); margin-bottom: 4px; }
+    .option-price { font-family: 'Fira Sans', sans-serif; font-size: 24px; font-weight: 700; color: var(--accent); margin: 12px 0; }
+    .option-price span { font-size: 13px; font-weight: 400; color: var(--text-muted); }
+    .option-features { list-style: none; padding: 0; margin: 12px 0; font-size: 12px; line-height: 1.9; }
+    .option-features li::before { content: "✓ "; color: var(--green); font-weight: 700; }
+    .option-features li.no::before { content: "— "; color: var(--text-muted); }
+    .option-best { font-size: 11px; color: var(--text-muted); margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--card-border); }
+    .option-best strong { color: var(--text-body); }
+    @media (max-width: 860px) { .option-cards { grid-template-columns: 1fr; } }
+    @media print {
+      .option-cards { grid-template-columns: 1fr 1fr 1fr; page-break-inside: avoid; }
+    }
+  </style>
+
+  <div class="option-cards">
+
+    <!-- OPTION 1: GET RUNNING -->
+    <div class="option-card">
+      <div class="option-letter">Option 1</div>
+      <div class="option-badge badge-basic">Phase 1 Priority</div>
+      <div class="option-title">Get Running</div>
+      <div class="option-price">$7,500–$8,000 <span>/ Year 1</span></div>
+      <ul class="option-features">
+        <li>New programming workstation + Doors.NET reinstall</li>
+        <li>1,000 NXT fobs issued — all 900 existing credentials replaced</li>
+        <li>All 10 existing readers retained (wiring confirmed good)</li>
+        <li>Fob enrollment + 1 distribution event</li>
+        <li>System fully operational day one</li>
+        <li class="no">No cloud management</li>
+        <li class="no">No mobile credentials or keypad</li>
+      </ul>
+      <div class="option-best"><strong>Timeline:</strong> 3–4 days to install. <strong>Best for:</strong> Fastest path to operational. Minimum spend. Upgrade to Option 2 or 3 at any time.</div>
+    </div>
+
+    <!-- OPTION 2: WORKSTATION + MOBILE READERS -->
+    <div class="option-card">
+      <div class="option-letter">Option 2</div>
+      <div class="option-badge badge-standard">Market Beater</div>
+      <div class="option-title">Workstation + Mobile</div>
+      <div class="option-price">$11,750 <span>/ Year 1</span></div>
+      <ul class="option-features">
+        <li>New workstation + Doors.NET reinstall</li>
+        <li>1,000 NXT fobs — full resident reissue</li>
+        <li>2 NXT Connect-Mobile readers at main entries</li>
+        <li>Two forms of entry: traditional fob + mobile app</li>
+        <li>2 migration distribution events</li>
+        <li>Beats competitor range ($13,500–$16,500) by $1,750–$4,750</li>
+        <li class="no">No Borealis cloud, no keypad, no USB re-enrollment</li>
+      </ul>
+      <div class="option-best"><strong>Timeline:</strong> 3–4 days install · 30-day migration. <strong>Best for:</strong> Board that wants modern mobile capability. Apples-to-apples vs. competitors at a lower price point.</div>
+    </div>
+
+    <!-- OPTION 3: FULL HYBRID -->
+    <div class="option-card recommended">
+      <div class="option-letter">Option 3</div>
+      <div class="option-badge badge-recommended">Recommended</div>
+      <div class="option-title">Full Hybrid (3 Forms)</div>
+      <div class="option-price">~$14,000 <span>/ Year 1</span></div>
+      <ul class="option-features">
+        <li>Borealis cloud hub + workstation + USB re-enrollment reader</li>
+        <li>Recoup ~900 existing fobs via USB re-encoding ($8K+ recovered)</li>
+        <li>2 Connect-Mobile NXT readers + keypad at main entries</li>
+        <li>All 3 forms: traditional fob · mobile app · keypad / email PIN</li>
+        <li>Email credential delivery — no physical pickup required</li>
+        <li>Office manages PINs at workstation, revoke remotely via Borealis</li>
+        <li>Resident online portal — submit requests, track fob return, no phone calls</li>
+        <li>Borealis cloud on 2 doors — scales to all 10 when ready</li>
+      </ul>
+      <div class="option-best"><strong>Timeline:</strong> 3–4 days install · 30-day migration. <strong>Best for:</strong> Maximum flexibility. All 3 forms of entry. Recovers full asset value of existing 900-fob inventory ($7,200–$9,000). Future-proof.</div>
+    </div>
+
+  </div><!-- /option-cards -->
+
+  <div class="finding-box">
+    <strong>The $8,000 Credential Recovery Argument (Option 3)</strong>
+    <p>The HOA's existing 900 Keri fobs represent a real sunk cost. At replacement cost (~$8–$10/fob), that inventory is worth <strong>$7,200–$9,000</strong> sitting idle. Option 3's USB re-enrollment reader re-encodes those fobs as NXT credentials. Residents return the old fob and receive a newly-encoded fob, mobile credential, or email-delivered PIN. No sunk cost abandoned. Competing quotes at $13,500–$16,500 do not offer this. ASI 360 Option 3 at $14,000 delivers that plus cloud management, mobile, and keypad — features no other bidder includes.</p>
+  </div>
+
+  <h3 style="margin-top:28px;">Three-Form Credential Strategy — Option 3</h3>
+  <p style="font-size:13px; margin-bottom:14px;">In 2026, a modern access control system needs three forms of entry. No resident should be locked out due to a lost fob while waiting for a replacement.</p>
+  <table>
+    <thead>
+      <tr><th>Form</th><th>Credential Type</th><th>Delivery</th><th>Cost to HOA</th><th>Best For</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Traditional</strong></td><td>NXT Fob or refurbished legacy fob</td><td>Migration event, mail, or office pickup</td><td>$12.00/new &middot; $0/refurb</td><td>Residents who prefer physical key</td></tr>
+      <tr><td><strong>Mobile</strong></td><td>NXT BLE mobile credential</td><td>Enrollment QR code via email or event</td><td>$0 (app-based)</td><td>Smartphone-first residents</td></tr>
+      <tr><td><strong>Keypad / Email PIN</strong></td><td>Pre-configured PIN code</td><td>Email from management office, no pickup</td><td>$0 (workstation-managed)</td><td>Lost fob, visitors, temp access</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:12px; color:var(--text-muted); margin-top:8px;">Keypad PINs are pre-configured at the workstation and emailed by the management office. Codes can be changed or revoked remotely via Borealis cloud — no physical key exchange required.</p>
+
+  <h3 style="margin-top:28px;">Hardware Comparison — Conekt Reader Family (Farpointe Data)</h3>
+  <p style="font-size:13px; margin-bottom:20px;">All four Conekt readers share the same BLE 2.4 GHz + 13.56 MHz smartcard platform and work with Keri NXT Controllers, Doors.NET, and Borealis. The choice comes down to two variables: <strong>keypad or no keypad</strong>, and <strong>mullion vs. single-gang mounting</strong>. DHV has mullion-mount frames at both main entries — the CSR-6.2L is the drop-in replacement that adds the keypad/PIN credential pathway.</p>
+
+  <style>
+    .reader-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; margin: 0 0 24px; }
+    .reader-card { border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; text-align: center; position: relative; }
+    .reader-card.recommended-hw { border-color: #0067FF; box-shadow: 0 0 0 2px #0067FF30; }
+    .reader-card-header { padding: 8px 10px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    .reader-card-header.no-kp { background: #F1F5F9; color: #475569; }
+    .reader-card-header.with-kp { background: #EFF6FF; color: #1D4ED8; }
+    .reader-card-header.rec-kp { background: #0067FF; color: #fff; }
+    .reader-card img { width: 100%; max-height: 160px; object-fit: contain; padding: 16px 20px; background: #f9fafb; }
+    .reader-card-body { padding: 10px 12px; font-size: 11px; }
+    .reader-model { font-size: 14px; font-weight: 700; color: var(--text-heading); margin-bottom: 2px; }
+    .reader-tag { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 10px; margin-bottom: 6px; }
+    .tag-mull { background: #F0FDF4; color: #166534; }
+    .tag-wall { background: #FFF7ED; color: #92400E; }
+    .reader-features { list-style: none; padding: 0; margin: 6px 0 0; text-align: left; }
+    .reader-features li { padding: 2px 0; color: var(--text-muted); border-bottom: 1px solid var(--card-border); }
+    .reader-features li:last-child { border: none; }
+    .reader-features li strong { color: var(--text-body); }
+    .rec-badge { position: absolute; top: 38px; right: 8px; background: #0067FF; color: #fff;
+      font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 8px; letter-spacing: .06em; }
+    @media (max-width: 860px) { .reader-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 500px) { .reader-grid { grid-template-columns: 1fr; } }
+  </style>
+
+  <div class="reader-grid">
+
+    <!-- CSR-35L Mullion — no keypad -->
+    <div class="reader-card">
+      <div class="reader-card-header no-kp">No Keypad · Mullion</div>
+      <img src="https://www.farpointedata.com/images/hires/csr35_mullion_1200x1200.jpg"
+           alt="CSR-35L Mullion" loading="lazy">
+      <div class="reader-card-body">
+        <div class="reader-model">CSR-35L</div>
+        <span class="reader-tag tag-mull">Mullion Mount</span>
+        <ul class="reader-features">
+          <li><strong>Credential:</strong> Fob + Mobile App</li>
+          <li><strong>Keypad:</strong> No</li>
+          <li><strong>Mobile range:</strong> Up to 15 ft</li>
+          <li><strong>Fob range:</strong> Up to 1.5 in</li>
+          <li><strong>Protocol:</strong> Wiegand / OSDP</li>
+          <li><strong>IP Rating:</strong> IP67</li>
+          <li><strong>Warrant:</strong> Lifetime</li>
+          <li><strong>Best for:</strong> Interior doors, stairwells</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CSR-35L Single-Gang — no keypad -->
+    <div class="reader-card">
+      <div class="reader-card-header no-kp">No Keypad · Wall Box</div>
+      <img src="https://www.farpointedata.com/images/hires/csr35_1200x1200.jpg"
+           alt="CSR-35L Single-Gang" loading="lazy">
+      <div class="reader-card-body">
+        <div class="reader-model">CSR-35L</div>
+        <span class="reader-tag tag-wall">Single-Gang Box</span>
+        <ul class="reader-features">
+          <li><strong>Credential:</strong> Fob + Mobile App</li>
+          <li><strong>Keypad:</strong> No</li>
+          <li><strong>Mobile range:</strong> Up to 15 ft</li>
+          <li><strong>Fob range:</strong> Up to 1.5 in</li>
+          <li><strong>Protocol:</strong> Wiegand / OSDP</li>
+          <li><strong>IP Rating:</strong> IP67</li>
+          <li><strong>Warranty:</strong> Lifetime</li>
+          <li><strong>Best for:</strong> New installations, drywall</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CSR-6.2L Mullion — WITH keypad — RECOMMENDED -->
+    <div class="reader-card recommended-hw">
+      <div class="reader-card-header rec-kp">With Keypad · Mullion ✓ Rec.</div>
+      <div class="rec-badge">ASI 360 PICK</div>
+      <img src="https://www.farpointedata.com/images/hires/csr62_1200x1200.jpg"
+           alt="CSR-6.2L Mullion with Keypad" loading="lazy">
+      <div class="reader-card-body">
+        <div class="reader-model">CSR-6.2L</div>
+        <span class="reader-tag tag-mull">Mullion Mount</span>
+        <ul class="reader-features">
+          <li><strong>Credential:</strong> Fob + Mobile + PIN</li>
+          <li><strong>Keypad:</strong> ✓ Yes — illuminated</li>
+          <li><strong>Mobile range:</strong> Up to 15 ft</li>
+          <li><strong>Fob range:</strong> Up to 2 in</li>
+          <li><strong>Protocol:</strong> Wiegand / OSDP</li>
+          <li><strong>IP Rating:</strong> IP67</li>
+          <li><strong>Warranty:</strong> Lifetime</li>
+          <li><strong>Best for:</strong> Main entries, gate replacement</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CSR-6.4L Single-Gang — WITH keypad -->
+    <div class="reader-card">
+      <div class="reader-card-header with-kp">With Keypad · Wall Box</div>
+      <img src="https://www.farpointedata.com/images/hires/csr64_1200x1200.jpg"
+           alt="CSR-6.4L Single-Gang with Keypad" loading="lazy">
+      <div class="reader-card-body">
+        <div class="reader-model">CSR-6.4L</div>
+        <span class="reader-tag tag-wall">Single-Gang Box</span>
+        <ul class="reader-features">
+          <li><strong>Credential:</strong> Fob + Mobile + PIN</li>
+          <li><strong>Keypad:</strong> ✓ Yes — illuminated</li>
+          <li><strong>Mobile range:</strong> Up to 15 ft</li>
+          <li><strong>Fob range:</strong> Up to 2 in</li>
+          <li><strong>Protocol:</strong> Wiegand / OSDP</li>
+          <li><strong>IP Rating:</strong> IP67</li>
+          <li><strong>Warranty:</strong> Lifetime</li>
+          <li><strong>Best for:</strong> New entries, lobby panels</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Full comparison table -->
+  <table style="font-size:12px; margin:0 0 20px;">
+    <thead>
+      <tr>
+        <th>Spec</th>
+        <th>CSR-35L<br><span style="font-weight:400;font-size:10px;">No Keypad</span></th>
+        <th style="background:#EFF6FF;">CSR-6.2L<br><span style="font-weight:400;font-size:10px;">Keypad · Mullion ✓</span></th>
+        <th>CSR-6.4L<br><span style="font-weight:400;font-size:10px;">Keypad · Wall Box</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Keypad / PIN access</td><td>—</td><td style="background:#EFF6FF;font-weight:700;color:#1D4ED8;">✓ Yes</td><td>✓ Yes</td></tr>
+      <tr><td>Mobile BLE credential</td><td>✓</td><td style="background:#EFF6FF;">✓</td><td>✓</td></tr>
+      <tr><td>Smart card / fob</td><td>✓</td><td style="background:#EFF6FF;">✓</td><td>✓</td></tr>
+      <tr><td>Frequency</td><td>13.56 MHz + 2.4 GHz BLE</td><td style="background:#EFF6FF;">13.56 MHz + 2.4 GHz BLE</td><td>13.56 MHz + 2.4 GHz BLE</td></tr>
+      <tr><td>Fob read range</td><td>1.5 in (38mm)</td><td style="background:#EFF6FF;">2 in (51mm)</td><td>2 in (51mm)</td></tr>
+      <tr><td>Mobile read range</td><td>15 ft (4.6m)</td><td style="background:#EFF6FF;">15 ft (4.6m)</td><td>15 ft (4.6m)</td></tr>
+      <tr><td>Mount</td><td>Mullion or Single-Gang</td><td style="background:#EFF6FF;">Mullion</td><td>Single-Gang Wall Box</td></tr>
+      <tr><td>Dimensions</td><td>1.1"W × 4.5"H (mullion)</td><td style="background:#EFF6FF;">1.78"W × 6.1"H × 0.91"D</td><td>3"W × 4.6"H × 0.75"D</td></tr>
+      <tr><td>IP Rating</td><td>IP67</td><td style="background:#EFF6FF;">IP67</td><td>IP67</td></tr>
+      <tr><td>Temp range</td><td>–22°F to 131°F</td><td style="background:#EFF6FF;">–31°F to 140°F</td><td>–31°F to 140°F</td></tr>
+      <tr><td>Protocol</td><td>Wiegand / OSDP</td><td style="background:#EFF6FF;">Wiegand / OSDP</td><td>Wiegand / OSDP</td></tr>
+      <tr><td>Security features</td><td>MAXSecure, ValidID, AES</td><td style="background:#EFF6FF;">MAXSecure, ValidID, AES</td><td>MAXSecure, ValidID, AES</td></tr>
+      <tr><td>Certifications</td><td>FCC, UL 294, IP67</td><td style="background:#EFF6FF;">FCC, ETL, UL 294, IP67</td><td>FCC, ETL, UL 294, IP67</td></tr>
+      <tr><td>Warranty</td><td>Lifetime</td><td style="background:#EFF6FF;">Lifetime</td><td>Lifetime</td></tr>
+      <tr><td>Compatible with NXT / Borealis</td><td>✓</td><td style="background:#EFF6FF;">✓</td><td>✓</td></tr>
+      <tr><td>Drop-in for existing DHV NXT-3R</td><td>✓ Same footprint</td><td style="background:#EFF6FF;font-weight:700;color:#1D4ED8;">✓ Same mullion footprint</td><td>Requires wall-box rough-in</td></tr>
+    </tbody>
+  </table>
+
+  <div class="hotline-callout" style="margin-bottom:24px;">
+    <strong>Why ASI 360 Recommends the CSR-6.2L for Diamond Heights</strong>
+    <p style="margin:6px 0 0; font-size:13px;">DHV's two main-entry doors have mullion-mount frames — the CSR-6.2L is a direct mechanical drop-in, no new rough-in or wall-box work required. More importantly, it's the only reader in this comparison that unlocks all three credential pathways simultaneously: traditional fob, mobile app, and keypad PIN. The keypad is what enables email-delivered access codes, frictionless guest entry, and the "lost fob" recovery workflow — none of which are possible with the no-keypad CSR-35L. The CSR-6.4L offers the same capabilities but requires single-gang boxes, which DHV's frames do not currently support without additional labor.</p>
+  </div>
+  <p style="font-size:11px; color:var(--text-muted); margin-bottom:8px;"><em>Source: Farpointe Data, Inc. — CONEKT® Mobile-Ready Reader product family · farpointedata.com · Images © Farpointe Data, Inc.</em></p>
+
+  <div class="finding-box" style="margin-top:24px;">
+    <strong>What This Means for PMP Property Management</strong>
+    <p>Today, issuing access to a new resident or replacing a lost credential means coordinating a physical handoff — a scheduling problem. With the Option 3 hybrid system, that friction disappears:</p>
+    <table style="margin:12px 0; font-size:13px;">
+      <thead><tr><th>Scenario</th><th>Old Process</th><th>With Hybrid System</th></tr></thead>
+      <tbody>
+        <tr><td><strong>New move-in</strong></td><td>Schedule fob pickup, staff must be present</td><td>Email mobile credential or keypad PIN — done in 5 minutes, no appointment</td></tr>
+        <tr><td><strong>Lost fob (daytime)</strong></td><td>Order replacement, resident locked out until delivery</td><td>Issue 10-day temporary keypad code via email — resident back in within minutes</td></tr>
+        <tr><td><strong>Lost fob (after hours)</strong></td><td>Emergency call, locksmith, or tenant stuck outside</td><td>Resident submits portal request → auto-SMS sends pre-configured temporary PIN to verified phone number</td></tr>
+        <tr><td><strong>Unauthorized access revoke</strong></td><td>Physical key return required</td><td>Revoke credential remotely via Borealis cloud — immediate, no key exchange</td></tr>
+        <tr><td><strong>Guest / temp access</strong></td><td>Not feasible without physical key</td><td>Generate time-limited keypad PIN, email or SMS to guest — expires automatically</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px; margin-top:8px;">At 396 units across 15 buildings, the volume of these requests is significant. The keypad + mobile + portal combination turns credential management from a recurring manual task into a streamlined digital workflow — no after-hours calls, no physical handoffs, no residents locked out waiting for a callback.</p>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 10-11: INVESTMENT SUMMARY (Option C Detail) -->
+<!-- ════════════════════════════════════════════════ -->
+
+<div class="page-break"></div>
+<div class="section" id="competitor-quote">
+  <div class="section-number">Section 6C</div>
+  <h2>Apples-to-Apples: Competing Bid vs. ASI 360</h2>
+
+  <p>A competing security company submitted a quote (dated 3/11/2026) to Diamond Heights Village via PMP Management. Below is a direct line-item comparison between their submitted scope and ASI 360 QUO202356 Option 2. ASI 360 hardware costs are verified from our authorized manufacturing partner pricing (03/06/2026).</p>
+
+  <h3>Scope &amp; Capability Comparison</h3>
+  <div style="overflow-x:auto;">
+  <table style="font-size:13px;">
+    <thead>
+      <tr>
+        <th style="min-width:150px;">Scope Item</th>
+        <th>Competing Bid<br><small style="font-weight:400;color:var(--text-muted);">Submitted to DHV via PMP · 3/11/2026</small></th>
+        <th>ASI 360<br><small style="font-weight:400;color:var(--text-muted);">QUO202356 Option 2 · 3/18/2026</small></th>
+        <th style="min-width:80px;">Advantage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Key Fobs</strong></td>
+        <td>1,000 new proximity fobs<br><small style="color:var(--text-muted);">Standard proximity only — no mobile, no keypad support</small></td>
+        <td>300 new NXT fobs + 600 existing re-encoded via USB<br><small style="color:var(--green);">Re-encoding is $0/unit — residents keep their fob</small></td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Cloud Management</strong></td>
+        <td>Borealis Hub — all 10 doors/year subscription<br><small style="color:var(--text-muted);">Full-campus annual recurring fee</small></td>
+        <td>Borealis — 2 doors only (main entries)<br><small style="color:var(--green);">Workstation manages 8 retained doors at no license cost</small></td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Access Methods</strong></td>
+        <td>Proximity fob only</td>
+        <td>Fob &nbsp;·&nbsp; Mobile BLE &nbsp;·&nbsp; Keypad / Email PIN</td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Mobile Credential</strong></td>
+        <td style="color:var(--red);">✗ Not included</td>
+        <td><span style="color:var(--green);">✓ Included</span> — NXT-KPK kit, BLE via smartphone app</td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Keypad / Email PIN</strong></td>
+        <td style="color:var(--red);">✗ Not included</td>
+        <td><span style="color:var(--green);">✓ Included</span> — guest access &amp; lost-fob recovery in minutes</td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Site Assessment</strong></td>
+        <td>Assumed good on quote<br><small style="color:var(--red);">T&amp;M charges apply if issues found during install</small></td>
+        <td>Full photographic assessment completed 3/12/2026<br><small style="color:var(--green);">No unknowns — fixed-price scope</small></td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Workstation Restore</strong></td>
+        <td style="color:var(--text-muted);">Not specified</td>
+        <td><span style="color:var(--green);">✓ Included</span> — new workstation + Doors.NET reinstall</td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Backup Protocol</strong></td>
+        <td style="color:var(--text-muted);">Not specified</td>
+        <td><span style="color:var(--green);">✓ Included</span> — automated weekly backup prevents recurrence</td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Reader Replacement</strong></td>
+        <td>All readers assumed replaced<br><small style="color:var(--text-muted);">No field assessment — full scope regardless of condition</small></td>
+        <td>2 readers only (positions confirmed degraded)<br><small style="color:var(--green);">8 of 10 retained per field assessment — saves $4K–$6K</small></td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Labor Warranty</strong></td>
+        <td>90 days</td>
+        <td>1 year</td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Cancellation Policy</strong></td>
+        <td style="color:var(--red);">25% withheld after parts ordered</td>
+        <td>Standard terms — see Section 9</td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr>
+        <td><strong>Service Location</strong></td>
+        <td>Out-of-area company — non-local<br><small style="color:var(--text-muted);">No Bay Area HOA service history</small></td>
+        <td>Bay Area, CA — 20+ years HOA experience<br><small style="color:var(--green);">(510) 394-5404</small></td>
+        <td><span class="pill pill-good">ASI 360</span></td>
+      </tr>
+      <tr style="background:var(--accent-light);font-weight:600;">
+        <td><strong>Year 1 Total</strong></td>
+        <td>Pricing withheld on submitted quote<br><small style="font-weight:400;color:var(--text-muted);">Market range: $13,500–$16,500</small></td>
+        <td style="font-size:16px;color:var(--green);"><strong>$11,750</strong></td>
+        <td><span class="pill pill-good">ASI 360</span><br><small style="font-weight:400;">Saves $1,750–$4,750</small></td>
+      </tr>
+      <tr style="background:var(--accent-light);font-weight:600;">
+        <td><strong>Annual Recurring (Yr 2+)</strong></td>
+        <td>10-door Borealis subscription<br><small style="font-weight:400;color:var(--text-muted);">Est. $1,800–$2,400/yr</small></td>
+        <td>2-door Borealis only<br><small style="font-weight:400;color:var(--green);">~$480/yr</small></td>
+        <td><span class="pill pill-good">ASI 360</span><br><small style="font-weight:400;">Saves ~$1,400/yr</small></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 style="margin-top:36px;">Hardware Pricing — MSRP vs. ASI 360</h3>
+  <p style="font-size:13px;color:var(--text-muted);">As a Keri Systems authorized dealer, ASI 360 offers preferred pricing below manufacturer retail. All hardware is sourced through authorized channels with full manufacturer warranty.</p>
+  <table style="font-size:13px;">
+    <thead>
+      <tr>
+        <th>Part #</th>
+        <th>Description</th>
+        <th style="text-align:right;">MSRP</th>
+        <th style="text-align:right;">ASI 360 Price</th>
+        <th style="text-align:right;">You Save</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>CSR-6.2L</strong></td>
+        <td>Keri Connect Smart Reader/Keypad — Narrow Mullion</td>
+        <td style="text-align:right;">$749.00</td>
+        <td style="text-align:right; color:var(--green); font-weight:600;">$555.00</td>
+        <td style="text-align:right; color:var(--green);">$194.00</td>
+      </tr>
+      <tr>
+        <td><strong>NXT-KPK</strong></td>
+        <td>NXT-6RK + NXT-RM3 Mobile Credential Kit</td>
+        <td style="text-align:right;">$1,049.00</td>
+        <td style="text-align:right; color:var(--green); font-weight:600;">$785.00</td>
+        <td style="text-align:right; color:var(--green);">$264.00</td>
+      </tr>
+      <tr>
+        <td><strong>CSR-35L</strong></td>
+        <td>Keri Connect Smart Reader — 2-in-1 (fob only, no keypad)</td>
+        <td style="text-align:right;">$449.00</td>
+        <td style="text-align:right; color:var(--green); font-weight:600;">$325.00</td>
+        <td style="text-align:right; color:var(--green);">$124.00</td>
+      </tr>
+      <tr>
+        <td><strong>CSR-6.4L</strong></td>
+        <td>Keri Connect Smart Reader/Keypad — Standard Gang Box</td>
+        <td style="text-align:right;">$800.00</td>
+        <td style="text-align:right; color:var(--green); font-weight:600;">$676.00</td>
+        <td style="text-align:right; color:var(--green);">$124.00</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:10px 16px; margin-top:12px; font-size:12px; color:#16A34A;">
+    <strong>Authorized Dealer Advantage:</strong> ASI 360 pricing is 15–26% below manufacturer MSRP on all Keri Systems and Farpointe hardware — savings passed directly to the client.
+  </div>
+
+  <div class="finding-box" style="margin-top:24px;">
+    <strong>The Fob Math — Where the Real Savings Come From</strong>
+    <p>The competing bid requires purchasing 1,000 brand-new proximity fobs. At market cost of $8–$10 per fob, that is <strong>$8,000–$10,000 in fobs alone</strong> — before a single hour of labor, any cloud subscription, or hardware installation. ASI 360 uses 300 new NXT fobs and re-encodes 600 of DHV's existing 900 fobs at the workstation for <strong>$0 per unit</strong>. Residents return their old fob and receive a newly re-encoded credential — no appointment needed, no new fob to learn. That single difference represents <strong>$5,600–$7,000 in savings</strong> — larger than the total price gap between the two quotes.</p>
+  </div>
+</div>
+
+<div class="page-break"></div>
+<div class="section" id="investment">
+  <div class="section-number">Section 7</div>
+  <h2>Investment Summary — Option C: Hybrid Smart Migration</h2>
+  <p style="margin-bottom:16px; font-size:13px; color:var(--text-muted);">Detailed line-item pricing for the recommended Option C. See Section 6B for all three options.</p>
+  <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:6px; padding:10px 16px; margin-bottom:20px; font-size:12px; color:#1D4ED8;">
+    <strong>Billing Note:</strong> Hardware and integration services are billed separately per ASI 360 standard terms. Hardware: 100% due on acceptance. Labor: 50% on acceptance, 50% on project completion.
+  </div>
+
+  <div class="hw-section-label" style="font-weight:700;font-size:11pt;text-transform:uppercase;margin-bottom:4px;color:#1a3a5c;">HARDWARE</div>
+  <h3>Hardware &amp; Materials</h3>
+  <table id="hardwareTable">
+    <thead>
+      <tr><th>Item</th><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Borealis NXT Controller</td><td>Cloud management gateway</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">1895</span></td>
+        <td style="text-align:right" class="line-total">$1,895.00</td>
+        
+      </tr>
+      <tr>
+        <td>NXT Fob Credentials</td><td>Keri NXT proximity keyfobs — 30% traditional (70% mobile app)</td>
+        <td style="text-align:center"><span class="static-value">300</span></td>
+        <td style="text-align:right"><span class="static-value">12</span></td>
+        <td style="text-align:right" class="line-total">$3,600.00</td>
+        
+      </tr>
+      <tr>
+        <td>Conekt CSR-35L Reader</td><td>Farpointe / Keri — BLE mobile + 13.56MHz smart card, OSDP, mullion mount — replaces UV-degraded NXT-3R units at main entries</td>
+        <td style="text-align:center"><span class="static-value">2</span></td>
+        <td style="text-align:right"><span class="static-value">249</span></td>
+        <td style="text-align:right" class="line-total">$498.00</td>
+        
+      </tr>
+      <tr>
+        <td>NXT Keypad Reader</td><td>PIN + proximity reader for main entry</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">349</span></td>
+        <td style="text-align:right" class="line-total">$349.00</td>
+        
+      </tr>
+      <tr>
+        <td>Network Switch</td><td>Managed PoE switch for controller connectivity</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">169</span></td>
+        <td style="text-align:right" class="line-total">$169.00</td>
+        
+      </tr>
+      <tr>
+        <td>Backup Batteries</td><td>ESD 12V 7Ah SLA replacement pair</td>
+        <td style="text-align:center"><span class="static-value">2</span></td>
+        <td style="text-align:right"><span class="static-value">22.5</span></td>
+        <td style="text-align:right" class="line-total">$45.00</td>
+        
+      </tr>
+      <tr>
+        <td>Cabling &amp; Connectors</td><td>CAT6, RS-485, misc hardware</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">85</span></td>
+        <td style="text-align:right" class="line-total">$85.00</td>
+        
+      </tr>
+      <tr>
+        <td>Mounting Hardware</td><td>Brackets, backboxes, weatherproofing</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">45</span></td>
+        <td style="text-align:right" class="line-total">$45.00</td>
+        
+      </tr>
+      <tr>
+        <td>Surge Protector</td><td>Inline surge protection for controller</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">45</span></td>
+        <td style="text-align:right" class="line-total">$45.00</td>
+        
+      </tr>
+      <tr>
+        <td>USB Fob Re-enrollment Reader</td><td>Desktop USB programmer — re-encode returned Keri fobs as NXT credentials for reuse</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">95</span></td>
+        <td style="text-align:right" class="line-total">$95.00</td>
+        
+      </tr>
+      <tr>
+        <td>Programming Workstation</td><td>Mini PC + Doors.NET license reinstall — permanent replacement for missing station</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">299</span></td>
+        <td style="text-align:right" class="line-total">$299.00</td>
+        
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Hardware Subtotal</td><td style="text-align:right" id="hwSubtotal">$7,125.00</td><td class="no-print"></td></tr>
+      <tr><td colspan="4" style="text-align:right;">Tax (8.625%)</td><td style="text-align:right" id="hwTax">$614.53</td><td class="no-print"></td></tr>
+      <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Hardware Total</td><td style="text-align:right; font-weight:700;" id="hwTotal">$7,739.53</td><td class="no-print"></td></tr>
+    </tfoot>
+  </table>
+  
+
+  <div class="page-break"></div>
+
+  <h3>INTEGRATION SERVICES (LABOR)</h3>
+  <table id="servicesTable">
+    <thead>
+      <tr><th>Service</th><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Total</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Site Survey &amp; Assessment</td><td>Complete system audit + photo documentation</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">450</span></td>
+        <td style="text-align:right" class="line-total">$450.00</td>
+        
+      </tr>
+      <tr>
+        <td>Borealis Cloud &amp; Workstation Setup</td><td>Controller config, cloud enrollment, firmware, workstation Doors.NET reinstall</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">650</span></td>
+        <td style="text-align:right" class="line-total">$650.00</td>
+        
+      </tr>
+      <tr>
+        <td>Mobile Credential Onboarding</td><td>Setup enrollment portal, resident app guide, QR code distribution (70% of credentials)</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">200</span></td>
+        <td style="text-align:right" class="line-total">$200.00</td>
+        
+      </tr>
+      <tr>
+        <td>Fob Enrollment (Traditional)</td><td>Program &amp; test 300 NXT fobs — 30% of total credentials</td>
+        <td style="text-align:center"><span class="static-value">300</span></td>
+        <td style="text-align:right"><span class="static-value">0.75</span></td>
+        <td style="text-align:right" class="line-total">$225.00</td>
+        
+      </tr>
+      <tr>
+        <td>Resident Migration Portal</td><td>30-day online portal — residents submit fob return requests, credential requests, and access issues; management dashboard for ticketing and tracking</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">350</span></td>
+        <td style="text-align:right" class="line-total">$350.00</td>
+        
+      </tr>
+      <tr>
+        <td>Fob Refurbishment Program</td><td>USB re-encoding setup, fob exchange protocol, return incentive coordination — refurbished fobs reissued at no charge</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">100</span></td>
+        <td style="text-align:right" class="line-total">$100.00</td>
+        
+      </tr>
+      <tr>
+        <td>Reader Installation</td><td>Remove old + mount new CSR-62L readers (×2)</td>
+        <td style="text-align:center"><span class="static-value">2</span></td>
+        <td style="text-align:right"><span class="static-value">175</span></td>
+        <td style="text-align:right" class="line-total">$350.00</td>
+        
+      </tr>
+      <tr>
+        <td>Keypad Installation</td><td>Mount + wire NXT keypad reader — transition bridge, main entry PIN access</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">175</span></td>
+        <td style="text-align:right" class="line-total">$175.00</td>
+        
+      </tr>
+      <tr>
+        <td>Network Configuration</td><td>Switch setup, IP assignment, firewall rules</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">175</span></td>
+        <td style="text-align:right" class="line-total">$175.00</td>
+        
+      </tr>
+      <tr>
+        <td>Migration Events (×2)</td><td>On-site credential distribution (fob + mobile enrollment) + resident training</td>
+        <td style="text-align:center"><span class="static-value">2</span></td>
+        <td style="text-align:right"><span class="static-value">300</span></td>
+        <td style="text-align:right" class="line-total">$600.00</td>
+        
+      </tr>
+      <tr>
+        <td>System Testing</td><td>Full door-by-door verification + documentation</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">250</span></td>
+        <td style="text-align:right" class="line-total">$250.00</td>
+        
+      </tr>
+      <tr>
+        <td>Project Management</td><td>Scheduling, coordination, documentation</td>
+        <td style="text-align:center"><span class="static-value">1</span></td>
+        <td style="text-align:right"><span class="static-value">225</span></td>
+        <td style="text-align:right" class="line-total">$225.00</td>
+        
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Services Total</td><td style="text-align:right; font-weight:700;" id="svcTotal">$3,750.00</td><td class="no-print"></td></tr>
+    </tfoot>
+  </table>
+  
+
+  <h3>Annual Recurring</h3>
+  <table>
+    <thead>
+      <tr><th>Service</th><th>Description</th><th style="text-align:right">Annual Cost</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Keri Borealis Cloud</td><td>Cloud management platform license</td><td style="text-align:right">$1,200.00</td></tr>
+      <tr><td>ASI 360 Support Plan</td><td>Priority phone/email support, 4hr response</td><td style="text-align:right">$600.00</td></tr>
+    </tbody>
+    <tfoot>
+      <tr class="table-highlight"><td colspan="2" style="text-align:right; font-weight:700;">Annual Total</td><td style="text-align:right; font-weight:700;" id="annualTotal">$1,800.00</td></tr>
+    </tfoot>
+  </table>
+
+  <!-- ── Investment Summary Stack ── -->
+  <div style="margin-top:28px; display:grid; grid-template-columns:1fr 1fr; gap:12px;" class="investment-stack">
+    <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:18px 20px;">
+      <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#1D4ED8; margin-bottom:8px;">HARDWARE &amp; MATERIALS</div>
+      <div style="font-size:22px; font-weight:700; color:#1B3A5C;" id="stackHwTotal">$7,739.53</div>
+      <div style="font-size:11px; color:#64748B; margin-top:4px;">Includes 8.625% sales tax</div>
+      <div style="margin-top:10px; font-size:12px; background:#DBEAFE; border-radius:4px; padding:6px 10px; color:#1D4ED8;">
+        <strong>100%</strong> due on proposal acceptance &mdash; secures equipment order
+      </div>
+    </div>
+    <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:18px 20px;">
+      <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#16A34A; margin-bottom:8px;">INTEGRATION SERVICES (LABOR)</div>
+      <div style="font-size:22px; font-weight:700; color:#1B3A5C;" id="stackSvcTotal">$3,750.00</div>
+      <div style="font-size:11px; color:#64748B; margin-top:4px;">No tax on services</div>
+      <div style="margin-top:10px; font-size:12px; background:#DCFCE7; border-radius:4px; padding:6px 10px; color:#16A34A;">
+        <strong>50%</strong> on acceptance &nbsp;&middot;&nbsp; <strong>50%</strong> on project completion
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Due on Acceptance -->
+  <div style="margin-top:12px; background:#0F172A; border-radius:8px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; -webkit-print-color-adjust:exact; print-color-adjust:exact;" class="deposit-block">
+    <div>
+      <div style="font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#94A3B8;">TOTAL DUE ON ACCEPTANCE</div>
+      <div style="font-size:13px; color:#CBD5E1; margin-top:4px;">Hardware (100%) + Labor deposit (50%)</div>
+    </div>
+    <div style="font-size:32px; font-weight:700; color:#FFFFFF;" id="depositDue">$6,763.13</div>
+  </div>
+
+  <!-- Balance + Annual -->
+  <div style="margin-top:8px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+    <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:14px 16px;">
+      <div style="font-size:11px; color:#64748B; text-transform:uppercase; letter-spacing:.08em;">Balance Due on Completion</div>
+      <div style="font-size:18px; font-weight:700; color:#0F172A; margin-top:4px;" id="balanceDue">$1,875.00</div>
+      <div style="font-size:11px; color:#64748B; margin-top:2px;">Remaining 50% of integration services</div>
+    </div>
+    <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:14px 16px;">
+      <div style="font-size:11px; color:#64748B; text-transform:uppercase; letter-spacing:.08em;">Annual Recurring (Year 2+)</div>
+      <div style="font-size:18px; font-weight:700; color:#0F172A; margin-top:4px;" id="annualDue">$1,800.00</div>
+      <div style="font-size:11px; color:#64748B; margin-top:2px;">Keri Borealis Cloud + ASI 360 Support</div>
+    </div>
+  </div>
+
+  <div class="grand-total" style="margin-top:12px;">
+    <div class="grand-total-label">Year 1 Grand Total (Hardware + Services + First Year Recurring)</div>
+    <div class="grand-total-value" id="grandTotal">$13,289.53</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 12: MIGRATION PLANS A / B / C             -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="migration">
+  <div class="section-number">Section 8</div>
+  <h2>Migration Plans</h2>
+  <p>Each option has a distinct timeline. All plans assume zero access disruption — residents can enter via keypad PIN from Day 1 of installation regardless of which option is selected.</p>
+
+  <style>
+    .plan-tabs { display:flex; gap:0; margin:20px 0 0; border-bottom:2px solid var(--accent); }
+    .plan-tab { padding:10px 20px; font-family:'Fira Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; border:1px solid var(--card-border); border-bottom:none; border-radius:6px 6px 0 0; background:var(--bg); color:var(--text-muted); transition:all .2s; margin-right:4px; }
+    .plan-tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .plan-content { display:none; }
+    .plan-content.active { display:block; }
+    @media print { .plan-tabs { display:none; } .plan-content { display:block !important; } .plan-content + .plan-content { page-break-before:always; } }
+  </style>
+
+  <div class="plan-tabs no-print">
+    <div class="plan-tab active" onclick="showPlan('planA',this)">Plan A — Get Running</div>
+    <div class="plan-tab" onclick="showPlan('planB',this)">Plan B — Workstation + Mobile</div>
+    <div class="plan-tab" onclick="showPlan('planC',this)">Plan C — Full Hybrid (Rec.)</div>
+  </div>
+
+  <!-- ─────────────────────────────── PLAN A ── -->
+  <div class="plan-content active" id="planA">
+    <h3 style="margin:20px 0 6px;">Plan A — Get Running &nbsp;<span style="font-size:13px;font-weight:400;color:var(--text-muted);">3–4 days · $7,500–$8,000</span></h3>
+    <p style="font-size:13px;margin-bottom:16px;">Minimum-scope recovery. Workstation replaced, credentials reissued, system operational. No reader swaps, no cloud.</p>
+    <div class="timeline">
+      <div class="timeline-row">
+        <div class="timeline-week">Day 1</div>
+        <div class="timeline-content">
+          <h4>Order &amp; Stage</h4>
+          <p>Order mini-PC workstation, Doors.NET license, 1,000 NXT fobs. Stage at ASI 360 lab. Print 1,000 business cards with fob pickup instructions.</p>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-week">Day 2</div>
+        <div class="timeline-content">
+          <h4>Workstation Install &amp; Enrollment</h4>
+          <p>Install workstation in equipment room. Reinstall Doors.NET. Connect to Tiger II master controller. Configure automated weekly backup to cloud storage. Begin enrolling 1,000 NXT fobs.</p>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-week">Days 3–4</div>
+        <div class="timeline-content">
+          <h4>Fob Distribution Event</h4>
+          <p>On-site distribution event in lobby (3–4 hrs). Residents swap old fob for new NXT fob. Management letter sent to all units with pickup schedule. System tested door-by-door. Handoff documentation delivered.</p>
+        </div>
+      </div>
+    </div>
+    <div class="hotline-callout">
+      <strong>Plan A Note</strong>
+      <p style="margin:6px 0 0;font-size:13px;">No reader swaps. No cloud. Future upgrade path: add Borealis cloud controller at any time without replacing existing hardware. Workstation backup means future recovery = 1 afternoon, not a multi-week crisis.</p>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────── PLAN B ── -->
+  <div class="plan-content" id="planB">
+    <h3 style="margin:20px 0 6px;">Plan B — Workstation + Mobile &nbsp;<span style="font-size:13px;font-weight:400;color:var(--text-muted);">3–4 day install · 2-week migration · $11,750</span></h3>
+    <p style="font-size:13px;margin-bottom:16px;">Market-beating option. Matches competitor scope, adds mobile credentials, undercuts by $1,750–$4,750.</p>
+    <div class="timeline">
+      <div class="timeline-row">
+        <div class="timeline-week">Day 1</div>
+        <div class="timeline-content">
+          <h4>Order &amp; Stage</h4>
+          <p>Order workstation, 1,000 NXT fobs, 2× Connect-Mobile NXT readers, network equipment. Stage and pre-configure. Print 1,000 business cards with fob pickup schedule.</p>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-week">Day 2</div>
+        <div class="timeline-content">
+          <h4>Workstation Install + Backup Config</h4>
+          <p>Install workstation and Doors.NET. Configure automated weekly backup. Begin enrolling 1,000 NXT fobs. Management sends resident letter with distribution schedule.</p>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-week">Days 3–4</div>
+        <div class="timeline-content">
+          <h4>Reader Swap + Mobile Readers Install</h4>
+          <p>Replace 2 UV-degraded readers with Connect-Mobile NXT units (1–2 hrs per reader). Doors now support traditional fob and mobile credential. System tested door-by-door. On-site distribution event — residents receive NXT fob or mobile enrollment.</p>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-week">Week 2</div>
+        <div class="timeline-content">
+          <h4>Second Distribution Event + Closeout</h4>
+          <p>Second on-site event for remaining residents. Individual appointments available. Final door-by-door test. Workstation and backup credentials handed to management. Close-out documentation.</p>
+        </div>
+      </div>
+    </div>
+    <div class="hotline-callout">
+      <strong>Plan B Note</strong>
+      <p style="margin:6px 0 0;font-size:13px;">No Borealis cloud in Plan B. Two forms of entry: traditional fob + mobile app. Upgrade path: add Borealis cloud controller at any time for cloud management and keypad on those same 2 Connect-Mobile readers — no reader swap needed.</p>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────── PLAN C ── -->
+  <div class="plan-content" id="planC">
+    <h3 style="margin:20px 0 6px;">Plan C — Full Hybrid &nbsp;<span style="font-size:13px;font-weight:400;color:var(--text-muted);">3–4 day install · 30-day migration · ~$14,000 · ✅ Recommended</span></h3>
+    <p style="font-size:13px;margin-bottom:16px;">All 3 forms of entry. 900 existing fobs recovered. Borealis cloud on 2 doors. Resident portal + business card campaign. 30-day mailbox fob return program.</p>
+    <div class="timeline">
+      <div class="timeline-row">
+        <div class="timeline-week">Day 1</div>
+        <div class="timeline-content">
+          <h4>Order, Stage &amp; Portal Deploy</h4>
+          <p>Order equipment. Stage and pre-configure. Print 1,000 business cards (keypad PIN + resident portal URL). Draft resident letter. <strong>Deploy resident portal</strong> — online form for fob return requests, access issues, mobile enrollment, and questions. Management dashboard for ticketing throughout 30-day window.</p>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-week">Day 2</div>
+        <div class="timeline-content">
+          <h4>Workstation + Borealis Cloud Setup</h4>
+          <p>Install workstation with Doors.NET. Configure automated weekly backup (local + cloud). Install Borealis NXT controller. Connect to Tiger II via RS-485 bus. Enroll PXL-500 panels. Keypad PIN activated at main entry — <strong>all residents can enter immediately</strong>.</p>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-week">Days 3–4</div>
+        <div class="timeline-content">
+          <h4>Reader Swap + Keypad Install (On-Site Day)</h4>
+          <p>Swap 2 weatherized main-entry readers with Connect-Mobile NXT units (6–7 hrs total). System now supports fob, mobile credential, and keypad/PIN at both main entries. Management distributes 1,000 business cards and sends one letter per unit. Migration hotline activated.</p>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-week">Week 2</div>
+        <div class="timeline-content">
+          <h4>Fob Collection Opens</h4>
+          <p>Lobby collection box and mail slot fob return active. Residents drop old Keri fob — no appointment needed. Each returned fob is logged and re-enrolled via USB programmer. <strong>HOA retains full asset value</strong> of the existing inventory rather than discarding it. 300 new NXT fobs cover the gap.</p>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-week">Week 3</div>
+        <div class="timeline-content">
+          <h4>New Fob + Mobile Distribution Event</h4>
+          <p>ASI 360 on-site. Residents who returned old fob receive: re-enrolled legacy fob, new NXT fob, or mobile credential — their choice. Mobile credential setup for smartphone-first residents. Guests and future residents can receive keypad PIN via email with no physical handoff.</p>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-week">Week 4–5</div>
+        <div class="timeline-content">
+          <h4>Final Sweep + System Handoff</h4>
+          <p>Final door-by-door test. All returned fobs re-encoded and logged. Deliver: Borealis portal login, USB programmer, workstation credentials, backup schedule confirmation, close-out docs. Management can now issue credentials, revoke access, and recover from any future workstation failure <strong>in under one day</strong>.</p>
+        </div>
+      </div>
+    </div>
+    <div class="hotline-callout">
+      <strong>Resident Support — Both Channels Active (Days 3–35)</strong>
+      <p style="margin:6px 0 0;font-size:13px;"><strong>Resident Portal:</strong> Submit requests, track fob return status, report access issues — URL on business card and resident letter. <strong>Migration Hotline:</strong> Dedicated phone line for residents who prefer to call. Both channels managed by management office via portal dashboard.</p>
+    </div>
+  </div>
+
+  <script>
+  function showPlan(id, tab) {
+    document.querySelectorAll('.plan-content').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.plan-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    tab.classList.add('active');
+  }
+  </script>
+
+</div>
+
+<!-- PAGE 13: TERMS & CONDITIONS                     -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section terms-section" id="terms">
+  <div class="section-number">Section 9</div>
+  <h2>Terms &amp; Conditions</h2>
+
+  <h4>1. Payment Structure</h4>
+  <p style="font-size:13px; margin-bottom:10px;">ASI 360 operates as a hardware store and integration services company. These are billed separately:</p>
+  <table style="font-size:13px; margin:10px 0;">
+    <thead><tr><th>Component</th><th>When Due</th><th>Amount</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Hardware &amp; Materials</strong></td><td>100% due upon proposal acceptance — secures equipment order and staging</td><td>100% of hardware total</td></tr>
+      <tr><td><strong>Integration Services (Labor)</strong></td><td>50% deposit upon acceptance · 50% upon project completion</td><td>50% / 50%</td></tr>
+      <tr><td><strong>Annual Recurring (Cloud / Support)</strong></td><td>Billed annually from project completion date</td><td>Annual total</td></tr>
+    </tbody>
+  </table>
+  <p>Payment accepted via check, ACH transfer, or credit card (3% processing fee applies to credit card payments).</p>
+
+  <h4>2. Proposal Validity</h4>
+  <p>This proposal is valid for 30 calendar days from the date of issue (March 18, 2026). Pricing is subject to change after the validity period due to manufacturer pricing adjustments and equipment availability.</p>
+
+  <h4>3. Warranty</h4>
+  <ul>
+    <li><strong>Hardware:</strong> Manufacturer's warranty on all new equipment (typically 2–3 years depending on component)</li>
+    <li><strong>Labor:</strong> 1-year workmanship warranty on all installation services</li>
+    <li><strong>System:</strong> 90-day comprehensive system warranty from date of final handoff</li>
+  </ul>
+
+  <h4>4. Scope of Work</h4>
+  <p>This proposal covers the equipment and services itemized in Section 7. Any additional work requested beyond this scope (including but not limited to: new door hardware, electrical work, network infrastructure beyond the equipment room, or additional reader locations) will be quoted separately.</p>
+
+  <h4>5. Timeline</h4>
+  <p>The installation phase is <strong>3–4 days</strong>, beginning upon receipt of deposit and equipment arrival (typically 5–7 business days from order). The resident fob migration runs for <strong>30 days</strong> following installation, using business cards, a resident letter, and a lobby collection box — no scheduled appointment required. ASI 360 coordinates all scheduling with PMP Management.</p>
+
+  <h4>6. Access Requirements</h4>
+  <p>Client shall provide ASI 360 with reasonable access to the equipment room, all reader locations, and common areas during scheduled installation windows. After-hours or weekend work is available upon request at standard overtime rates.</p>
+
+  <h4>7. Exclusions</h4>
+  <ul>
+    <li>Electrical work beyond low-voltage wiring (any line-voltage modifications require a qualified electrician)</li>
+    <li>Structural modifications to walls, gates, or door frames</li>
+    <li>Repair or replacement of door hardware (locks, strikes, hinges, closers)</li>
+    <li>Internet service or ISP-related issues</li>
+    <li>Damage caused by power surges, water intrusion, or vandalism after installation</li>
+  </ul>
+
+  <h4>8. Field Partners &amp; Coverage</h4>
+  <p>ASI 360 is a systems integration company. We design systems, source hardware, and coordinate installation through a network of qualified field technicians and integration partners. All installation labor is performed by experienced professionals appropriate for the scope of work. ASI 360 carries general liability coverage. Certificates of insurance are available upon request.</p>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- PAGE 14: ACCEPTANCE                             -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<div class="section" id="acceptance">
+  <div class="section-number">Section 10</div>
+  <h2>Proposal Acceptance</h2>
+
+  <div class="prop-number-badge" style="background:#1a3a5c;color:#fff;padding:4px 12px;border-radius:4px;font-size:11pt;font-weight:700;letter-spacing:0.05em;display:inline-block;margin-bottom:8px;">QUO202356</div>
+
+  <p>By signing below, the authorized representative of Diamond Heights Village Association accepts this proposal and authorizes ASI 360 to proceed with the Access Control System Assessment &amp; Smart Migration as described herein.</p>
+
+  <p style="font-size:13px; color:var(--text-muted); margin-top:16px;">Quote: <strong style="color:var(--text-heading);">QUO202356</strong> &nbsp;&nbsp;|&nbsp;&nbsp; Total Investment: <strong style="color:var(--text-heading);" id="sigTotal">$13,289.53</strong> &nbsp;&nbsp;|&nbsp;&nbsp; Deposit Due: <strong style="color:var(--text-heading);" id="sigDeposit">$9,614.53</strong></p>
+
+  <div class="sig-grid">
+    <div>
+      <h4 style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">CLIENT</h4>
+      <div class="sig-block">
+        <div class="sig-label">Authorized Signature</div>
+        <div class="sig-line"></div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="sig-label">Printed Name</div>
+        <div class="sig-line"></div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="sig-label">Title</div>
+        <div class="sig-line"></div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="sig-label">Date</div>
+        <div class="sig-line"></div>
+      </div>
+      <div style="margin-top:16px; font-size:12px; color:var(--text-muted);">
+        Diamond Heights Village Association<br>
+        Board of Directors
+      </div>
+    </div>
+    <div>
+      <h4 style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">ASI 360</h4>
+      <div class="sig-block">
+        <div class="sig-label">Authorized Signature</div>
+        <div class="sig-line"></div>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="sig-label">Printed Name / Title</div>
+        <div class="sig-line" style="position:relative;">
+          <span style="position:absolute; bottom:4px; font-size:13px; color:var(--text-heading);">Don Bucknor &nbsp;&nbsp;&nbsp; COO</span>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div class="sig-label">Date</div>
+        <div class="sig-line"></div>
+      </div>
+      <div style="margin-top:16px; font-size:12px; color:var(--text-muted);">
+        Allied Systems Integrations | ASI 360<br>
+        2342 Shattuck Ave. #866 &nbsp;|&nbsp; Berkeley, CA 94704<br>
+        (510) 394-5404 &nbsp;|&nbsp; don@asi360.co
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT                                      -->
+<!-- ════════════════════════════════════════════════ -->
+<script>
+function sendForSignature() {
+  if (!confirm('Send QUO202356 (DHV) to Diamond Heights Village for e-signature via BoldSign?')) return;
+  fetch('/proposal-auth/send-for-signature?proposal=DHV', {method:'POST'})
+    .then(r => r.json())
+    .then(d => {
+      if (d.boldsign_url) {
+        alert('Sent! Document ID: ' + d.document_id + '\nView at: ' + d.boldsign_url);
+      } else {
+        alert('Error: ' + (d.detail || JSON.stringify(d)));
+      }
+    })
+    .catch(e => alert('Request failed: ' + e));
+}
+let editMode = false;
+
+function toggleEdit() {
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  const btn = document.getElementById('editBtn');
+  btn.textContent = editMode ? '✓ Done' : '✎ Edit';
+  btn.classList.toggle('active', editMode);
+}
+
+function updateTotals() {
+  let hwSub = 0;
+  const hwRows = document.querySelectorAll('#hardwareTable tbody tr');
+  hwRows.forEach(row => {
+    const inputs = row.querySelectorAll('.editable-field');
+    if (inputs.length >= 2) {
+      const qty = parseFloat(inputs[0].value) || 0;
+      const price = parseFloat(inputs[1].value) || 0;
+      const total = qty * price;
+      row.querySelector('.line-total').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+      hwSub += total;
+    }
+  });
+
+  const taxRate = 0.08625;
+  const hwTax = hwSub * taxRate;
+  const hwTotal = hwSub + hwTax;
+
+  document.getElementById('hwSubtotal').textContent = '$' + hwSub.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('hwTax').textContent = '$' + hwTax.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('hwTotal').textContent = '$' + hwTotal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  let svcSub = 0;
+  const svcRows = document.querySelectorAll('#servicesTable tbody tr');
+  svcRows.forEach(row => {
+    const inputs = row.querySelectorAll('.editable-field');
+    if (inputs.length >= 2) {
+      const qty = parseFloat(inputs[0].value) || 0;
+      const price = parseFloat(inputs[1].value) || 0;
+      const total = qty * price;
+      row.querySelector('.line-total').textContent = '$' + total.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+      svcSub += total;
+    }
+  });
+
+  document.getElementById('svcTotal').textContent = '$' + svcSub.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  const annual = 1800;
+  const grand = hwTotal + svcSub + annual;
+  document.getElementById('grandTotal').textContent = '$' + grand.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  
+  // Update signature page totals
+  const sigTotal = document.getElementById('sigTotal');
+  const sigDeposit = document.getElementById('sigDeposit');
+  // Correct deposit = 100% hardware + 50% labor (not 40% of grand total)
+  const depositAmount = hwTotal + svcSub * 0.5;
+  const balanceAmount = svcSub * 0.5;
+
+  // Update investment stack displays
+  const stackHw  = document.getElementById('stackHwTotal');
+  const stackSvc = document.getElementById('stackSvcTotal');
+  const depEl    = document.getElementById('depositDue');
+  const balEl    = document.getElementById('balanceDue');
+  if (stackHw)  stackHw.textContent  = '$' + hwTotal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  if (stackSvc) stackSvc.textContent = '$' + svcSub.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  if (depEl)    depEl.textContent    = '$' + depositAmount.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  if (balEl)    balEl.textContent    = '$' + balanceAmount.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  if (sigTotal)   sigTotal.textContent   = '$' + grand.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  if (sigDeposit) sigDeposit.textContent = '$' + depositAmount.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function addLineItem(tableId) {
+  const tbody = document.querySelector('#' + tableId + ' tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td contenteditable="true" style="background:#FFFDE7;">New Item</td>
+    <td contenteditable="true" style="background:#FFFDE7;">Description</td>
+    <td style="text-align:center"><span class="static-value">1</span></td>
+    <td style="text-align:right"><span class="static-value">0</span></td>
+    <td style="text-align:right" class="line-total">$0.00</td>
+    
+  `;
+  tbody.appendChild(tr);
+  updateTotals();
+}
+
+function removeLineItem(btn) {
+  const row = btn.closest('tr');
+  row.remove();
+  updateTotals();
+}
+
+function exportJSON() {
+  const data = {
+    proposal: 'QUO202356',
+    date: 'March 2026',
+    client: 'Diamond Heights Village Association',
+    hardware: [],
+    services: [],
+    annual: 1800,
+    totals: {}
+  };
+
+  document.querySelectorAll('#hardwareTable tbody tr').forEach(row => {
+    const cells = row.querySelectorAll('td');
+    const inputs = row.querySelectorAll('.editable-field');
+    if (cells.length > 0 && inputs.length >= 2) {
+      data.hardware.push({
+        item: cells[0].textContent.trim(),
+        description: cells[1].textContent.trim(),
+        qty: parseFloat(inputs[0].value) || 0,
+        unitPrice: parseFloat(inputs[1].value) || 0,
+        total: row.querySelector('.line-total').textContent.trim()
+      });
+    }
+  });
+
+  document.querySelectorAll('#servicesTable tbody tr').forEach(row => {
+    const cells = row.querySelectorAll('td');
+    const inputs = row.querySelectorAll('.editable-field');
+    if (cells.length > 0 && inputs.length >= 2) {
+      data.services.push({
+        service: cells[0].textContent.trim(),
+        description: cells[1].textContent.trim(),
+        qty: parseFloat(inputs[0].value) || 0,
+        rate: parseFloat(inputs[1].value) || 0,
+        total: row.querySelector('.line-total').textContent.trim()
+      });
+    }
+  });
+
+  data.totals = {
+    hardwareSubtotal: document.getElementById('hwSubtotal').textContent,
+    tax: document.getElementById('hwTax').textContent,
+    hardwareTotal: document.getElementById('hwTotal').textContent,
+    servicesTotal: document.getElementById('svcTotal').textContent,
+    annualRecurring: '$1,800.00',
+    grandTotal: document.getElementById('grandTotal').textContent
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'DHV-QUO202356.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Animate timeline bar on scroll
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.getElementById('timelineBar').style.width = '100%';
+    }
+  });
+}, { threshold: 0.3 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const bar = document.getElementById('timelineBar');
+  if (bar) observer.observe(bar.parentElement);
+  updateTotals();
+});
+</script>
+
+</body>
+</html>

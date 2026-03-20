@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASI 360 — QUO202371 · Diamond Heights Village</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F7FA;
+  --surface: #FFFFFF;
+  --card-border: #E2E8F0;
+  --text-heading: #0F172A;
+  --text-body: #364151;
+  --text-muted: #64748B;
+  --accent: #0067FF;
+  --accent-dark: #1B3A5C;
+  --accent-light: #E7F6FF;
+  --green: #16A34A;
+  --yellow: #CA8A04;
+  --red: #DC2626;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.section {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 48px 56px;
+  margin: 24px auto;
+  max-width: 850px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+h1, h2, h3 { font-family: 'Fira Sans', sans-serif; color: var(--text-heading); }
+h1 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+h2 { font-size: 20px; font-weight: 600; border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 20px; }
+h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; margin-top: 24px; }
+p { margin-bottom: 12px; }
+a { color: var(--accent); text-decoration: none; }
+
+/* Cover */
+.cover { text-align: center; padding: 80px 56px; position: relative; }
+.cover-logo { width: 200px; margin-bottom: 16px; }
+.cover-subtitle { font-family: 'Fira Sans', sans-serif; font-size: 15px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+.cover-tagline { font-size: 12px; color: var(--text-muted); letter-spacing: 0.08em; margin-bottom: 32px; }
+.cover-divider { width: 80px; height: 3px; background: var(--accent); margin: 0 auto 32px; }
+.cover-title { font-size: 26px; font-weight: 700; color: var(--text-heading); margin-bottom: 8px; }
+.cover-client { font-size: 18px; color: var(--accent-dark); font-weight: 600; margin-bottom: 32px; }
+.prop-number-badge { background: #1a3a5c; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11pt; font-weight: 700; letter-spacing: 0.05em; display: inline-block; margin-bottom: 8px; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+thead { background: #F1F5F9; }
+th { text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid var(--card-border); }
+td { padding: 10px 12px; border-bottom: 1px solid #F1F5F9; font-size: 13px; }
+tbody tr:hover { background: #FAFBFC; }
+.table-highlight td { background: #F8FAFC; font-weight: 600; border-top: 2px solid var(--card-border); }
+tfoot td { border-bottom: none; }
+
+/* Quote tabs */
+.quote-tabs { display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap; }
+.quote-tab { padding: 8px 16px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; background: #F8FAFC; color: var(--text-muted); transition: all 0.2s; }
+.quote-tab:hover { border-color: var(--accent); color: var(--accent); }
+.quote-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.quote-tab .tab-price { display: block; font-size: 14px; font-weight: 700; margin-top: 2px; }
+
+.quote-panel { display: none; }
+.quote-panel.active { display: block; }
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  .section { box-shadow: none; border: none; margin: 0 auto; padding: 32px 40px; }
+  .quote-tabs { display: none; }
+  .quote-panel { display: block !important; page-break-inside: avoid; }
+  .no-print { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ COVER ═══ -->
+<div class="section cover">
+  <img src="asi360-logo.png" alt="ASI 360" class="cover-logo">
+  <div class="cover-subtitle">Security &bull; Integration &bull; Intelligence</div>
+  <div class="cover-tagline">Security &bull; Integration &bull; Intelligence</div>
+  <div class="cover-divider"></div>
+  <div class="cover-title">Access Control Proposal</div>
+  <div class="cover-client">Diamond Heights Village Association</div>
+  <div style="font-size:13px; color:var(--text-muted); margin-bottom:24px;">
+    115 Red Rock Way &bull; San Francisco, CA 94131
+  </div>
+  <div style="display:flex; justify-content:center; gap:32px; font-size:13px; color:var(--text-body);">
+    <div><strong>Prepared:</strong> March 20, 2026</div>
+    <div><strong>Valid Through:</strong> April 19, 2026</div>
+    <div><strong>Prepared By:</strong> Don Bucknor</div>
+  </div>
+</div>
+
+<!-- ═══ QUOTE SELECTOR ═══ -->
+<div class="section">
+  <h2>Quote Options</h2>
+  <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Select a quote option to view detailed line items. All quotes reference the same site assessment completed 3/12/2026.</p>
+
+  <div class="quote-tabs">
+    <div class="quote-tab active" onclick="showQuote('q371')">
+      <div>Option A — Competitor Scope Match</div>
+      <div style="font-size:11px; font-weight:400; color:rgba(255,255,255,0.8);">10-Door Borealis + 1,000 Fobs</div>
+      <span class="tab-price">$14,192</span>
+    </div>
+    <div class="quote-tab" onclick="showQuote('q372')">
+      <div>S1 — Clubhouse Full Access</div>
+      <div style="font-size:11px; font-weight:400;">4 Keypads + Mobile + Email PIN</div>
+      <span class="tab-price">$3,578</span>
+    </div>
+    <div class="quote-tab" onclick="showQuote('q373')">
+      <div>S2 — Clubhouse Fob Only</div>
+      <div style="font-size:11px; font-weight:400;">No Keypad, No Email PIN</div>
+      <span class="tab-price">$4,027</span>
+    </div>
+    <div class="quote-tab" onclick="showQuote('q374')">
+      <div>S3 — Clubhouse Temp Cards</div>
+      <div style="font-size:11px; font-weight:400;">Conekt CSK-2 Credential Pool</div>
+      <span class="tab-price">$4,547</span>
+    </div>
+  </div>
+
+  <!-- ═══ QUO202371 — OPTION A ═══ -->
+  <div id="q371" class="quote-panel active">
+    <div class="prop-number-badge">QUO202371</div>
+    <h3 style="margin-top:12px;">DHV-260320-V01 Option A — Competitor Scope Match (10-Door Borealis + 1,000 Fobs)</h3>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Mirrors Competitor Quote #0000170292 (3/11/2026) scope exactly. ASI 360 advantages: (1) Fixed-price labor vs T&amp;M; (2) 1-year labor warranty vs 90-day; (3) Bay Area local vs Houston TX; (4) Full site assessment completed &mdash; no unknowns.</p>
+
+    <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:6px; padding:10px 16px; margin-bottom:20px; font-size:12px; color:#1D4ED8;">
+      <strong>Billing Note:</strong> Hardware and labor are billed separately per ASI 360 standard terms.
+    </div>
+
+    <h3 style="text-transform:uppercase; color:#1a3a5c; font-size:11pt;">Hardware Costs</h3>
+    <table>
+      <thead><tr><th>Item</th><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        <tr><td>NXT Proximity Fobs</td><td>NXT-K series key ring proximity fob. Factory-encoded for Borealis/PXL-500 systems.</td><td style="text-align:center">1,000</td><td style="text-align:right">$9.50</td><td style="text-align:right">$9,500.00</td></tr>
+        <tr><td>Borealis Cloud Hub</td><td>Keri KB-HUB. Connects PXL-500W controllers to Borealis cloud for remote management.</td><td style="text-align:center">1</td><td style="text-align:right">$574.00</td><td style="text-align:right">$574.00</td></tr>
+        <tr><td>Shipping &amp; Handling</td><td>Ground freight for all hardware. Tracking number provided upon shipment.</td><td style="text-align:center">1</td><td style="text-align:right">$95.00</td><td style="text-align:right">$95.00</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Hardware Subtotal</td><td style="text-align:right; font-weight:700;">$10,169.00</td></tr>
+      </tfoot>
+    </table>
+
+    <h3 style="text-transform:uppercase; color:var(--green); font-size:11pt;">Labor Costs</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        <tr><td>Setup &amp; Programming</td><td>Fixed-price setup, programming, and Borealis cloud configuration. Site assessed 3/12/2026.</td><td style="text-align:center">1</td><td style="text-align:right">$495.00</td><td style="text-align:right">$495.00</td></tr>
+        <tr><td>On-Site Installation</td><td>Reader swap, wiring, controller integration, system test.</td><td style="text-align:center">20</td><td style="text-align:right">$175.00</td><td style="text-align:right">$3,500.00</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Labor Subtotal</td><td style="text-align:right; font-weight:700;">$3,995.00</td></tr>
+      </tfoot>
+    </table>
+
+    <h3 style="text-transform:uppercase; color:var(--yellow); font-size:11pt;">Annual Recurring</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Description</th><th style="text-align:right">Annual Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Borealis Cloud Subscription</td><td>$19.95/door/month &times; 10 doors &times; 12 months. Cloud hosting, remote management, mobile credentials.</td><td style="text-align:right">$28.00</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Investment Summary -->
+    <div style="margin-top:28px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:18px 20px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#1D4ED8; margin-bottom:8px;">HARDWARE COSTS</div>
+        <div style="font-size:22px; font-weight:700; color:#1B3A5C;">$10,169.00</div>
+      </div>
+      <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:18px 20px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#16A34A; margin-bottom:8px;">LABOR COSTS</div>
+        <div style="font-size:22px; font-weight:700; color:#1B3A5C;">$3,995.00</div>
+      </div>
+    </div>
+    <div style="margin-top:12px; background:#0F172A; border-radius:8px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+      <div>
+        <div style="font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#94A3B8;">TOTAL INVESTMENT</div>
+        <div style="font-size:13px; color:#CBD5E1; margin-top:4px;">Hardware + Labor + Annual Subscription</div>
+      </div>
+      <div style="font-size:32px; font-weight:700; color:#FFFFFF;">$14,192.00</div>
+    </div>
+  </div>
+
+  <!-- ═══ QUO202372 — S1 ═══ -->
+  <div id="q372" class="quote-panel">
+    <div class="prop-number-badge">QUO202372</div>
+    <h3 style="margin-top:12px;">DHV-CB-260320-V01 S1 — Clubhouse Full Access (4 Keypads + Mobile + Email PIN)</h3>
+
+    <h3 style="text-transform:uppercase; color:#1a3a5c; font-size:11pt;">Hardware Costs</h3>
+    <table>
+      <thead><tr><th>Item</th><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        <tr><td>CSR-6.4L Smart Reader/Keypad</td><td>Main clubhouse entry. Standard gang-box mount. Reads Conekt smart fob + PIN keypad.</td><td style="text-align:center">1</td><td style="text-align:right">$676.00</td><td style="text-align:right">$676.00</td></tr>
+        <tr><td>Borealis Cloud Hub</td><td>Cloud management hub enabling remote credential management, email PIN dispatch.</td><td style="text-align:center">1</td><td style="text-align:right">$574.00</td><td style="text-align:right">$574.00</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Hardware Subtotal</td><td style="text-align:right; font-weight:700;">$1,250.00</td></tr>
+      </tfoot>
+    </table>
+
+    <h3 style="text-transform:uppercase; color:var(--green); font-size:11pt;">Labor Costs</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        <tr><td>Setup &amp; Programming</td><td>All 4 doors programmed and tested. Email PIN workflow configured. Borealis cloud setup.</td><td style="text-align:center">1</td><td style="text-align:right">$495.00</td><td style="text-align:right">$495.00</td></tr>
+        <tr><td>On-Site Installation</td><td>Installation of all 4 readers. Existing PXL-500W controllers retained.</td><td style="text-align:center">5</td><td style="text-align:right">$175.00</td><td style="text-align:right">$875.00</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Labor Subtotal</td><td style="text-align:right; font-weight:700;">$1,370.00</td></tr>
+      </tfoot>
+    </table>
+
+    <h3 style="text-transform:uppercase; color:var(--yellow); font-size:11pt;">Annual Recurring</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Description</th><th style="text-align:right">Annual Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Borealis Cloud Subscription</td><td>$19.95/door/month &times; 4 doors &times; 12 months ($80/month).</td><td style="text-align:right">$958.00</td></tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:28px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:18px 20px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#1D4ED8; margin-bottom:8px;">HARDWARE COSTS</div>
+        <div style="font-size:22px; font-weight:700; color:#1B3A5C;">$1,250.00</div>
+      </div>
+      <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:18px 20px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#16A34A; margin-bottom:8px;">LABOR COSTS</div>
+        <div style="font-size:22px; font-weight:700; color:#1B3A5C;">$1,370.00</div>
+      </div>
+    </div>
+    <div style="margin-top:12px; background:#0F172A; border-radius:8px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+      <div>
+        <div style="font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#94A3B8;">TOTAL INVESTMENT</div>
+        <div style="font-size:13px; color:#CBD5E1; margin-top:4px;">Hardware + Labor + Annual Subscription</div>
+      </div>
+      <div style="font-size:32px; font-weight:700; color:#FFFFFF;">$3,578.00</div>
+    </div>
+  </div>
+
+  <!-- ═══ QUO202373 — S2 ═══ -->
+  <div id="q373" class="quote-panel">
+    <div class="prop-number-badge">QUO202373</div>
+    <h3 style="margin-top:12px;">DHV-CB-260320-V01 S2 — Clubhouse Fob Only (No Keypad, No Email PIN)</h3>
+
+    <h3 style="text-transform:uppercase; color:#1a3a5c; font-size:11pt;">Hardware Costs</h3>
+    <table>
+      <thead><tr><th>Item</th><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        <tr><td>Conekt CSR-35L Smart Reader</td><td>All 4 clubhouse entry points. Fob tap only &mdash; no keypad, no PIN, no mobile.</td><td style="text-align:center">4</td><td style="text-align:right">$325.00</td><td style="text-align:right">$1,300.00</td></tr>
+        <tr><td>Borealis Cloud Hub</td><td>Cloud management hub for remote credential add/revoke and audit logging.</td><td style="text-align:center">1</td><td style="text-align:right">$574.00</td><td style="text-align:right">$574.00</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Hardware Subtotal</td><td style="text-align:right; font-weight:700;">$1,874.00</td></tr>
+      </tfoot>
+    </table>
+
+    <h3 style="text-transform:uppercase; color:var(--green); font-size:11pt;">Labor Costs</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        <tr><td>Setup &amp; Programming</td><td>All 4 doors programmed and tested. Resident fob database loaded. Staff training included.</td><td style="text-align:center">1</td><td style="text-align:right">$495.00</td><td style="text-align:right">$495.00</td></tr>
+        <tr><td>On-Site Installation</td><td>Installation of 4 readers. Existing PXL-500W controllers retained. Bay Area local.</td><td style="text-align:center">4</td><td style="text-align:right">$175.00</td><td style="text-align:right">$700.00</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Labor Subtotal</td><td style="text-align:right; font-weight:700;">$1,195.00</td></tr>
+      </tfoot>
+    </table>
+
+    <h3 style="text-transform:uppercase; color:var(--yellow); font-size:11pt;">Annual Recurring</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Description</th><th style="text-align:right">Annual Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Borealis Cloud Subscription</td><td>$19.95/door/month &times; 4 doors &times; 12 months. Remote management only.</td><td style="text-align:right">$958.00</td></tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:28px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:18px 20px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#1D4ED8; margin-bottom:8px;">HARDWARE COSTS</div>
+        <div style="font-size:22px; font-weight:700; color:#1B3A5C;">$1,874.00</div>
+      </div>
+      <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:18px 20px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#16A34A; margin-bottom:8px;">LABOR COSTS</div>
+        <div style="font-size:22px; font-weight:700; color:#1B3A5C;">$1,195.00</div>
+      </div>
+    </div>
+    <div style="margin-top:12px; background:#0F172A; border-radius:8px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+      <div>
+        <div style="font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#94A3B8;">TOTAL INVESTMENT</div>
+        <div style="font-size:13px; color:#CBD5E1; margin-top:4px;">Hardware + Labor + Annual Subscription</div>
+      </div>
+      <div style="font-size:32px; font-weight:700; color:#FFFFFF;">$4,027.00</div>
+    </div>
+  </div>
+
+  <!-- ═══ QUO202374 — S3 ═══ -->
+  <div id="q374" class="quote-panel">
+    <div class="prop-number-badge">QUO202374</div>
+    <h3 style="margin-top:12px;">DHV-CB-260320-V01 S3 — Clubhouse Temp Cards (Conekt CSK-2 Physical Credential Pool)</h3>
+
+    <h3 style="text-transform:uppercase; color:#1a3a5c; font-size:11pt;">Hardware Costs</h3>
+    <table>
+      <thead><tr><th>Item</th><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        <tr><td>Conekt CSR-35L Smart Reader</td><td>All 4 clubhouse entry points. Reads Conekt key tags including temp/guest cards.</td><td style="text-align:center">4</td><td style="text-align:right">$325.00</td><td style="text-align:right">$1,300.00</td></tr>
+        <tr><td>Conekt Key Tags (50-pack)</td><td>50x reusable Conekt smart key tags for temporary/guest access. Staff checks out and collects.</td><td style="text-align:center">1</td><td style="text-align:right">$520.00</td><td style="text-align:right">$520.00</td></tr>
+        <tr><td>Borealis Cloud Hub</td><td>Required for remote temp card programming and expiration management.</td><td style="text-align:center">1</td><td style="text-align:right">$574.00</td><td style="text-align:right">$574.00</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Hardware Subtotal</td><td style="text-align:right; font-weight:700;">$2,394.00</td></tr>
+      </tfoot>
+    </table>
+
+    <h3 style="text-transform:uppercase; color:var(--green); font-size:11pt;">Labor Costs</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        <tr><td>Setup &amp; Programming</td><td>All 4 doors programmed. Temp card pool loaded and tested. Staff trained on check-in/check-out.</td><td style="text-align:center">1</td><td style="text-align:right">$495.00</td><td style="text-align:right">$495.00</td></tr>
+        <tr><td>On-Site Installation</td><td>Installation. Existing PXL-500W controllers retained. Bay Area local. 1-year warranty.</td><td style="text-align:center">4</td><td style="text-align:right">$175.00</td><td style="text-align:right">$700.00</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="table-highlight"><td colspan="4" style="text-align:right; font-weight:700;">Labor Subtotal</td><td style="text-align:right; font-weight:700;">$1,195.00</td></tr>
+      </tfoot>
+    </table>
+
+    <h3 style="text-transform:uppercase; color:var(--yellow); font-size:11pt;">Annual Recurring</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Description</th><th style="text-align:right">Annual Cost</th></tr></thead>
+      <tbody>
+        <tr><td>Borealis Cloud Subscription</td><td>$19.95/door/month &times; 4 doors &times; 12 months. Required for remote temp card management.</td><td style="text-align:right">$958.00</td></tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:28px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:18px 20px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#1D4ED8; margin-bottom:8px;">HARDWARE COSTS</div>
+        <div style="font-size:22px; font-weight:700; color:#1B3A5C;">$2,394.00</div>
+      </div>
+      <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:18px 20px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#16A34A; margin-bottom:8px;">LABOR COSTS</div>
+        <div style="font-size:22px; font-weight:700; color:#1B3A5C;">$1,195.00</div>
+      </div>
+    </div>
+    <div style="margin-top:12px; background:#0F172A; border-radius:8px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+      <div>
+        <div style="font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#94A3B8;">TOTAL INVESTMENT</div>
+        <div style="font-size:13px; color:#CBD5E1; margin-top:4px;">Hardware + Labor + Annual Subscription</div>
+      </div>
+      <div style="font-size:32px; font-weight:700; color:#FFFFFF;">$4,547.00</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<div class="section" style="text-align:center; padding:32px;">
+  <p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">
+    <strong style="color:var(--text-heading);">ASI 360</strong> &bull; (510) 394-5404 &bull; don@asi360.co &bull; asi360.co
+  </p>
+  <p style="font-size:11px; color:var(--text-muted); margin-top:8px;">
+    This quote expires 30 days from date of issue. Prices subject to change after expiration.
+  </p>
+</div>
+
+<script>
+function showQuote(id) {
+  document.querySelectorAll('.quote-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.quote-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>
