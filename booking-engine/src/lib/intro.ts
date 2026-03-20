@@ -62,25 +62,42 @@ export function runDescent(map: any): Promise<void> {
     let resolved = false
     const done = () => { if (!resolved) { resolved = true; resolve() } }
 
-    // Switch projection first, wait, then fly
-    map.setProjection('mercator')
-    map.setFog({})
+    // Switch projection first, wait for it to settle
+    try {
+      map.setProjection('mercator')
+      map.setFog({})
+    } catch (e) {
+      // If projection switch fails, just continue — mercator is the default
+      console.warn('Projection switch failed, continuing descent:', e)
+    }
 
-    // Small delay to let projection settle before flyTo
+    // Longer delay to let projection fully settle before flyTo
     setTimeout(() => {
-      map.flyTo({
-        center: [-122.2509, 37.8073],
-        zoom: 17.5,
-        pitch: 70,
-        bearing: -30,
-        duration: 3500,
-        essential: true,
-        curve: 1.8,
-      })
-      map.once('moveend', done)
-      // Safety timeout — resolve even if moveend doesn't fire
-      setTimeout(done, 5000)
-    }, 500)
+      try {
+        map.flyTo({
+          center: [-122.2509, 37.8073],
+          zoom: 17.5,
+          pitch: 70,
+          bearing: -30,
+          duration: 3500,
+          essential: true,
+          curve: 1.8,
+        })
+        map.once('moveend', done)
+      } catch (e) {
+        // If flyTo fails, jump directly
+        console.warn('flyTo failed, jumping directly:', e)
+        map.jumpTo({
+          center: [-122.2509, 37.8073],
+          zoom: 17.5,
+          pitch: 70,
+          bearing: -30,
+        })
+        done()
+      }
+      // Safety timeout — ALWAYS resolve
+      setTimeout(done, 6000)
+    }, 800)
   })
 }
 
@@ -112,32 +129,57 @@ export function runOrbit(map: any): Promise<void> {
   })
 }
 
+// Final park position — the guaranteed landing spot
+const PARK_VIEW = {
+  center: [-122.2509, 37.8073] as [number, number],
+  zoom: 17.5,
+  pitch: 70,
+  bearing: -30,
+}
+
 export async function runIntro(map: any, sequence: IntroSequence, onDive360?: () => void): Promise<void> {
   const steps = INTRO_FLOWS[sequence]
 
-  for (const step of steps) {
-    switch (step) {
-      case 'globe':
-        await runGlobe(map)
-        break
-      case 'descent':
-        await runDescent(map)
-        break
-      case 'orbit':
-        await runOrbit(map)
-        break
-      case 'dive360':
-        // Fly toward A1 zone, then trigger 360° modal
-        map.flyTo({
-          center: [-122.25150, 37.80835],
-          zoom: 19,
-          pitch: 65,
-          bearing: -10,
-          duration: 2000,
-        })
-        await new Promise(r => setTimeout(r, 2200))
-        onDive360?.()
-        break
+  try {
+    for (const step of steps) {
+      switch (step) {
+        case 'globe':
+          await runGlobe(map)
+          break
+        case 'descent':
+          await runDescent(map)
+          break
+        case 'orbit':
+          await runOrbit(map)
+          break
+        case 'dive360':
+          // Fly toward A1 zone, then trigger 360° modal
+          map.flyTo({
+            center: [-122.25150, 37.80835],
+            zoom: 19,
+            pitch: 65,
+            bearing: -10,
+            duration: 2000,
+          })
+          await new Promise(r => setTimeout(r, 2200))
+          onDive360?.()
+          break
+      }
     }
+  } catch (e) {
+    // If ANY intro step fails, jump directly to the park view
+    console.error('Intro sequence failed, jumping to park view:', e)
+    try {
+      map.setProjection('mercator')
+      map.setFog({})
+    } catch (_) { /* ignore */ }
+    map.jumpTo(PARK_VIEW)
+  }
+
+  // Final safety: verify we're at the park, not stuck in space
+  const currentZoom = map.getZoom()
+  if (currentZoom < 10) {
+    console.warn(`Intro ended at zoom ${currentZoom}, forcing park view`)
+    map.jumpTo(PARK_VIEW)
   }
 }
