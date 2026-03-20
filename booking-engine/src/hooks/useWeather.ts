@@ -95,9 +95,12 @@ export function useWeather() {
     return { label: 'Intense', color: '#F44336' }
   }
 
+  // Get full 14-day forecast array
+  const getForecast = () => weather?.daily || []
+
   return {
     weather, loading, error,
     getDayForecast, getHourlyForDate, getSunTime, getTodayForecast,
-    getWeatherIcon, getComfortLabel, isDataStale,
+    getWeatherIcon, getComfortLabel, isDataStale, getForecast,
   }
 }
