@@ -61,9 +61,16 @@ const BOOKING_ZONES = [
 ]
 
 const TIER_OPTIONS = [
-  { id: 'umbrella', label: '☂️ Umbrella', price: 25, desc: '1 hour, delivered' },
-  { id: 'cabana', label: '🏖️ Cabana', price: 60, desc: '10×10 canopy tent' },
-  { id: 'vip', label: '⭐ VIP', price: 100, desc: 'Cabana + couch + cooler' },
+  { id: 'umbrella', label: '☂️ Umbrella', desc: 'Shade + delivered to your spot' },
+  { id: 'cabana', label: '🏖️ Cabana', desc: '10×10 canopy tent + rug' },
+  { id: 'vip', label: '⭐ VIP', desc: 'Cabana + couch + cooler + speaker' },
+]
+
+const DURATION_OPTIONS = [
+  { id: '30min', label: '30 Min', shortLabel: '30m' },
+  { id: '1hr', label: '1 Hour', shortLabel: '1h' },
+  { id: '4hr', label: '4 Hours', shortLabel: '4h' },
+  { id: 'fullday', label: 'Full Day', shortLabel: 'All' },
 ]
 
 interface Immersive360ModalProps {
@@ -133,6 +140,7 @@ export default function Immersive360Modal({
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [selectedZone, setSelectedZone] = useState<string | null>(zoneId || null)
   const [selectedTier, setSelectedTier] = useState<string>('umbrella')
+  const [selectedDuration, setSelectedDuration] = useState<string>('1hr')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set())
@@ -182,6 +190,7 @@ export default function Immersive360Modal({
   useEffect(() => {
     if (!isOpen) {
       setShowBookingHUD(false)
+      setSelectedDuration('1hr')
       setSelectedDate(null)
       setSelectedSlot(null)
       setSelectedAddons(new Set())
@@ -295,13 +304,19 @@ export default function Immersive360Modal({
     })
   }
 
-  // Calculate total
+  // Calculate total using pricing lookup
+  const PRICE_TABLE: Record<string, Record<string, number>> = {
+    umbrella: { '30min': 15, '1hr': 25, '4hr': 40, fullday: 65 },
+    cabana:   { '30min': 45, '1hr': 75, '4hr': 120, fullday: 199 },
+    vip:      { '30min': 89, '1hr': 150, '4hr': 250, fullday: 399 },
+  }
   const currentTier = TIER_OPTIONS.find(t => t.id === selectedTier) || TIER_OPTIONS[0]
-  const basePrice = currentTier.price
+  const basePrice = PRICE_TABLE[selectedTier]?.[selectedDuration] || 25
   const deliveryFee = 25
   const addonsTotal = QUICK_ADDONS.filter(a => selectedAddons.has(a.id)).reduce((sum, a) => sum + a.price, 0)
   const total = basePrice + deliveryFee + addonsTotal
   const currentZone = BOOKING_ZONES.find(z => z.id === selectedZone)
+  const durationLabel = DURATION_OPTIONS.find(d => d.id === selectedDuration)?.label || '1 Hour'
 
   // Get weather for selected date
   const selectedDateWeather = selectedDate
@@ -508,25 +523,44 @@ export default function Immersive360Modal({
                         )}
                       </AnimatePresence>
 
-                      {/* ── Tier Selection ── */}
-                      <div className="flex gap-1.5">
-                        {TIER_OPTIONS.map((tier) => (
-                          <button
-                            key={tier.id}
-                            onClick={() => setSelectedTier(tier.id)}
-                            className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl transition-all ${
-                              selectedTier === tier.id
-                                ? 'bg-gold/20 border-gold/50'
-                                : 'bg-white/5 border-white/10 hover:bg-white/10'
-                            } border`}
-                          >
-                            <span className="text-xs">{tier.label.split(' ')[0]}</span>
-                            <span className={`text-[10px] font-semibold ${selectedTier === tier.id ? 'text-gold' : 'text-white/70'}`}>
-                              ${tier.price}
-                            </span>
-                            <span className="text-white/30 text-[8px]">{tier.desc}</span>
-                          </button>
-                        ))}
+                      {/* ── Tier + Duration Selection ── */}
+                      <div className="space-y-2">
+                        <div className="flex gap-1.5">
+                          {TIER_OPTIONS.map((tier) => (
+                            <button
+                              key={tier.id}
+                              onClick={() => setSelectedTier(tier.id)}
+                              className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl transition-all ${
+                                selectedTier === tier.id
+                                  ? 'bg-gold/20 border-gold/50'
+                                  : 'bg-white/5 border-white/10 hover:bg-white/10'
+                              } border`}
+                            >
+                              <span className="text-sm">{tier.label.split(' ')[0]}</span>
+                              <span className={`text-[10px] font-semibold ${selectedTier === tier.id ? 'text-gold' : 'text-white/70'}`}>
+                                {tier.label.split(' ').slice(1).join(' ')}
+                              </span>
+                              <span className="text-white/30 text-[8px]">{tier.desc}</span>
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Duration pills */}
+                        <div className="flex gap-1">
+                          {DURATION_OPTIONS.map((dur) => (
+                            <button
+                              key={dur.id}
+                              onClick={() => setSelectedDuration(dur.id)}
+                              className={`flex-1 py-1.5 rounded-lg text-center transition-all ${
+                                selectedDuration === dur.id
+                                  ? 'bg-gold/20 border-gold/40 text-gold'
+                                  : 'bg-white/5 border-white/8 text-white/50 hover:bg-white/10'
+                              } border text-[10px] font-semibold`}
+                            >
+                              {dur.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
 
                       {/* ── Date Strip (14 days with weather) ── */}
@@ -680,9 +714,12 @@ export default function Immersive360Modal({
                                   body: JSON.stringify({
                                     zone_id: selectedZone,
                                     tier: selectedTier,
+                                    duration: selectedDuration,
                                     booking_date: selectedDate,
                                     time_slot: selectedSlot,
                                     addons: Array.from(selectedAddons),
+                                    email: 'donbucknor@gmail.com', // TODO: collect from member
+                                    name: 'Guest',
                                   }),
                                 })
                                 const data = await res.json()
