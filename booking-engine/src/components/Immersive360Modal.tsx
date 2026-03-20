@@ -45,6 +45,27 @@ class Modal360ErrorBoundary extends Component<
   }
 }
 
+// ── Zone data for booking context ──
+const BOOKING_ZONES = [
+  { id: 'A1', name: 'Pergola Lawn', sunset: 'partial', desc: 'Near the pergola, shaded afternoon' },
+  { id: 'A2', name: 'Pergola East', sunset: 'partial', desc: 'Open grass, partial sun' },
+  { id: 'B1', name: 'Lakefront North', sunset: 'partial', desc: 'Wide grass, lake views' },
+  { id: 'B2', name: 'Lakefront Central', sunset: 'partial', desc: 'Prime midday spot' },
+  { id: 'B3', name: 'Lakeview Terrace', sunset: 'partial', desc: 'Elevated, great views' },
+  { id: 'B4', name: 'Church Lawn', sunset: 'partial', desc: 'Quiet, near Our Lady of Lourdes' },
+  { id: 'B5', name: 'Grand Ave Strip', sunset: 'shaded', desc: 'Closest to restaurants' },
+  { id: 'C1', name: 'Lakeshore Curve', sunset: 'golden', desc: '🌅 Golden sunset until 8pm' },
+  { id: 'C2', name: 'Bellevue Meadow', sunset: 'golden', desc: '🌅 Wide open, extra 2hrs sun' },
+  { id: 'C3', name: 'Willow Grove', sunset: 'golden', desc: '🌅 Quiet sunset retreat' },
+  { id: 'C4', name: 'South Point', sunset: 'golden', desc: '🌅 Best sunset on the lake' },
+]
+
+const TIER_OPTIONS = [
+  { id: 'umbrella', label: '☂️ Umbrella', price: 25, desc: '1 hour, delivered' },
+  { id: 'cabana', label: '🏖️ Cabana', price: 60, desc: '10×10 canopy tent' },
+  { id: 'vip', label: '⭐ VIP', price: 100, desc: 'Cabana + couch + cooler' },
+]
+
 interface Immersive360ModalProps {
   isOpen: boolean
   onClose: () => void
@@ -56,6 +77,8 @@ interface Immersive360ModalProps {
   startYaw?: number
   startPitch?: number
   startZoom?: number
+  /** Zone ID this 360° is associated with (e.g., 'A1') */
+  zoneId?: string
 }
 
 // ── Date helpers ──
@@ -98,6 +121,7 @@ export default function Immersive360Modal({
   startYaw = 135,
   startPitch = -3,
   startZoom = 40,
+  zoneId,
 }: Immersive360ModalProps) {
   const viewerContainerRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<any>(null)
@@ -105,9 +129,12 @@ export default function Immersive360Modal({
 
   // Booking HUD state
   const [showBookingHUD, setShowBookingHUD] = useState(false)
+  const [selectedZone, setSelectedZone] = useState<string | null>(zoneId || null)
+  const [selectedTier, setSelectedTier] = useState<string>('umbrella')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set())
+  const [showZonePicker, setShowZonePicker] = useState(false)
 
   const todayForecast = getTodayForecast()
   const today = new Date().toISOString().split('T')[0]
@@ -156,8 +183,12 @@ export default function Immersive360Modal({
       setSelectedDate(null)
       setSelectedSlot(null)
       setSelectedAddons(new Set())
+      setShowZonePicker(false)
+    } else {
+      // Set zone from prop when modal opens
+      if (zoneId) setSelectedZone(zoneId)
     }
-  }, [isOpen])
+  }, [isOpen, zoneId])
 
   // Initialize Photo Sphere Viewer
   const initViewer = useCallback(async () => {
@@ -263,10 +294,12 @@ export default function Immersive360Modal({
   }
 
   // Calculate total
-  const basePrice = 25
+  const currentTier = TIER_OPTIONS.find(t => t.id === selectedTier) || TIER_OPTIONS[0]
+  const basePrice = currentTier.price
   const deliveryFee = 25
   const addonsTotal = QUICK_ADDONS.filter(a => selectedAddons.has(a.id)).reduce((sum, a) => sum + a.price, 0)
   const total = basePrice + deliveryFee + addonsTotal
+  const currentZone = BOOKING_ZONES.find(z => z.id === selectedZone)
 
   // Get weather for selected date
   const selectedDateWeather = selectedDate
@@ -416,10 +449,82 @@ export default function Immersive360Modal({
                     </div>
 
                     <div className="px-4 pb-4 space-y-3">
-                      {/* Title */}
+                      {/* Zone selector + title */}
                       <div className="flex items-center justify-between">
-                        <h4 className="text-white font-semibold text-sm">Book Your Spot</h4>
-                        <span className="text-gold text-xs font-medium">☂️ Umbrella · 1 Hour</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowZonePicker(!showZonePicker)}
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all bg-gold/15 border border-gold/30 hover:bg-gold/25 active:scale-95"
+                          >
+                            <span className="text-gold font-bold text-xs">{selectedZone || '—'}</span>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="text-gold/60">
+                              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                          </button>
+                          <div>
+                            <h4 className="text-white font-semibold text-sm">
+                              {currentZone ? currentZone.name : 'Choose a Zone'}
+                            </h4>
+                            {currentZone && (
+                              <p className="text-white/40 text-[9px]">{currentZone.desc}</p>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-gold text-xs font-medium">{currentTier.label} · 1 Hour</span>
+                      </div>
+
+                      {/* Zone picker dropdown */}
+                      <AnimatePresence>
+                        {showZonePicker && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-1 mb-1">
+                              {BOOKING_ZONES.map((zone) => (
+                                <button
+                                  key={zone.id}
+                                  onClick={() => { setSelectedZone(zone.id); setShowZonePicker(false) }}
+                                  className={`flex flex-col items-center py-1.5 px-1 rounded-lg transition-all text-center ${
+                                    selectedZone === zone.id
+                                      ? 'bg-gold/20 border-gold/50'
+                                      : 'bg-white/5 border-white/10 hover:bg-white/10'
+                                  } border`}
+                                >
+                                  <span className={`text-[11px] font-bold ${selectedZone === zone.id ? 'text-gold' : 'text-white'}`}>
+                                    {zone.id}
+                                  </span>
+                                  <span className="text-white/30 text-[7px] leading-tight truncate w-full">
+                                    {zone.sunset === 'golden' ? '🌅' : ''}{zone.name.split(' ')[0]}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* ── Tier Selection ── */}
+                      <div className="flex gap-1.5">
+                        {TIER_OPTIONS.map((tier) => (
+                          <button
+                            key={tier.id}
+                            onClick={() => setSelectedTier(tier.id)}
+                            className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl transition-all ${
+                              selectedTier === tier.id
+                                ? 'bg-gold/20 border-gold/50'
+                                : 'bg-white/5 border-white/10 hover:bg-white/10'
+                            } border`}
+                          >
+                            <span className="text-xs">{tier.label.split(' ')[0]}</span>
+                            <span className={`text-[10px] font-semibold ${selectedTier === tier.id ? 'text-gold' : 'text-white/70'}`}>
+                              ${tier.price}
+                            </span>
+                            <span className="text-white/30 text-[8px]">{tier.desc}</span>
+                          </button>
+                        ))}
                       </div>
 
                       {/* ── Date Strip (14 days with weather) ── */}
@@ -576,11 +681,11 @@ export default function Immersive360Modal({
                             }}
                           >
                             <div className="flex items-center justify-center gap-2">
-                              <span>☂️</span>
+                              <span>{currentTier.label.split(' ')[0]}</span>
                               <span>Book Now — ${total}</span>
                             </div>
                             <div className="text-[10px] opacity-60 mt-0.5">
-                              Umbrella $25 + Delivery $25{addonsTotal > 0 ? ` + Add-ons $${addonsTotal}` : ''}
+                              Zone {selectedZone} · {currentTier.label.split(' ').slice(1).join(' ')} ${basePrice} + Delivery $25{addonsTotal > 0 ? ` + Add-ons $${addonsTotal}` : ''}
                             </div>
                           </button>
                         </motion.div>
@@ -589,6 +694,43 @@ export default function Immersive360Modal({
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* ═══ STICKY CART BAR — shows when HUD is closed but has selections ═══ */}
+              {!showBookingHUD && (selectedDate || selectedZone) && (
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 z-30"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <button
+                    onClick={() => setShowBookingHUD(true)}
+                    className="w-full flex items-center justify-between px-4 py-3 transition-all"
+                    style={{
+                      background: 'linear-gradient(to top, rgba(10,10,26,0.95), rgba(10,10,26,0.8))',
+                      backdropFilter: 'blur(16px)',
+                      borderTop: '1px solid rgba(212,175,55,0.3)',
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-gold font-bold text-xs px-2 py-0.5 rounded bg-gold/15 border border-gold/30">
+                        {selectedZone || '—'}
+                      </span>
+                      <span className="text-white text-xs">
+                        {currentTier.label}
+                        {selectedDate && ` · ${new Date(selectedDate + 'T12:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`}
+                        {selectedSlot && ` · ${TIME_SLOTS.find(s => s.id === selectedSlot)?.label}`}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gold font-bold text-sm">${total}</span>
+                      <span className="text-[9px] text-white/40 bg-white/10 px-2 py-0.5 rounded-full">
+                        Tap to edit ↑
+                      </span>
+                    </div>
+                  </button>
+                </motion.div>
+              )}
 
               {/* Photo Sphere Viewer container — fills entire modal */}
               <div

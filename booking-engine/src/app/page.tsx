@@ -167,6 +167,7 @@ export default function BookingPage() {
           startYaw={active360.startYaw}
           startPitch={active360.startPitch}
           startZoom={active360.startZoom}
+          zoneId={active360.id.includes('walkway') ? 'A2' : 'A1'}
         />
       )}
     </div>
