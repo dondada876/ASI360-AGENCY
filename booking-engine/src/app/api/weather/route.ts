@@ -32,30 +32,61 @@ export async function GET(request: Request) {
     'Authorization': `Bearer ${supabaseKey}`,
   }
 
-  // Fetch daily forecasts — from today forward
-  const dailyRes = await fetch(
-    `${supabaseUrl}/rest/v1/wj_daily_weather?select=forecast_date,day_type,high_f,low_f,precip_pct,wind_mph,humidity_pct,uv_index,condition,ivr_sentence,consensus_confidence,updated_at&forecast_date=gte.${today}&order=forecast_date.asc&limit=${days}`,
+  // Fetch 14-day forecast from wj_forecast_days (has ALL days, not just today)
+  // wj_daily_weather only stores TODAY — wj_forecast_days stores the full 14-day forecast
+  // Get only the LATEST run's forecast (most recent run_date per forecast_date)
+  // Order by run_date desc so we get the newest data first, then dedup by forecast_date
+  const forecastRes = await fetch(
+    `${supabaseUrl}/rest/v1/wj_forecast_days?select=forecast_date,day_type,high_f,low_f,precip_pct,wind_mph,condition_label,ivr_sentence,source_count,run_date&forecast_date=gte.${today}&order=run_date.desc,forecast_date.asc&limit=${days * 3}`,
     { headers, next: { revalidate: 1800 } }
   )
-
-  // If no future data, get the most recent available (stale but useful)
-  let daily = dailyRes.ok ? await dailyRes.json() : []
+  let forecastDays = forecastRes.ok ? await forecastRes.json() : []
   let dataStale = false
 
+  // Dedup: keep only the latest run_date entry per forecast_date
+  const seen = new Set<string>()
+  forecastDays = forecastDays.filter((d: any) => {
+    if (seen.has(d.forecast_date)) return false
+    seen.add(d.forecast_date)
+    return true
+  })
+  // Re-sort by date ascending after dedup
+  forecastDays.sort((a: any, b: any) => a.forecast_date.localeCompare(b.forecast_date))
+
+  // Map wj_forecast_days fields to the format the frontend expects
+  let daily = forecastDays.map((d: any) => ({
+    forecast_date: d.forecast_date,
+    day_type: d.day_type,
+    high_f: d.high_f,
+    low_f: d.low_f,
+    precip_pct: d.precip_pct,
+    wind_mph: d.wind_mph,
+    humidity_pct: null, // not in forecast_days table
+    uv_index: null,     // not in forecast_days table
+    condition: d.condition_label,
+    ivr_sentence: d.ivr_sentence,
+    consensus_confidence: null,
+    updated_at: d.run_date, // use run_date as freshness indicator
+  }))
+
+  // Fallback: if no forecast_days data, try wj_daily_weather (today only)
   if (daily.length === 0) {
-    const fallbackRes = await fetch(
+    const dailyRes = await fetch(
       `${supabaseUrl}/rest/v1/wj_daily_weather?select=forecast_date,day_type,high_f,low_f,precip_pct,wind_mph,humidity_pct,uv_index,condition,ivr_sentence,consensus_confidence,updated_at&order=forecast_date.desc&limit=${days}`,
       { headers, next: { revalidate: 1800 } }
     )
-    daily = fallbackRes.ok ? await fallbackRes.json() : []
+    daily = dailyRes.ok ? await dailyRes.json() : []
     dataStale = true
   }
 
-  // Check data freshness — if latest update > 24hrs ago, flag as stale
-  if (daily.length > 0 && daily[0].updated_at) {
-    const lastUpdate = new Date(daily[0].updated_at)
-    const hoursAgo = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60)
-    if (hoursAgo > 24) dataStale = true
+  // Check data freshness — if run_date > 24hrs ago, flag as stale
+  if (daily.length > 0) {
+    const runDate = daily[0].updated_at || daily[0].run_date
+    if (runDate) {
+      const lastUpdate = new Date(runDate)
+      const hoursAgo = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60)
+      if (hoursAgo > 24) dataStale = true
+    }
   }
 
   // Fetch hourly for today and next 3 days
