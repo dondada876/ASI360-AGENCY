@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@elevenlabs/convai-widget-core": "^0.10.5",
     "@elevenlabs/react": "^0.14.3",
     "@photo-sphere-viewer/autorotate-plugin": "^5.14.1",
     "@photo-sphere-viewer/core": "^5.14.1",

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useConversation } from '@elevenlabs/react'
+import Script from 'next/script'
 
 interface AthenaButtonProps {
   onSelectZone?: (zoneId: string) => void
@@ -16,7 +16,10 @@ const AUDIO_CLIPS: Record<string, string> = {
   history: '/audio/lake-history.mp3',
 }
 
-type ModalView = 'menu' | 'conversation'
+// ElevenLabs agent ID — fetched from API or hardcoded as fallback
+const AGENT_ID_FALLBACK = ''
+
+type ModalView = 'menu' | 'voice' | 'text'
 
 export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
   const [showTooltip, setShowTooltip] = useState(true)
@@ -25,12 +28,12 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
   const [playing, setPlaying] = useState<string | null>(null)
   const [messages, setMessages] = useState<Array<{ role: 'agent' | 'user'; text: string }>>([])
   const [textInput, setTextInput] = useState('')
-  const [connecting, setConnecting] = useState(false)
-  const [volumeLevel, setVolumeLevel] = useState(0)
   const [chatLoading, setChatLoading] = useState(false)
-  const [micError, setMicError] = useState<string | null>(null)
+  const [agentId, setAgentId] = useState(AGENT_ID_FALLBACK)
+  const [widgetLoaded, setWidgetLoaded] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const widgetContainerRef = useRef<HTMLDivElement>(null)
 
   // Auto-hide tooltip
   useEffect(() => {
@@ -38,45 +41,27 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
     return () => clearTimeout(timer)
   }, [])
 
-  // ElevenLabs conversation hook
-  const conversation = useConversation({
-    onConnect: () => {
-      setConnecting(false)
-      setMessages(prev => [...prev, { role: 'agent', text: 'Hi! I\'m Athena, Guardian of Innocence. I\'m here to help you find the perfect spot at Lake Merritt. What can I help you with today?' }])
-    },
-    onDisconnect: () => {
-      setConnecting(false)
-    },
-    onMessage: ({ message, source }: { message: string; source: string }) => {
-      if (source === 'ai' && message) {
-        setMessages(prev => [...prev, { role: 'agent', text: message }])
-      } else if (source === 'user' && message) {
-        setMessages(prev => [...prev, { role: 'user', text: message }])
-      }
-    },
-    onError: (error: string) => {
-      console.error('Athena conversation error:', error)
-      setConnecting(false)
-      setMessages(prev => [...prev, { role: 'agent', text: 'I had trouble connecting. You can also call me at (510) 288-0994.' }])
-    },
-  })
-
-  // Track volume for visualizer
+  // Fetch agent ID from API
   useEffect(() => {
-    if (conversation.isSpeaking) {
-      const interval = setInterval(() => {
-        setVolumeLevel(0.3 + Math.random() * 0.7)
-      }, 100)
-      return () => clearInterval(interval)
-    } else {
-      setVolumeLevel(0)
-    }
-  }, [conversation.isSpeaking])
+    fetch('/api/voice-token')
+      .then(r => r.json())
+      .then(d => { if (d.agentId) setAgentId(d.agentId) })
+      .catch(() => {})
+  }, [])
 
   // Auto-scroll messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Track analytics events
+  const trackEvent = useCallback((event: string, data?: Record<string, string>) => {
+    fetch('/api/metrics/athena', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event, ...data, timestamp: new Date().toISOString() }),
+    }).catch(() => {}) // Fire and forget
+  }, [])
 
   // Send text message via Claude API
   const sendTextMessage = useCallback(async (text: string) => {
@@ -84,6 +69,7 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
     const updatedMessages = [...messages, userMsg]
     setMessages(updatedMessages)
     setChatLoading(true)
+    trackEvent('text_message_sent')
 
     try {
       const res = await fetch('/api/chat', {
@@ -94,65 +80,15 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
       const data = await res.json()
       if (data.reply) {
         setMessages(prev => [...prev, { role: 'agent', text: data.reply }])
+        trackEvent('text_message_received')
       }
     } catch {
       setMessages(prev => [...prev, { role: 'agent', text: "Sorry, I had trouble responding. Try again or call (510) 288-0994!" }])
+      trackEvent('text_message_error')
     } finally {
       setChatLoading(false)
     }
-  }, [messages])
-
-  // Start voice conversation with mic permission check
-  const startConversation = useCallback(async () => {
-    setMicError(null)
-
-    // Check mic permission first
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      stream.getTracks().forEach(t => t.stop()) // Release immediately, just testing permission
-    } catch (err: any) {
-      const errorName = err?.name || ''
-      if (errorName === 'NotAllowedError' || errorName === 'PermissionDeniedError') {
-        setMicError('Microphone access was denied. Go to your browser Settings > Privacy > Microphone and allow this site. Or use text chat below!')
-      } else if (errorName === 'NotFoundError') {
-        setMicError('No microphone found. You can use text chat instead!')
-      } else {
-        setMicError('Couldn\'t access microphone. Try text chat or call (510) 288-0994.')
-      }
-      // Still switch to conversation view — text chat works without mic
-      setView('conversation')
-      setMessages([{ role: 'agent', text: 'Hi! I\'m Athena. I couldn\'t access your microphone, but you can type your questions below and I\'ll help you find the perfect spot at Lake Merritt! ☂️' }])
-      return
-    }
-
-    setView('conversation')
-    setConnecting(true)
-    setMessages([])
-
-    try {
-      const res = await fetch('/api/voice-token')
-      const data = await res.json()
-
-      if (data.signedUrl) {
-        await conversation.startSession({ signedUrl: data.signedUrl })
-      } else if (data.agentId) {
-        const directUrl = `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${data.agentId}`
-        await conversation.startSession({ signedUrl: directUrl })
-      }
-    } catch (err) {
-      console.error('Failed to start Athena voice session:', err)
-      setConnecting(false)
-      setMessages([{ role: 'agent', text: 'Voice connection didn\'t work this time, but you can type your questions below! I\'m Athena, here to help you find shade at the lake. ☂️' }])
-    }
-  }, [conversation])
-
-  const endConversation = useCallback(async () => {
-    if (conversation.status === 'connected') {
-      await conversation.endSession()
-    }
-    setView('menu')
-    setMessages([])
-  }, [conversation])
+  }, [messages, trackEvent])
 
   const playAudio = useCallback((clipKey: string, src: string) => {
     if (audioRef.current) {
@@ -167,10 +103,12 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
     audio.play().catch(() => setPlaying(null))
     audioRef.current = audio
     setPlaying(clipKey)
-  }, [playing])
+    trackEvent('audio_clip_played', { clip: clipKey })
+  }, [playing, trackEvent])
 
   const handleAction = useCallback((action: string) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlaying(null) }
+    trackEvent('button_pressed', { button: action })
 
     switch (action) {
       case 'umbrella':
@@ -192,14 +130,14 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
         playAudio('history', AUDIO_CLIPS.history)
         break
       case 'call':
+        trackEvent('call_initiated')
         window.location.href = 'tel:+15102880994'
         break
     }
-  }, [playAudio, onSelectZone])
+  }, [playAudio, onSelectZone, trackEvent])
 
   const handleClose = () => {
     if (audioRef.current) { audioRef.current.pause(); setPlaying(null) }
-    if (conversation.status === 'connected') conversation.endSession()
     setShowModal(false)
     setView('menu')
     setMessages([])
@@ -218,7 +156,7 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
             className="rounded-full"
             style={{ width: barW, background: active ? '#D4AF37' : 'rgba(212,175,55,0.2)' }}
             animate={{
-              height: active ? 4 + Math.sin(Date.now() / 200 + i * 0.8) * maxH * volumeLevel : 4,
+              height: active ? 4 + Math.sin(Date.now() / 200 + i * 0.8) * maxH * 0.5 : 4,
             }}
             transition={{ duration: 0.1 }}
           />
@@ -229,6 +167,14 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
 
   return (
     <>
+      {/* Load ElevenLabs ConvAI widget script */}
+      <Script
+        src="https://unpkg.com/@elevenlabs/convai-widget-embed"
+        strategy="lazyOnload"
+        onLoad={() => setWidgetLoaded(true)}
+        onError={() => console.warn('ElevenLabs widget failed to load — voice will use fallback')}
+      />
+
       {/* Floating Athena button */}
       <div className="fixed right-4 bottom-48 sm:bottom-40 z-40 flex flex-col items-end gap-2">
         <AnimatePresence>
@@ -248,7 +194,7 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
         </AnimatePresence>
 
         <motion.button
-          onClick={() => { setShowTooltip(false); setShowModal(true) }}
+          onClick={() => { setShowTooltip(false); setShowModal(true); trackEvent('athena_opened') }}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
           className="relative w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
@@ -288,34 +234,22 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center relative"
                          style={{ background: 'linear-gradient(135deg, #D4AF37, #B8962E)' }}>
-                      {conversation.isSpeaking ? (
-                        <VoiceVisualizer active={true} size="sm" />
-                      ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                          <rect x="9" y="2" width="6" height="12" rx="3" fill="#1A1A2E" />
-                          <path d="M5 10a7 7 0 0 0 14 0" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M12 17v4M8 21h8" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                      )}
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <rect x="9" y="2" width="6" height="12" rx="3" fill="#1A1A2E" />
+                        <path d="M5 10a7 7 0 0 0 14 0" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round" />
+                        <path d="M12 17v4M8 21h8" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
                     </div>
                     <div>
                       <h3 className="text-cream font-semibold text-base">Athena</h3>
-                      <p className="text-cream/40 text-[11px]">
-                        {conversation.status === 'connected' ? (
-                          <span className="text-green-400">● Connected</span>
-                        ) : connecting ? (
-                          <span className="text-amber-400">Connecting...</span>
-                        ) : (
-                          'Guardian of Innocence'
-                        )}
-                      </p>
+                      <p className="text-cream/40 text-[11px]">Guardian of Innocence</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {view === 'conversation' && (
-                      <button onClick={endConversation}
-                              className="text-cream/40 hover:text-cream/70 text-[10px] px-2 py-1 rounded border border-white/10 hover:border-red-400/30 hover:text-red-300 transition-all">
-                        End
+                    {view !== 'menu' && (
+                      <button onClick={() => { setView('menu'); setMessages([]) }}
+                              className="text-cream/40 hover:text-cream/70 text-[10px] px-2 py-1 rounded border border-white/10 hover:border-gold/30 transition-all">
+                        ← Menu
                       </button>
                     )}
                     <button onClick={handleClose} className="text-cream/30 hover:text-cream/60 p-2 text-lg">✕</button>
@@ -367,11 +301,11 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                     ))}
                   </div>
 
-                  {/* Talk to Athena CTA */}
+                  {/* Talk / Text / Call CTAs */}
                   <div className="pt-2 border-t border-white/10">
                     <div className="flex gap-2">
                       <button
-                        onClick={startConversation}
+                        onClick={() => { setView('voice'); trackEvent('voice_started') }}
                         className="flex-1 flex items-center justify-center gap-2 rounded-full py-3 font-semibold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
                         style={{ background: 'linear-gradient(135deg, #D4AF37, #B8962E)', color: '#1A1A2E', boxShadow: '0 4px 20px rgba(212,175,55,0.3)' }}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -382,8 +316,9 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                       </button>
                       <button
                         onClick={() => {
-                          setView('conversation')
+                          setView('text')
                           setMessages([{ role: 'agent', text: 'Hi! I\'m Athena, Guardian of Innocence. ☂️ Ask me anything about zones, pricing, sunset spots, weather, or the Umbrella Project mission. What would you like to know?' }])
+                          trackEvent('text_started')
                         }}
                         className="flex-1 flex items-center justify-center gap-2 rounded-full py-3 font-semibold text-sm transition-all hover:scale-[1.02] active:scale-[0.98] border-2"
                         style={{ background: 'transparent', color: '#D4AF37', borderColor: 'rgba(212,175,55,0.4)' }}>
@@ -400,33 +335,59 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                 </div>
               )}
 
-              {/* Conversation View */}
-              {view === 'conversation' && (
+              {/* Voice View — Official ElevenLabs ConvAI Widget */}
+              {view === 'voice' && (
                 <div className="flex flex-col flex-1 overflow-hidden">
-                  {/* Voice Visualizer — large, centered when speaking */}
-                  {conversation.isSpeaking && (
-                    <div className="px-5 py-4 flex flex-col items-center gap-2 border-b border-white/10">
-                      <VoiceVisualizer active={true} size="lg" />
-                      <span className="text-gold/60 text-[10px] uppercase tracking-wider">Athena is speaking</span>
-                    </div>
-                  )}
-
-                  {/* Connecting state */}
-                  {connecting && (
-                    <div className="px-5 py-8 flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 rounded-full flex items-center justify-center animate-pulse"
-                           style={{ background: 'rgba(212,175,55,0.15)', border: '2px solid rgba(212,175,55,0.3)' }}>
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-gold">
-                          <rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor" />
-                          <path d="M5 10a7 7 0 0 0 14 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M12 17v4M8 21h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
+                  <div className="flex-1 flex flex-col items-center justify-center px-5 py-6" ref={widgetContainerRef}>
+                    {agentId && widgetLoaded ? (
+                      <>
+                        {/* ElevenLabs ConvAI Widget — official custom element */}
+                        <div
+                          className="w-full flex-1 min-h-[300px] rounded-xl overflow-hidden"
+                          style={{ background: 'rgba(0,0,0,0.2)' }}
+                          dangerouslySetInnerHTML={{
+                            __html: `<elevenlabs-convai agent-id="${agentId}" avatar-orb-color-1="#D4AF37" avatar-orb-color-2="#B8962E"></elevenlabs-convai>`
+                          }}
+                        />
+                        <div className="text-center text-cream/30 text-[9px] mt-3">
+                          Powered by ElevenLabs · Tap the orb to speak
+                        </div>
+                      </>
+                    ) : !agentId ? (
+                      <div className="text-center py-8">
+                        <div className="text-cream/50 text-sm mb-3">Voice agent not configured yet</div>
+                        <div className="text-cream/30 text-[11px] mb-4">Agent ID not found in system</div>
+                        <button
+                          onClick={() => { setView('text'); setMessages([{ role: 'agent', text: 'Voice isn\'t available right now, but I can help via text! What would you like to know? ☂️' }]) }}
+                          className="px-4 py-2 rounded-full text-sm font-medium border-2"
+                          style={{ color: '#D4AF37', borderColor: 'rgba(212,175,55,0.4)' }}>
+                          Use Text Chat Instead
+                        </button>
+                        <div className="mt-3">
+                          <a href="tel:+15102880994" className="text-gold/60 text-[11px] hover:text-gold">
+                            Or call (510) 288-0994
+                          </a>
+                        </div>
                       </div>
-                      <span className="text-cream/50 text-sm">Connecting to Athena...</span>
-                      <span className="text-cream/30 text-[10px]">Microphone access required</span>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center animate-pulse mx-auto mb-3"
+                             style={{ background: 'rgba(212,175,55,0.15)', border: '2px solid rgba(212,175,55,0.3)' }}>
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-gold">
+                            <rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor" />
+                            <path d="M5 10a7 7 0 0 0 14 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          </svg>
+                        </div>
+                        <div className="text-cream/50 text-sm">Loading voice agent...</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
+              {/* Text View — Claude API chat */}
+              {view === 'text' && (
+                <div className="flex flex-col flex-1 overflow-hidden">
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
                     {messages.map((msg, i) => (
@@ -446,21 +407,14 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                   {/* Input area */}
                   <div className="px-4 py-3 border-t border-white/10 shrink-0">
                     <div className="flex items-center gap-2">
-                      {/* Mic button — pulsing when connected */}
+                      {/* Switch to voice button */}
                       <button
-                        onClick={() => {
-                          if (conversation.status !== 'connected') startConversation()
-                        }}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                          conversation.status === 'connected' ? 'animate-pulse' : ''
-                        }`}
-                        style={{
-                          background: conversation.status === 'connected' ? 'rgba(34,197,94,0.2)' : 'rgba(212,175,55,0.15)',
-                          border: `2px solid ${conversation.status === 'connected' ? 'rgba(34,197,94,0.5)' : 'rgba(212,175,55,0.3)'}`,
-                        }}
+                        onClick={() => { setView('voice'); trackEvent('switched_to_voice') }}
+                        className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all"
+                        style={{ background: 'rgba(212,175,55,0.15)', border: '2px solid rgba(212,175,55,0.3)' }}
+                        title="Switch to voice"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                             className={conversation.status === 'connected' ? 'text-green-400' : 'text-gold'}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-gold">
                           <rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor" />
                           <path d="M5 10a7 7 0 0 0 14 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
@@ -496,11 +450,6 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                         </button>
                       </div>
                     </div>
-                    {micError && (
-                      <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 mt-2">
-                        <div className="text-amber-300 text-[10px] leading-tight">{micError}</div>
-                      </div>
-                    )}
                     {chatLoading && (
                       <div className="flex items-center gap-1.5 mt-1.5 px-1">
                         <div className="flex gap-1">
@@ -512,7 +461,7 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                       </div>
                     )}
                     <div className="text-center text-cream/20 text-[8px] mt-1.5">
-                      {conversation.status === 'connected' ? 'Listening... speak naturally · Or type below' : 'Type a message · Or tap mic for voice'}
+                      Type a message · Or tap mic for voice
                     </div>
                   </div>
                 </div>
