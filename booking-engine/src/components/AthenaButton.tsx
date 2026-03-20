@@ -346,7 +346,7 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
                           className="w-full flex-1 min-h-[300px] rounded-xl overflow-hidden"
                           style={{ background: 'rgba(0,0,0,0.2)' }}
                           dangerouslySetInnerHTML={{
-                            __html: `<elevenlabs-convai agent-id="${agentId}" avatar-orb-color-1="#D4AF37" avatar-orb-color-2="#B8962E"></elevenlabs-convai>`
+                            __html: `<elevenlabs-convai agent-id="${agentId}" avatar-orb-color-1="#D4AF37" avatar-orb-color-2="#B8962E" dynamic-variables='{"greeting_message":"Welcome to the Umbrella Project at Lake Merritt! I am Athena, your concierge. How can I help you today?"}'></elevenlabs-convai>`
                           }}
                         />
                         <div className="text-center text-cream/30 text-[9px] mt-3">
