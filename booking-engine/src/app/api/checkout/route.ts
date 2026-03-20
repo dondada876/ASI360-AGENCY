@@ -163,6 +163,10 @@ export async function POST(req: NextRequest) {
 
     // Create order in Supabase first (pending status)
     const orderNumber = `U${Date.now().toString(36).toUpperCase()}`
+    const subtotalDollars = (totalCents + deliveryCents) / 100
+    const addonsDollars = addonsCents / 100
+    const grandTotalDollars = grandTotalCents / 100
+
     const { data: order, error: orderErr } = await getSupabase()
       .from('orders')
       .insert({
@@ -177,14 +181,30 @@ export async function POST(req: NextRequest) {
         time_slot,
         booking_date,
         pole_id: pole_id || null,
-        addons: addons,
+        addons: JSON.stringify(addons),
+        subtotal: subtotalDollars,
+        total: grandTotalDollars,
+        service_fee: addonsDollars,
         fulfillment_type: 'delivery_to_zone',
-        delivery_location: { zone: zone_id, pole: pole_id || null, description: `Zone ${zone_id}${pole_id ? `, Pole ${pole_id}` : ''}` },
+        delivery_location: `Zone ${zone_id}${pole_id ? `, Pole ${pole_id}` : ''}`,
         order_placed_at: new Date().toISOString(),
         metadata: {
           source: 'booking_engine',
           tier,
+          duration,
+          addons,
           created_via: 'bookit.500grandlive.com',
+          pricing: {
+            base_cents: totalCents,
+            delivery_cents: deliveryCents,
+            addons_cents: addonsCents,
+            grand_total_cents: grandTotalCents,
+            is_weekend: booking_date ? isWeekend(booking_date) : false,
+            is_holiday: booking_date ? isHoliday(booking_date) : false,
+            is_sunset: isSunsetSlot(time_slot),
+          },
+          amelia_service_id: pricingRow?.amelia_service_id || null,
+          woo_product_id: pricingRow?.woo_product_id || null,
         },
       })
       .select()
@@ -286,6 +306,16 @@ export async function POST(req: NextRequest) {
       order_id: order.id,
       order_number: orderNumber,
       stripe_session_id: stripeSession.id,
+      total_display: `$${grandTotalDollars.toFixed(2)}`,
+      pricing: {
+        base: `$${(totalCents / 100).toFixed(2)}`,
+        delivery: `$${(deliveryCents / 100).toFixed(2)}`,
+        addons: `$${(addonsCents / 100).toFixed(2)}`,
+        total: `$${grandTotalDollars.toFixed(2)}`,
+        is_weekend: booking_date ? isWeekend(booking_date) : false,
+        is_holiday: booking_date ? isHoliday(booking_date) : false,
+        is_sunset: isSunsetSlot(time_slot),
+      },
     })
 
   } catch (err: any) {
