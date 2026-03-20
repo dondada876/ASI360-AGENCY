@@ -8,16 +8,18 @@ function getSupabase() {
   )
 }
 
-// Product → Stripe Price mapping (from stripe_products table)
-const PRODUCT_PRICES: Record<string, string> = {
-  'umbrella': 'price_1TCyPiK2owjndB2o7aZbSFgY',        // $25
-  'umbrella_delivery': 'price_1TCyPjK2owjndB2objsCFNUF', // $50
-  'cabana': 'price_1TCyPjK2owjndB2obs0ikG0h',           // $75
-  'vip': 'price_1TCyPkK2owjndB2oLASmR769',              // $100
-  'blanket': 'price_1TCyPkK2owjndB2o2TPDv1Zq',          // $10
-  'cooler': 'price_1TCyPlK2owjndB2ofp8xtz81',           // $10
-  'charcuterie': 'price_1TCyPlK2owjndB2of8mQeZQ0',      // $25
-  'sushi': 'price_1TCyPmK2owjndB2oyYbCp1Nf',            // $18
+import { isWeekend, isHoliday, isSunsetSlot } from '@/lib/pricing-engine'
+
+// Fallback Stripe prices (used if pricing table lookup fails)
+const FALLBACK_PRICES: Record<string, string> = {
+  'umbrella': 'price_1TCyPiK2owjndB2o7aZbSFgY',
+  'umbrella_delivery': 'price_1TCyPjK2owjndB2objsCFNUF',
+  'cabana': 'price_1TCyPjK2owjndB2obs0ikG0h',
+  'vip': 'price_1TCyPkK2owjndB2oLASmR769',
+  'blanket': 'price_1TCyPkK2owjndB2o2TPDv1Zq',
+  'cooler': 'price_1TCyPlK2owjndB2ofp8xtz81',
+  'charcuterie': 'price_1TCyPlK2owjndB2of8mQeZQ0',
+  'sushi': 'price_1TCyPmK2owjndB2oyYbCp1Nf',
 }
 
 export async function POST(req: NextRequest) {
@@ -26,6 +28,7 @@ export async function POST(req: NextRequest) {
     const {
       zone_id,
       tier,          // 'umbrella' | 'cabana' | 'vip'
+      duration = '1hr', // '30min' | '1hr' | '4hr' | 'fullday'
       booking_date,
       time_slot,     // 'morning' | 'afternoon' | 'sunset'
       pole_id,
@@ -71,19 +74,91 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Payment system unavailable' }, { status: 503 })
     }
 
-    // Build line items for Stripe checkout
-    // Main tier includes delivery
-    const tierWithDelivery = tier === 'umbrella' ? 'umbrella_delivery' : tier
-    const lineItems: { price: string; quantity: number }[] = [
-      { price: PRODUCT_PRICES[tierWithDelivery] || PRODUCT_PRICES['umbrella_delivery'], quantity: 1 }
+    // Fetch pricing from unified table
+    const { data: pricingRow } = await getSupabase()
+      .from('booking_pricing')
+      .select('*')
+      .eq('tier', tier)
+      .eq('duration', duration)
+      .eq('active', true)
+      .single()
+
+    // Calculate dynamic price with surge rules
+    let totalCents = pricingRow ? pricingRow.base_price_cents : 2500
+    let deliveryCents = pricingRow ? pricingRow.delivery_fee_cents : 2500
+
+    if (pricingRow && booking_date) {
+      if (isWeekend(booking_date)) {
+        totalCents += Math.round(totalCents * (pricingRow.weekend_surcharge_pct / 100))
+      }
+      if (isHoliday(booking_date)) {
+        totalCents += Math.round(totalCents * (pricingRow.holiday_surcharge_pct / 100))
+      }
+      if (isSunsetSlot(time_slot)) {
+        totalCents += pricingRow.sunset_premium_cents
+      }
+    }
+
+    // Fetch selected add-ons from database
+    const { data: addonRows } = addons.length > 0
+      ? await getSupabase()
+          .from('booking_addons')
+          .select('*')
+          .in('name', addons.map((a: string) => {
+            const nameMap: Record<string, string> = {
+              'blanket': 'Picnic Blanket', 'cooler': 'Cooler + Ice',
+              'charcuterie': 'Charcuterie Board', 'sushi': 'Coach Sushi Delivery',
+              'speaker': 'Bluetooth Speaker', 'towels': 'Beach Towels x2',
+              'chips': 'Chips + Water', 'sunscreen': 'Sunscreen',
+            }
+            return nameMap[a] || a
+          }))
+          .eq('active', true)
+      : { data: [] }
+
+    let addonsCents = 0
+    for (const ar of (addonRows || [])) {
+      addonsCents += ar.price_cents
+    }
+
+    const grandTotalCents = totalCents + deliveryCents + addonsCents
+
+    // Build Stripe line items using price_data (dynamic pricing, not fixed Stripe prices)
+    const stripeLineItems: any[] = [
+      {
+        price_data: {
+          currency: 'usd',
+          unit_amount: totalCents,
+          product_data: {
+            name: pricingRow?.display_name || `${tier} ${duration}`,
+            description: `Zone ${zone_id} | ${time_slot} | ${booking_date}`,
+          },
+        },
+        quantity: 1,
+      },
+      {
+        price_data: {
+          currency: 'usd',
+          unit_amount: deliveryCents,
+          product_data: { name: 'Delivery to Zone' },
+        },
+        quantity: 1,
+      },
     ]
 
-    // Add selected add-ons
-    for (const addon of addons) {
-      const priceId = PRODUCT_PRICES[addon]
-      if (priceId) {
-        lineItems.push({ price: priceId, quantity: 1 })
-      }
+    // Add add-on line items
+    for (const ar of (addonRows || [])) {
+      stripeLineItems.push({
+        price_data: {
+          currency: 'usd',
+          unit_amount: ar.price_cents,
+          product_data: {
+            name: ar.name,
+            description: ar.description || '',
+          },
+        },
+        quantity: 1,
+      })
     }
 
     // Create order in Supabase first (pending status)
@@ -120,14 +195,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
     }
 
-    // Build Stripe checkout line_items params
+    // Build Stripe checkout with dynamic pricing (price_data, not fixed price IDs)
     const stripeParams = new URLSearchParams()
     stripeParams.append('mode', 'payment')
     stripeParams.append('success_url', `https://bookit.500grandlive.com/?booked=true&order=${order.id}&session_id={CHECKOUT_SESSION_ID}`)
     stripeParams.append('cancel_url', `https://bookit.500grandlive.com/?cancelled=true&order=${order.id}`)
 
-    lineItems.forEach((item, i) => {
-      stripeParams.append(`line_items[${i}][price]`, item.price)
+    stripeLineItems.forEach((item: any, i: number) => {
+      stripeParams.append(`line_items[${i}][price_data][currency]`, item.price_data.currency)
+      stripeParams.append(`line_items[${i}][price_data][unit_amount]`, item.price_data.unit_amount.toString())
+      stripeParams.append(`line_items[${i}][price_data][product_data][name]`, item.price_data.product_data.name)
+      if (item.price_data.product_data.description) {
+        stripeParams.append(`line_items[${i}][price_data][product_data][description]`, item.price_data.product_data.description)
+      }
       stripeParams.append(`line_items[${i}][quantity]`, item.quantity.toString())
     })
 
@@ -139,6 +219,7 @@ export async function POST(req: NextRequest) {
     stripeParams.append('metadata[time_slot]', time_slot)
     stripeParams.append('metadata[booking_date]', booking_date)
     stripeParams.append('metadata[tier]', tier)
+    stripeParams.append('metadata[duration]', duration)
     if (phone) stripeParams.append('metadata[customer_phone]', phone)
     if (email) stripeParams.append('customer_email', email)
 
