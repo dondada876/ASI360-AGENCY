@@ -355,6 +355,13 @@ input[type="range"]::-moz-range-thumb {
   margin-top: 2px;
 }
 
+/* Hide 360° text labels on mobile — show icon only */
+@media (max-width: 640px) {
+  .marker-360-label {
+    display: none;
+  }
+}
+
 @keyframes pulse360 {
   0% {
     transform: translate(-50%, -50%) scale(0.8);

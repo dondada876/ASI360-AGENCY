@@ -197,7 +197,7 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
           onClick={() => { setShowTooltip(false); setShowModal(true); trackEvent('athena_opened') }}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
-          className="relative w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
+          className="relative w-11 h-11 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-lg"
           style={{
             background: 'linear-gradient(135deg, #D4AF37, #B8962E)',
             border: '2px solid rgba(255,248,240,0.3)',
@@ -210,7 +210,7 @@ export default function AthenaButton({ onSelectZone }: AthenaButtonProps) {
             <path d="M5 10a7 7 0 0 0 14 0" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round" />
             <path d="M12 17v4M8 21h8" stroke="#1A1A2E" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          <span className="absolute -bottom-5 text-[8px] text-gold/80 font-bold tracking-wider uppercase">ATHENA</span>
+          <span className="absolute -bottom-5 text-[7px] text-gold/60 font-bold tracking-wider uppercase hidden sm:block">ATHENA</span>
         </motion.button>
       </div>
 

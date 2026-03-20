@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState, Component, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import { useWeather } from '@/hooks/useWeather'
 
 // ── Error Boundary: catches 360° viewer crashes without killing the page ──
@@ -388,12 +389,14 @@ export default function Immersive360Modal({
                     <span className="text-white text-[11px] font-semibold">Map</span>
                   </button>
 
-                  <div className="flex items-center gap-1.5 bg-gold/15 border border-gold/30 rounded-full px-2.5 py-1">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-gold">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
-                      <ellipse cx="12" cy="12" rx="4" ry="10" stroke="currentColor" strokeWidth="1.5" />
-                      <path d="M2 12h20" stroke="currentColor" strokeWidth="1.5" />
-                    </svg>
+                  <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-xl px-2 py-1">
+                    <Image
+                      src="/500gl-logo.png"
+                      alt="500 Grand Live"
+                      width={80}
+                      height={22}
+                      className="h-5 w-auto object-contain"
+                    />
                     <span className="text-gold text-[9px] font-bold tracking-wider uppercase">360°</span>
                   </div>
 
@@ -441,17 +444,21 @@ export default function Immersive360Modal({
               <div className="absolute top-14 left-3 sm:left-5 z-30 flex gap-2">
                 <button
                   onClick={() => setShowBookingHUD(!showBookingHUD)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-xs sm:text-sm transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 hover:scale-105 active:scale-95"
                   style={{
                     background: showBookingHUD
-                      ? 'rgba(212,175,55,0.2)'
+                      ? 'rgba(30, 30, 60, 0.9)'
                       : 'linear-gradient(135deg, #D4AF37, #B8962E)',
-                    color: showBookingHUD ? '#D4AF37' : '#1A1A2E',
-                    boxShadow: showBookingHUD ? 'none' : '0 4px 20px rgba(212,175,55,0.4)',
-                    border: showBookingHUD ? '1px solid rgba(212,175,55,0.4)' : '1px solid rgba(255,248,240,0.3)',
+                    color: showBookingHUD ? '#FFFFFF' : '#1A1A2E',
+                    boxShadow: showBookingHUD
+                      ? '0 2px 12px rgba(0,0,0,0.5)'
+                      : '0 4px 20px rgba(212,175,55,0.4)',
+                    border: showBookingHUD
+                      ? '1px solid rgba(255,255,255,0.2)'
+                      : '1px solid rgba(255,248,240,0.3)',
                   }}
                 >
-                  <span>☂️</span>
+                  <span>{showBookingHUD ? '✕' : '☂️'}</span>
                   <span>{showBookingHUD ? 'Hide Booking' : 'Book This Spot'}</span>
                 </button>
               </div>

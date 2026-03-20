@@ -64,8 +64,12 @@ export default function BookingMap({
   const rotateSpeedRef = useRef(0.06)
   const animFrameRef = useRef<number | null>(null)
   const [introComplete, setIntroComplete] = useState(introSequence === 'instant')
-  const [hudExpanded, setHudExpanded] = useState(() => loadHudState('500gl_hud_expanded', true))
-  const [legendExpanded, setLegendExpanded] = useState(() => loadHudState('500gl_legend_expanded', true))
+  // Default to COLLAPSED on mobile (< 768px), EXPANDED on desktop
+  const [hudExpanded, setHudExpanded] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return window.innerWidth >= 768 ? loadHudState('500gl_hud_expanded', true) : false
+  })
+  const [legendExpanded, setLegendExpanded] = useState(false) // Always start collapsed
 
   // Persist collapse states
   useEffect(() => { saveHudState('500gl_hud_expanded', hudExpanded) }, [hudExpanded])
@@ -419,12 +423,13 @@ export default function BookingMap({
         },
       })
 
-      // ── Infrastructure: Restroom Labels ──
+      // ── Infrastructure: Restroom Labels (only visible at zoom 18+) ──
       map.current.addLayer({
         id: 'infra-restroom-labels',
         type: 'symbol',
         source: 'booking-zones',
         'source-layer': MAPBOX_CONFIG.sourceLayer,
+        minzoom: 17.5,  // Hide at low zoom to reduce clutter
         filter: ['all',
           ['==', ['get', 'type'], 'infrastructure'],
           ['any',
