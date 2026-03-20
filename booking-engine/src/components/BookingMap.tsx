@@ -96,11 +96,12 @@ export default function BookingMap({
     }
   }, [])
 
-  // Toggle auto-rotate
+  // Toggle auto-rotate with 5-second initial delay
   useEffect(() => {
     if (!introComplete) return // Don't start auto-rotate during intro
     if (autoRotate) {
-      startAutoRotate()
+      const delay = setTimeout(() => startAutoRotate(), 5000) // 5-second pause before first rotation
+      return () => clearTimeout(delay)
     } else {
       stopAutoRotate()
     }
@@ -575,17 +576,45 @@ export default function BookingMap({
     })
 
     // ── Zone click ──
+    // Filter out BK1 service boundary, map old tileset names to new code names
+    const TILESET_ZONE_MAP: Record<string, string> = {
+      'C': 'C1',    // Old tileset has "C", code expects "C1"
+      'C2': 'C2',   // Direct match (if tileset updated)
+      'D1': 'C2',   // Old D-zone names → new C-zone names
+      'D2': 'C3',
+      'D3': 'C4',
+    }
+
     map.current.on('click', 'zone-fills', (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.GeoJSONFeature[] }) => {
       if (!e.features?.length) return
-      const zoneId = e.features[0].properties?.zone
-      if (zoneId) onZoneSelect(zoneId)
+
+      // Find the first actual booking zone (skip BK1 service boundary)
+      const bookingFeature = e.features.find(f => {
+        const fType = f.properties?.type
+        const fZone = f.properties?.zone
+        return fType === 'booking_zone' && fZone !== 'BK1'
+      })
+
+      if (!bookingFeature) return
+
+      let zoneId = bookingFeature.properties?.zone
+      if (!zoneId) return
+
+      // Map old tileset zone names to current code names
+      zoneId = TILESET_ZONE_MAP[zoneId] || zoneId
+
+      onZoneSelect(zoneId)
     })
 
     // ── Click outside zones to deselect ──
     map.current.on('click', (e: mapboxgl.MapMouseEvent) => {
       if (!map.current) return
       const features = map.current.queryRenderedFeatures(e.point, { layers: ['zone-fills'] })
-      if (!features.length) onZoneSelect(null)
+      // Only deselect if no booking zones found (ignore BK1)
+      const hasBookingZone = features.some(f =>
+        f.properties?.type === 'booking_zone' && f.properties?.zone !== 'BK1'
+      )
+      if (!hasBookingZone) onZoneSelect(null)
     })
 
     return () => {

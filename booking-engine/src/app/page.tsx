@@ -80,6 +80,15 @@ export default function BookingPage() {
   }, [showIntroOverlay])
 
   const handleZoneSelect = useCallback((zoneId: string | null) => {
+    // Safety: only select zones that exist in our ZONES config
+    if (zoneId) {
+      const { ZONES } = require('@/lib/zones')
+      const validZone = ZONES.find((z: any) => z.id === zoneId)
+      if (!validZone) {
+        console.warn(`Unknown zone "${zoneId}" from tileset — ignoring`)
+        return
+      }
+    }
     setSelectedZone(zoneId)
   }, [])
 
