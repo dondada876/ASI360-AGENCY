@@ -16,6 +16,7 @@
     "@photo-sphere-viewer/equirectangular-video-adapter": "^5.14.1",
     "@photo-sphere-viewer/gyroscope-plugin": "^5.14.1",
     "@photo-sphere-viewer/video-plugin": "^5.14.1",
+    "@supabase/supabase-js": "^2.99.3",
     "@types/mapbox-gl": "^3.4.1",
     "framer-motion": "^12.38.0",
     "mapbox-gl": "^3.20.0",

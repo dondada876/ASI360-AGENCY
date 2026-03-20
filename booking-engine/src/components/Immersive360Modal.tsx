@@ -129,6 +129,8 @@ export default function Immersive360Modal({
 
   // Booking HUD state
   const [showBookingHUD, setShowBookingHUD] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [selectedZone, setSelectedZone] = useState<string | null>(zoneId || null)
   const [selectedTier, setSelectedTier] = useState<string>('umbrella')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -669,11 +671,36 @@ export default function Immersive360Modal({
                           transition={{ duration: 0.2 }}
                         >
                           <button
-                            onClick={() => {
-                              setShowBookingHUD(false)
-                              if (onBookNow) onBookNow()
+                            onClick={async () => {
+                              setCheckoutLoading(true)
+                              try {
+                                const res = await fetch('/api/checkout', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    zone_id: selectedZone,
+                                    tier: selectedTier,
+                                    booking_date: selectedDate,
+                                    time_slot: selectedSlot,
+                                    addons: Array.from(selectedAddons),
+                                  }),
+                                })
+                                const data = await res.json()
+                                if (data.checkout_url) {
+                                  window.location.href = data.checkout_url
+                                } else {
+                                  setCheckoutError(data.error || 'Checkout failed')
+                                  setTimeout(() => setCheckoutError(null), 4000)
+                                }
+                              } catch (err) {
+                                setCheckoutError('Connection error — try again')
+                                setTimeout(() => setCheckoutError(null), 4000)
+                              } finally {
+                                setCheckoutLoading(false)
+                              }
                             }}
-                            className="w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            disabled={checkoutLoading}
+                            className="w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                             style={{
                               background: 'linear-gradient(135deg, #D4AF37, #B8962E)',
                               color: '#1A1A2E',
@@ -682,11 +709,14 @@ export default function Immersive360Modal({
                           >
                             <div className="flex items-center justify-center gap-2">
                               <span>{currentTier.label.split(' ')[0]}</span>
-                              <span>Book Now — ${total}</span>
+                              <span>{checkoutLoading ? 'Connecting to Stripe...' : `Book Now — $${total}`}</span>
                             </div>
                             <div className="text-[10px] opacity-60 mt-0.5">
                               Zone {selectedZone} · {currentTier.label.split(' ').slice(1).join(' ')} ${basePrice} + Delivery $25{addonsTotal > 0 ? ` + Add-ons $${addonsTotal}` : ''}
                             </div>
+                            {checkoutError && (
+                              <div className="text-red-400 text-[10px] mt-1">{checkoutError}</div>
+                            )}
                           </button>
                         </motion.div>
                       )}
