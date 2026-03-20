@@ -272,6 +272,22 @@ input[type="range"]::-moz-range-thumb {
   font-size: 11px !important;
 }
 
+/* When booking HUD is open, push navbar above the sheet */
+.viewer-360.hud-open .psv-navbar {
+  transform: translateY(-55vh) !important;
+  transition: transform 0.3s ease !important;
+  z-index: 25 !important;
+}
+
+.viewer-360.hud-closed .psv-navbar {
+  transform: translateY(0) !important;
+  transition: transform 0.3s ease !important;
+}
+
+/* Hide scrollbar on date strip */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* ── 360° Marker Bubble ─────────────────────── */
 
 .marker-360-bubble {

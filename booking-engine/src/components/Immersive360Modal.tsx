@@ -227,7 +227,7 @@ export default function Immersive360Modal({
         container: viewerContainerRef.current,
         adapter: [EquirectangularVideoAdapter, {
           autoplay: true,
-          muted: false,
+          muted: true,  // Start muted (browsers block autoplay with sound)
         }],
         panorama: {
           source: videoUrl,
@@ -264,6 +264,17 @@ export default function Immersive360Modal({
         touchmoveTwoFingers: false,
         caption: '500 Grand Live Social Club — The Umbrella Project',
         loadingTxt: 'Loading 360° view...',
+      })
+
+      // Set volume to 50% after video loads, then unmute
+      viewer.addEventListener('ready', () => {
+        try {
+          const videoEl = viewerRef.current?.container?.querySelector('video')
+          if (videoEl) {
+            videoEl.volume = 0.5
+            videoEl.muted = false
+          }
+        } catch {}
       })
 
       viewerRef.current = viewer
@@ -802,7 +813,7 @@ export default function Immersive360Modal({
               {/* Photo Sphere Viewer container — fills entire modal */}
               <div
                 ref={viewerContainerRef}
-                className="w-full h-full viewer-360"
+                className={`w-full h-full viewer-360 ${showBookingHUD ? 'hud-open' : 'hud-closed'}`}
               />
             </Modal360ErrorBoundary>
           </motion.div>
