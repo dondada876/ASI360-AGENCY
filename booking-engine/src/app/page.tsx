@@ -36,24 +36,26 @@ const VIDEO_360_HOTSPOTS: Video360Hotspot[] = [
   {
     id: 'a1-walkway-view',
     label: '360\u00B0 WALKWAY',
-    lngLat: [-122.25150, 37.80835],  // A1/A2 boundary — on the walkway where you stood
+    lngLat: [-122.25150, 37.80835],
     videoUrl: '/360/zone-a2-360.mp4',
+    posterUrl: '/360/posters/walkway-poster.jpg',
     title: 'Zone A1 \u2014 Walkway 360\u00B0 View',
     subtitle: '7-second immersive view from the lakeside walkway',
-    startYaw: 135,      // Face the lake/sunset (west-southwest)
-    startPitch: -3,     // Slightly below horizon
-    startZoom: 40,      // Wide view
+    startYaw: 135,
+    startPitch: -3,
+    startZoom: 40,
   },
   {
     id: 'a1-tents-view',
     label: '360\u00B0 TENTS',
-    lngLat: [-122.25210, 37.80820],  // A1 — near the pergola, tent/umbrella area
+    lngLat: [-122.25210, 37.80820],
     videoUrl: '/360/zone-a2-tents-360.mp4',
+    posterUrl: '/360/posters/tents-poster.jpg',
     title: 'Zone A1 \u2014 Tent & Umbrella Setup',
     subtitle: '45-second immersive view of canopy tents and umbrellas',
-    startYaw: 90,       // Face east toward the tents
-    startPitch: -5,     // Slightly down to see ground setup
-    startZoom: 45,      // Slightly tighter to see tent details
+    startYaw: 210,
+    startPitch: -8,
+    startZoom: 42,
   },
 ]
 
@@ -159,6 +161,7 @@ export default function BookingPage() {
             setTimeout(() => setSelectedZone(nearestZone), 300) // Wait for modal close animation
           }}
           videoUrl={active360.videoUrl}
+          posterUrl={active360.posterUrl}
           title={active360.title}
           subtitle={active360.subtitle}
           startYaw={active360.startYaw}

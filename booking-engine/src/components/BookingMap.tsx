@@ -12,6 +12,7 @@ export interface Video360Hotspot {
   label: string
   lngLat: [number, number]
   videoUrl: string
+  posterUrl?: string
   title: string
   subtitle: string
   startYaw: number
