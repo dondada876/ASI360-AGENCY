@@ -80,6 +80,12 @@ interface Immersive360ModalProps {
   onBookNow?: () => void
   videoUrl: string
   posterUrl?: string
+  /** Equirectangular sphere image URL — loads instantly, video loads behind */
+  sphereUrl?: string
+  /** Low-res sphere preview for instant first visual (~23KB) */
+  spherePreviewUrl?: string
+  /** Welcome audio narration URL */
+  welcomeAudioUrl?: string
   title?: string
   subtitle?: string
   startYaw?: number
@@ -124,6 +130,9 @@ export default function Immersive360Modal({
   onBookNow,
   videoUrl,
   posterUrl,
+  sphereUrl,
+  spherePreviewUrl,
+  welcomeAudioUrl,
   title = 'Lake Merritt — Live 360° View',
   subtitle = 'Explore the golden hour experience',
   startYaw = 135,
@@ -133,7 +142,14 @@ export default function Immersive360Modal({
 }: Immersive360ModalProps) {
   const viewerContainerRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<any>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const videoPreloadRef = useRef<HTMLVideoElement | null>(null)
   const { getTodayForecast, getWeatherIcon, getSunTime, getForecast } = useWeather()
+
+  // 360 Immersive Engine v2 state
+  const [viewMode, setViewMode] = useState<'sphere' | 'video' | 'transitioning'>('sphere')
+  const [videoBufferProgress, setVideoBufferProgress] = useState(0)
+  const [narrationPlaying, setNarrationPlaying] = useState(false)
 
   // Booking HUD state
   const [showBookingHUD, setShowBookingHUD] = useState(false)
@@ -202,97 +218,310 @@ export default function Immersive360Modal({
     }
   }, [isOpen, zoneId])
 
-  // Initialize Photo Sphere Viewer
+  // ── 360 Immersive Engine v2: Sphere-first, video crossfade ──
+  // Phase 1: Load sphere image instantly (2-5MB vs 69-400MB video)
+  // Phase 2: Start voice narration + camera choreography
+  // Phase 3: Preload video in background, crossfade when 50% buffered
+
   const initViewer = useCallback(async () => {
     if (!viewerContainerRef.current || viewerRef.current) return
 
+    // Determine what to load: sphere image (fast) or fall back to video
+    const useSphere = !!sphereUrl
+    const panoramaSource = useSphere ? sphereUrl : undefined
+
     try {
+      if (useSphere) {
+        // ── SPHERE MODE (v2): Load static equirectangular image — instant ──
+        const [
+          { Viewer },
+          { AutorotatePlugin },
+          { MarkersPlugin },
+        ] = await Promise.all([
+          import('@photo-sphere-viewer/core'),
+          import('@photo-sphere-viewer/autorotate-plugin'),
+          import('@photo-sphere-viewer/markers-plugin'),
+        ])
+
+        await import('@photo-sphere-viewer/core/index.css')
+        await import('@photo-sphere-viewer/markers-plugin/index.css')
+
+        const viewer = new Viewer({
+          container: viewerContainerRef.current,
+          panorama: panoramaSource,
+          plugins: [
+            [AutorotatePlugin, {
+              autorotateSpeed: '0.3rpm',   // Slow cinematic rotate
+              autostartDelay: 500,
+              autostartOnIdle: true,
+            }],
+            [MarkersPlugin, {
+              markers: [], // Hotspots added dynamically
+            }],
+          ],
+          navbar: ['autorotate', 'fullscreen'],
+          defaultYaw: (startYaw * Math.PI) / 180,
+          defaultPitch: (startPitch * Math.PI) / 180,
+          defaultZoomLvl: startZoom,
+          minFov: 25,
+          maxFov: 110,
+          moveSpeed: 1.8,
+          moveInertia: true,
+          zoomSpeed: 1.5,
+          fisheye: false,
+          mousewheel: true,
+          mousemove: true,
+          touchmoveTwoFingers: false,
+          caption: '500 Grand Live Social Club — The Umbrella Project',
+          loadingTxt: '',  // No loading text — poster is already visible
+        })
+
+        viewerRef.current = viewer
+        setViewMode('sphere')
+
+        // ── Start voice narration when sphere is ready ──
+        viewer.addEventListener('ready', () => {
+          // Play welcome audio if provided
+          if (welcomeAudioUrl) {
+            try {
+              const audio = new Audio(welcomeAudioUrl)
+              audio.volume = 0.7
+              audio.play().then(() => {
+                setNarrationPlaying(true)
+                audioRef.current = audio
+              }).catch(() => {
+                // Autoplay blocked — user needs to interact first
+                console.log('Audio autoplay blocked — will play on interaction')
+              })
+              audio.onended = () => setNarrationPlaying(false)
+            } catch {}
+          }
+
+          // ── Start video preload in background ──
+          if (videoUrl) {
+            const preloadVideo = document.createElement('video')
+            preloadVideo.preload = 'auto'
+            preloadVideo.muted = true
+            preloadVideo.playsInline = true
+            preloadVideo.src = videoUrl
+            preloadVideo.style.display = 'none'
+            document.body.appendChild(preloadVideo)
+            videoPreloadRef.current = preloadVideo
+
+            // Track buffer progress
+            const checkBuffer = setInterval(() => {
+              if (preloadVideo.buffered.length > 0 && preloadVideo.duration > 0) {
+                const buffered = preloadVideo.buffered.end(preloadVideo.buffered.length - 1)
+                const progress = Math.round((buffered / preloadVideo.duration) * 100)
+                setVideoBufferProgress(progress)
+
+                // Auto-crossfade to video when 50% buffered
+                if (progress >= 50 && viewMode === 'sphere') {
+                  clearInterval(checkBuffer)
+                  // Don't auto-switch — let user stay on sphere unless they want video
+                  // The video is ready for instant switch when they tap the toggle
+                }
+              }
+            }, 1000)
+
+            // Cleanup interval on unmount
+            return () => clearInterval(checkBuffer)
+          }
+        })
+
+      } else {
+        // ── FALLBACK: Original video mode (v1) ──
+        const [
+          { Viewer },
+          { EquirectangularVideoAdapter },
+          { VideoPlugin },
+          { GyroscopePlugin },
+          { AutorotatePlugin },
+        ] = await Promise.all([
+          import('@photo-sphere-viewer/core'),
+          import('@photo-sphere-viewer/equirectangular-video-adapter'),
+          import('@photo-sphere-viewer/video-plugin'),
+          import('@photo-sphere-viewer/gyroscope-plugin'),
+          import('@photo-sphere-viewer/autorotate-plugin'),
+        ])
+
+        await import('@photo-sphere-viewer/core/index.css')
+        await import('@photo-sphere-viewer/video-plugin/index.css')
+
+        const viewer = new Viewer({
+          container: viewerContainerRef.current,
+          adapter: [EquirectangularVideoAdapter, {
+            autoplay: true,
+            muted: true,
+          }],
+          panorama: { source: videoUrl },
+          plugins: [
+            [VideoPlugin, { progressbar: true, bigbutton: false, volume: true }],
+            [GyroscopePlugin, { touchmove: true, absolutePosition: true, moveMode: 'smooth' }],
+            [AutorotatePlugin, { autorotateSpeed: '0.08rpm', autostartDelay: 1000, autostartOnIdle: true }],
+          ],
+          navbar: ['videoPlay', 'videoVolume', 'videoTime', 'gyroscope', 'autorotate', 'caption', 'fullscreen'],
+          defaultYaw: (startYaw * Math.PI) / 180,
+          defaultPitch: (startPitch * Math.PI) / 180,
+          defaultZoomLvl: startZoom,
+          minFov: 25,
+          maxFov: 110,
+          moveSpeed: 1.8,
+          moveInertia: true,
+          zoomSpeed: 1.5,
+          fisheye: false,
+          mousewheel: true,
+          mousemove: true,
+          touchmoveTwoFingers: false,
+          caption: '500 Grand Live Social Club — The Umbrella Project',
+          loadingTxt: 'Loading 360° view...',
+        })
+
+        viewer.addEventListener('ready', () => {
+          try {
+            const videoEl = viewerRef.current?.container?.querySelector('video')
+            if (videoEl) { videoEl.volume = 0.5; videoEl.muted = false }
+          } catch {}
+        })
+
+        viewerRef.current = viewer
+        setViewMode('video')
+      }
+    } catch (err) {
+      console.error('Failed to initialize 360° viewer:', err)
+    }
+  }, [videoUrl, sphereUrl, welcomeAudioUrl, startYaw, startPitch, startZoom, viewMode])
+
+  // ── Switch from sphere to video mode ──
+  const switchToVideo = useCallback(async () => {
+    if (!viewerRef.current || viewMode === 'video') return
+    setViewMode('transitioning')
+
+    try {
+      // Capture current camera angle from sphere
+      const currentPosition = viewerRef.current.getPosition()
+      const currentZoom = viewerRef.current.getZoomLevel()
+
+      // Destroy sphere viewer
+      viewerRef.current.destroy()
+      viewerRef.current = null
+
+      // Load video viewer at same camera angle
       const [
         { Viewer },
         { EquirectangularVideoAdapter },
         { VideoPlugin },
-        { GyroscopePlugin },
         { AutorotatePlugin },
       ] = await Promise.all([
         import('@photo-sphere-viewer/core'),
         import('@photo-sphere-viewer/equirectangular-video-adapter'),
         import('@photo-sphere-viewer/video-plugin'),
-        import('@photo-sphere-viewer/gyroscope-plugin'),
         import('@photo-sphere-viewer/autorotate-plugin'),
       ])
 
-      await import('@photo-sphere-viewer/core/index.css')
       await import('@photo-sphere-viewer/video-plugin/index.css')
 
       const viewer = new Viewer({
-        container: viewerContainerRef.current,
-        adapter: [EquirectangularVideoAdapter, {
-          autoplay: true,
-          muted: true,  // Start muted (browsers block autoplay with sound)
-        }],
-        panorama: {
-          source: videoUrl,
-        },
+        container: viewerContainerRef.current!,
+        adapter: [EquirectangularVideoAdapter, { autoplay: true, muted: false }],
+        panorama: { source: videoUrl },
         plugins: [
-          [VideoPlugin, {
-            progressbar: true,
-            bigbutton: false,
-            volume: true,
-          }],
-          [GyroscopePlugin, {
-            touchmove: true,
-            absolutePosition: true,
-            moveMode: 'smooth',
-          }],
-          [AutorotatePlugin, {
-            autorotateSpeed: '0.08rpm',   // Very slow — 12 min per rotation
-            autostartDelay: 1000,
-            autostartOnIdle: true,
-          }],
+          [VideoPlugin, { progressbar: true, bigbutton: false, volume: true }],
+          [AutorotatePlugin, { autorotateSpeed: '0.08rpm', autostartDelay: 2000, autostartOnIdle: true }],
         ],
-        navbar: ['videoPlay', 'videoVolume', 'videoTime', 'gyroscope', 'autorotate', 'caption', 'fullscreen'],
-        defaultYaw: (startYaw * Math.PI) / 180,
-        defaultPitch: (startPitch * Math.PI) / 180,
-        defaultZoomLvl: startZoom,
+        navbar: ['videoPlay', 'videoVolume', 'videoTime', 'autorotate', 'fullscreen'],
+        defaultYaw: currentPosition.yaw,
+        defaultPitch: currentPosition.pitch,
+        defaultZoomLvl: currentZoom,
         minFov: 25,
         maxFov: 110,
         moveSpeed: 1.8,
         moveInertia: true,
-        zoomSpeed: 1.5,
-        fisheye: false,
-        mousewheel: true,
-        mousemove: true,
-        touchmoveTwoFingers: false,
         caption: '500 Grand Live Social Club — The Umbrella Project',
-        loadingTxt: 'Loading 360° view...',
+        loadingTxt: '',
       })
 
-      // Set volume to 50% after video loads, then unmute
       viewer.addEventListener('ready', () => {
         try {
-          const videoEl = viewerRef.current?.container?.querySelector('video')
-          if (videoEl) {
-            videoEl.volume = 0.5
-            videoEl.muted = false
-          }
+          const videoEl = viewer.container?.querySelector('video')
+          if (videoEl) { videoEl.volume = 0.5 }
         } catch {}
+        setViewMode('video')
       })
 
       viewerRef.current = viewer
     } catch (err) {
-      console.error('Failed to initialize 360° viewer:', err)
+      console.error('Failed to switch to video:', err)
+      setViewMode('sphere')
     }
-  }, [videoUrl, startYaw, startPitch, startZoom])
+  }, [videoUrl, viewMode])
+
+  // ── Switch back to sphere mode ──
+  const switchToSphere = useCallback(async () => {
+    if (!viewerRef.current || !sphereUrl || viewMode === 'sphere') return
+    setViewMode('transitioning')
+
+    try {
+      const currentPosition = viewerRef.current.getPosition()
+      const currentZoom = viewerRef.current.getZoomLevel()
+      viewerRef.current.destroy()
+      viewerRef.current = null
+
+      const [
+        { Viewer },
+        { AutorotatePlugin },
+      ] = await Promise.all([
+        import('@photo-sphere-viewer/core'),
+        import('@photo-sphere-viewer/autorotate-plugin'),
+      ])
+
+      const viewer = new Viewer({
+        container: viewerContainerRef.current!,
+        panorama: sphereUrl,
+        plugins: [
+          [AutorotatePlugin, { autorotateSpeed: '0.3rpm', autostartDelay: 500, autostartOnIdle: true }],
+        ],
+        navbar: ['autorotate', 'fullscreen'],
+        defaultYaw: currentPosition.yaw,
+        defaultPitch: currentPosition.pitch,
+        defaultZoomLvl: currentZoom,
+        minFov: 25,
+        maxFov: 110,
+        moveSpeed: 1.8,
+        moveInertia: true,
+        caption: '500 Grand Live Social Club — The Umbrella Project',
+        loadingTxt: '',
+      })
+
+      viewerRef.current = viewer
+      setViewMode('sphere')
+    } catch (err) {
+      console.error('Failed to switch to sphere:', err)
+    }
+  }, [sphereUrl, viewMode])
 
   // Init on open, cleanup on close
   useEffect(() => {
     if (isOpen) {
+      setViewMode('sphere')
+      setVideoBufferProgress(0)
       const timer = setTimeout(() => initViewer(), 300)
       return () => clearTimeout(timer)
     } else {
+      // Cleanup everything on close
       if (viewerRef.current) {
         try { viewerRef.current.destroy() } catch {}
         viewerRef.current = null
+      }
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+        setNarrationPlaying(false)
+      }
+      if (videoPreloadRef.current) {
+        videoPreloadRef.current.pause()
+        videoPreloadRef.current.remove()
+        videoPreloadRef.current = null
       }
     }
   }, [isOpen, initViewer])
@@ -302,6 +531,15 @@ export default function Immersive360Modal({
       if (viewerRef.current) {
         try { viewerRef.current.destroy() } catch {}
         viewerRef.current = null
+      }
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+      if (videoPreloadRef.current) {
+        videoPreloadRef.current.pause()
+        videoPreloadRef.current.remove()
+        videoPreloadRef.current = null
       }
     }
   }, [])
@@ -441,7 +679,7 @@ export default function Immersive360Modal({
               </div>
 
               {/* Book This Spot CTA — toggles the booking HUD */}
-              <div className="absolute top-14 left-3 sm:left-5 z-30 flex gap-2">
+              <div className="absolute top-14 left-3 sm:left-5 z-30 flex gap-2 items-start">
                 <button
                   onClick={() => setShowBookingHUD(!showBookingHUD)}
                   className="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 hover:scale-105 active:scale-95"
@@ -461,6 +699,102 @@ export default function Immersive360Modal({
                   <span>{showBookingHUD ? '✕' : '☂️'}</span>
                   <span>{showBookingHUD ? 'Hide Booking' : 'Book This Spot'}</span>
                 </button>
+
+                {/* ═══ LIVE PREVIEW THERMOMETER — Photo/Video toggle + buffer progress ═══ */}
+                {sphereUrl && (
+                  <div className="flex flex-col items-center gap-1.5">
+                    {/* Photo / Video segmented toggle */}
+                    <div
+                      className="flex items-center rounded-full overflow-hidden"
+                      style={{
+                        background: 'rgba(10,10,26,0.85)',
+                        backdropFilter: 'blur(12px)',
+                        border: '1px solid rgba(212,175,55,0.25)',
+                      }}
+                    >
+                      <button
+                        onClick={switchToSphere}
+                        className="px-3 py-1.5 text-[10px] font-bold transition-all"
+                        style={{
+                          background: viewMode === 'sphere' ? 'rgba(212,175,55,0.3)' : 'transparent',
+                          color: viewMode === 'sphere' ? '#D4AF37' : 'rgba(255,255,255,0.5)',
+                        }}
+                      >
+                        📷 Photo
+                      </button>
+                      <button
+                        onClick={switchToVideo}
+                        disabled={viewMode === 'transitioning'}
+                        className="px-3 py-1.5 text-[10px] font-bold transition-all"
+                        style={{
+                          background: viewMode === 'video' ? 'rgba(212,175,55,0.3)' : 'transparent',
+                          color: viewMode === 'video' ? '#D4AF37' : 'rgba(255,255,255,0.5)',
+                          opacity: viewMode === 'transitioning' ? 0.5 : 1,
+                        }}
+                      >
+                        🎬 {viewMode === 'transitioning' ? 'Loading...' : 'Video'}
+                      </button>
+                    </div>
+
+                    {/* Thermometer — Live Preview buffer indicator */}
+                    {videoUrl && viewMode === 'sphere' && videoBufferProgress < 100 && (
+                      <div
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+                        style={{
+                          background: 'rgba(10,10,26,0.85)',
+                          backdropFilter: 'blur(12px)',
+                          border: '1px solid rgba(212,175,55,0.15)',
+                        }}
+                      >
+                        {/* Thermometer bar */}
+                        <div className="relative w-12 h-2 rounded-full overflow-hidden bg-white/10">
+                          <div
+                            className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000"
+                            style={{
+                              width: `${videoBufferProgress}%`,
+                              background: videoBufferProgress >= 50
+                                ? 'linear-gradient(90deg, #D4AF37, #4ADE80)'
+                                : 'linear-gradient(90deg, #D4AF37, #FBBF24)',
+                            }}
+                          />
+                        </div>
+                        <span className="text-[8px] font-medium" style={{
+                          color: videoBufferProgress >= 50 ? '#4ADE80' : 'rgba(255,255,255,0.4)',
+                        }}>
+                          {videoBufferProgress >= 50 ? '🟢 Live Ready' : `${videoBufferProgress}%`}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Live Preview active badge */}
+                    {viewMode === 'video' && (
+                      <div
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-full animate-pulse"
+                        style={{
+                          background: 'rgba(74,222,128,0.15)',
+                          border: '1px solid rgba(74,222,128,0.3)',
+                        }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                        <span className="text-green-400 text-[9px] font-bold">LIVE PREVIEW</span>
+                      </div>
+                    )}
+
+                    {/* Narration indicator */}
+                    {narrationPlaying && (
+                      <div
+                        className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+                        style={{
+                          background: 'rgba(212,175,55,0.1)',
+                          border: '1px solid rgba(212,175,55,0.2)',
+                        }}
+                      >
+                        <span className="text-[9px]">🔊</span>
+                        <span className="text-gold/70 text-[8px] font-medium">Athena speaking...</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* ═══ BOOKING HUD — Bottom Sheet inside 360° ═══ */}

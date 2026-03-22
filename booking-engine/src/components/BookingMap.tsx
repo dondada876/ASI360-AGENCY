@@ -13,6 +13,12 @@ export interface Video360Hotspot {
   lngLat: [number, number]
   videoUrl: string
   posterUrl?: string
+  /** Equirectangular sphere image — loads instantly, video loads behind */
+  sphereUrl?: string
+  /** Low-res sphere preview (~23KB) for instant first visual */
+  spherePreviewUrl?: string
+  /** Welcome audio narration URL */
+  welcomeAudioUrl?: string
   title: string
   subtitle: string
   startYaw: number

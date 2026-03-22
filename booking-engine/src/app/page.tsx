@@ -39,8 +39,11 @@ const VIDEO_360_HOTSPOTS: Video360Hotspot[] = [
     lngLat: [-122.25150, 37.80835],
     videoUrl: '/360/zone-a2-360.mp4',
     posterUrl: '/360/posters/walkway-poster.jpg',
+    sphereUrl: '/360/spheres/zone-a2-sphere-3s.jpg',
+    spherePreviewUrl: '/360/spheres/zone-a2-sphere-low.jpg',
+    welcomeAudioUrl: '/audio/welcome.mp3',
     title: 'Zone A1 \u2014 Walkway 360\u00B0 View',
-    subtitle: '7-second immersive view from the lakeside walkway',
+    subtitle: 'Explore the lakeside walkway — drag to look around',
     startYaw: 135,
     startPitch: -3,
     startZoom: 40,
@@ -51,8 +54,11 @@ const VIDEO_360_HOTSPOTS: Video360Hotspot[] = [
     lngLat: [-122.25210, 37.80820],
     videoUrl: '/360/zone-a2-tents-360.mp4',
     posterUrl: '/360/posters/tents-poster.jpg',
+    sphereUrl: '/360/spheres/zone-a2-tents-sphere-5s.jpg',
+    spherePreviewUrl: '/360/spheres/zone-a2-tents-sphere-low.jpg',
+    welcomeAudioUrl: '/audio/book-cabana.mp3',
     title: 'Zone A1 \u2014 Tent & Umbrella Setup',
-    subtitle: '45-second immersive view of canopy tents and umbrellas',
+    subtitle: 'Step inside the cabana experience — drag to explore',
     startYaw: 210,
     startPitch: -8,
     startZoom: 42,
@@ -171,6 +177,9 @@ export default function BookingPage() {
           }}
           videoUrl={active360.videoUrl}
           posterUrl={active360.posterUrl}
+          sphereUrl={active360.sphereUrl}
+          spherePreviewUrl={active360.spherePreviewUrl}
+          welcomeAudioUrl={active360.welcomeAudioUrl}
           title={active360.title}
           subtitle={active360.subtitle}
           startYaw={active360.startYaw}
