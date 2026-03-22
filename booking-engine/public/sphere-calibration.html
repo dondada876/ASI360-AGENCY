@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>360° Sphere Calibration — Camera Choreography Mapper</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css">
+  <style>
+    body { margin: 0; font-family: system-ui; background: #0a0a1a; color: white; }
+    #viewer { width: 100vw; height: 80vh; }
+    #controls { padding: 12px 20px; background: #1a1a2e; border-top: 1px solid #D4AF37; }
+    #coords { font-family: monospace; font-size: 14px; color: #D4AF37; margin-bottom: 8px; }
+    .waypoint-list { max-height: 150px; overflow-y: auto; font-size: 11px; }
+    .waypoint { padding: 4px 8px; margin: 2px 0; background: rgba(212,175,55,0.1); border-radius: 4px; display: flex; justify-content: space-between; }
+    button { background: #D4AF37; color: #1a1a2e; border: none; padding: 6px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-right: 8px; }
+    button:hover { background: #B8962E; }
+    select { background: #2a2a4e; color: white; border: 1px solid #D4AF37; padding: 4px 8px; border-radius: 4px; margin-right: 8px; }
+    .label { color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+  <div id="viewer"></div>
+  <div id="controls">
+    <div id="coords">Yaw: — | Pitch: — | Zoom: —</div>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <span class="label">Sphere:</span>
+      <select id="sphere-select" onchange="loadSphere(this.value)">
+        <option value="/360/spheres/zone-a2-tents-sphere-5s.jpg">Cabana/Tents View</option>
+        <option value="/360/spheres/zone-a2-sphere-3s.jpg">Walkway View</option>
+      </select>
+      <button onclick="saveWaypoint()">📍 Save Waypoint</button>
+      <button onclick="playTour()">▶️ Play Tour</button>
+      <button onclick="exportJSON()">📋 Export JSON</button>
+      <button onclick="clearWaypoints()">🗑️ Clear</button>
+      <input id="wp-label" placeholder="Waypoint label..." style="background:#2a2a4e;color:white;border:1px solid #444;padding:4px 8px;border-radius:4px;width:200px;">
+    </div>
+    <div class="waypoint-list" id="waypoints"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/autorotate-plugin/index.min.js"></script>
+  <script>
+    let viewer = null;
+    let waypoints = [];
+
+    function initViewer(panorama) {
+      if (viewer) { viewer.destroy(); }
+      viewer = new PhotoSphereViewer.Viewer({
+        container: document.getElementById('viewer'),
+        panorama: panorama,
+        plugins: [
+          [PhotoSphereViewer.AutorotatePlugin, {
+            autorotateSpeed: '0.3rpm',
+            autostartDelay: 3000,
+            autostartOnIdle: true,
+          }],
+        ],
+        navbar: ['autorotate', 'zoom', 'fullscreen'],
+        defaultYaw: '210deg',
+        defaultPitch: '-3deg',
+        defaultZoomLvl: 40,
+        minFov: 25,
+        maxFov: 110,
+        moveSpeed: 1.8,
+        moveInertia: true,
+        caption: 'Drag to look around — Save waypoints for camera choreography',
+      });
+
+      viewer.addEventListener('position-updated', (e) => {
+        const pos = viewer.getPosition();
+        const zoom = viewer.getZoomLevel();
+        const yawDeg = (pos.yaw * 180 / Math.PI).toFixed(1);
+        const pitchDeg = (pos.pitch * 180 / Math.PI).toFixed(1);
+        document.getElementById('coords').textContent =
+          `Yaw: ${yawDeg}° | Pitch: ${pitchDeg}° | Zoom: ${zoom.toFixed(0)}`;
+      });
+    }
+
+    function loadSphere(url) {
+      initViewer(url);
+    }
+
+    function saveWaypoint() {
+      if (!viewer) return;
+      const pos = viewer.getPosition();
+      const zoom = viewer.getZoomLevel();
+      const label = document.getElementById('wp-label').value || `Waypoint ${waypoints.length + 1}`;
+      const wp = {
+        label: label,
+        yaw: parseFloat((pos.yaw * 180 / Math.PI).toFixed(1)),
+        pitch: parseFloat((pos.pitch * 180 / Math.PI).toFixed(1)),
+        zoom: parseFloat(zoom.toFixed(0)),
+        time: waypoints.length * 3000, // 3 sec apart by default
+      };
+      waypoints.push(wp);
+      document.getElementById('wp-label').value = '';
+      renderWaypoints();
+    }
+
+    function renderWaypoints() {
+      const el = document.getElementById('waypoints');
+      el.innerHTML = waypoints.map((wp, i) =>
+        `<div class="waypoint">
+          <span>${i+1}. ${wp.label}</span>
+          <span style="color:#D4AF37">yaw:${wp.yaw}° pitch:${wp.pitch}° zoom:${wp.zoom}</span>
+        </div>`
+      ).join('');
+    }
+
+    function playTour() {
+      if (!viewer || waypoints.length === 0) return;
+      let i = 0;
+      function next() {
+        if (i >= waypoints.length) return;
+        const wp = waypoints[i];
+        viewer.animate({
+          yaw: (wp.yaw * Math.PI / 180),
+          pitch: (wp.pitch * Math.PI / 180),
+          zoom: wp.zoom,
+          speed: '2rpm',
+        }).then(() => {
+          i++;
+          setTimeout(next, 2000); // 2 sec pause between waypoints
+        });
+      }
+      next();
+    }
+
+    function exportJSON() {
+      const script = waypoints.map((wp, i) => ({
+        time: i * 3000,
+        action: 'animate_camera',
+        yaw: wp.yaw,
+        pitch: wp.pitch,
+        zoom: wp.zoom,
+        label: wp.label,
+      }));
+      const json = JSON.stringify(script, null, 2);
+      navigator.clipboard.writeText(json).then(() => {
+        alert('Tour script copied to clipboard!');
+      }).catch(() => {
+        console.log(json);
+        alert('Check console for JSON');
+      });
+    }
+
+    function clearWaypoints() {
+      waypoints = [];
+      renderWaypoints();
+    }
+
+    // Init with cabana view
+    initViewer('/360/spheres/zone-a2-tents-sphere-5s.jpg');
+  </script>
+</body>
+</html>
