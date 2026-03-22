@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Oakland Marathon 360° — Capture Your Memories | Ashe Sanctuary & Empowerment Foundation</title>
+  <meta name="description" content="Find yourself running the Oakland Marathon in immersive 360°. Donate $1-$10 to support judicial reform through the Ashe Sanctuary & Empowerment Foundation.">
+  <meta property="og:title" content="Oakland Marathon 360° — Find Yourself Running">
+  <meta property="og:description" content="Captured in immersive 360° at Empowerment Park. Donate to get your personalized marathon clip.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0a1a;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* === SPLIT HERO === */
+    .split-hero {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      height: 60vh;
+      min-height: 350px;
+      position: relative;
+    }
+    .hero-top {
+      position: relative;
+      overflow: hidden;
+      background: #111;
+    }
+    .hero-top video, .hero-top iframe {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .hero-top .overlay-text {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #D4AF37;
+      letter-spacing: 0.5px;
+    }
+    .hero-bottom {
+      position: relative;
+      overflow: hidden;
+      background: #1a1a2e;
+    }
+    .hero-bottom img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+    }
+    .hero-bottom .overlay-text {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+    .hero-center-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      background: rgba(10,10,26,0.9);
+      backdrop-filter: blur(20px);
+      border: 2px solid #D4AF37;
+      border-radius: 20px;
+      padding: 12px 24px;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    }
+    .hero-center-badge .icon { font-size: 32px; }
+    .hero-center-badge .title {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #D4AF37;
+      margin-top: 4px;
+    }
+    .hero-center-badge .sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+    .no-video-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0a0a1a 100%);
+    }
+    .no-video-placeholder .icon { font-size: 48px; margin-bottom: 8px; }
+    .no-video-placeholder .text { font-size: 14px; color: rgba(255,255,255,0.4); }
+    .no-video-placeholder .sub { font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 4px; }
+
+    /* === MAIN CONTENT === */
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 16px 40px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.08) 0%, transparent 50%);
+    }
+
+    /* === ASHE SANCTUARY BRANDING === */
+    .ashe-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .ashe-logo .shield {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #D4AF37, #8B6914);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .ashe-logo .name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #D4AF37;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      line-height: 1.3;
+    }
+    .ashe-logo .name span {
+      display: block;
+      font-size: 9px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 2px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(212,175,55,0.15);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #D4AF37;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+    }
+    .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 7vw, 3rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 10px;
+      text-align: center;
+      background: linear-gradient(135deg, #fff 0%, #D4AF37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 8px;
+      max-width: 440px;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .empowerment-callout {
+      font-size: 13px;
+      color: #D4AF37;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 8px 16px;
+      background: rgba(212,175,55,0.08);
+      border-radius: 10px;
+      border: 1px solid rgba(212,175,55,0.15);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      width: 100%;
+      max-width: 420px;
+      margin-bottom: 20px;
+    }
+    .feature {
+      text-align: center;
+      padding: 12px 4px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+    }
+    .feature .icon { font-size: 24px; margin-bottom: 4px; }
+    .feature .label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* === FORM === */
+    .form-card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 20px;
+      padding: 24px 20px;
+      width: 100%;
+      max-width: 420px;
+      margin-bottom: 20px;
+    }
+    .form-card h2 { font-size: 17px; font-weight: 800; margin-bottom: 3px; }
+    .form-card > p { font-size: 12px; color: rgba(255,255,255,0.45); margin-bottom: 16px; }
+    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .input-group { margin-bottom: 12px; }
+    .input-group label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+    .input-group input, .input-group select {
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-group input:focus { border-color: #D4AF37; }
+    .input-group input::placeholder { color: rgba(255,255,255,0.2); }
+
+    .donation-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .donation-btn {
+      padding: 10px 4px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .donation-btn:hover { border-color: #D4AF37; background: rgba(212,175,55,0.08); }
+    .donation-btn.selected {
+      border-color: #D4AF37;
+      background: rgba(212,175,55,0.15);
+      color: #D4AF37;
+      box-shadow: 0 0 15px rgba(212,175,55,0.15);
+    }
+    .donation-btn small { display: block; font-size: 8px; font-weight: 400; color: rgba(255,255,255,0.35); margin-top: 1px; }
+
+    .what-you-get {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+    .what-you-get strong { color: #D4AF37; }
+
+    .cta-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #FF3B30, #FF6B6B);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      animation: ctaPulse 2s infinite;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    @keyframes ctaPulse {
+      0%, 100% { box-shadow: 0 4px 20px rgba(255,59,48,0.35); transform: scale(1); }
+      50% { box-shadow: 0 4px 30px rgba(255,59,48,0.55); transform: scale(1.015); }
+    }
+    .cta-btn:hover { transform: scale(1.03); }
+    .cta-btn:active { transform: scale(0.98); }
+
+    .cause {
+      max-width: 420px;
+      text-align: center;
+      padding: 14px;
+      background: rgba(212,175,55,0.04);
+      border: 1px solid rgba(212,175,55,0.12);
+      border-radius: 14px;
+      margin-bottom: 16px;
+    }
+    .cause h3 { font-size: 13px; color: #D4AF37; margin-bottom: 4px; }
+    .cause p { font-size: 11px; color: rgba(255,255,255,0.35); line-height: 1.5; }
+
+    .success-msg { display: none; text-align: center; padding: 30px 20px; max-width: 420px; }
+    .success-msg h2 { color: #4ADE80; font-size: 22px; margin-bottom: 8px; }
+    .success-msg p { color: rgba(255,255,255,0.55); font-size: 13px; line-height: 1.5; }
+
+    .footer {
+      font-size: 9px;
+      color: rgba(255,255,255,0.15);
+      text-align: center;
+      padding: 16px;
+    }
+    .footer a { color: rgba(212,175,55,0.4); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <!-- SPLIT HERO: 360 footage top, marathon map bottom -->
+  <div class="split-hero">
+    <div class="hero-top">
+      <div class="no-video-placeholder" id="video-area">
+        <div class="icon">🎥</div>
+        <div class="text">360° Marathon Footage</div>
+        <div class="sub">Captured live at Empowerment Park — March 22, 2026</div>
+      </div>
+      <div class="overlay-text">📹 LIVE 360° CAPTURE — EMPOWERMENT PARK</div>
+    </div>
+    <div class="hero-bottom">
+      <img src="oakland-marathon-route-2026.pdf" alt="Oakland Marathon Route Map 2026"
+           onerror="this.style.display='none'; this.parentElement.innerHTML += '<div style=\'display:flex;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg,#1a2a3a,#0a1a2a)\'><div style=\'text-align:center\'><div style=\'font-size:36px;margin-bottom:8px\'>🗺️</div><div style=\'font-size:13px;color:rgba(255,255,255,0.5)\'>Oakland Marathon Route</div><div style=\'font-size:10px;color:rgba(255,255,255,0.25);margin-top:4px\'>Start/Finish: HJK Arts at Lake Merritt</div></div></div>'">
+      <div class="overlay-text">🗺️ OAKLAND MARATHON & HALF MARATHON ROUTE — KAISER PERMANENTE</div>
+    </div>
+    <div class="hero-center-badge">
+      <div class="icon">🏅</div>
+      <div class="title">Find Your Moment</div>
+      <div class="sub">Captured in 360° today</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <!-- Ashe Sanctuary Logo -->
+    <div class="ashe-logo">
+      <div class="shield">🕊️</div>
+      <div class="name">
+        Ashe Sanctuary<br>&amp; Empowerment
+        <span>F O U N D A T I O N</span>
+      </div>
+    </div>
+
+    <div class="badge"><span class="dot"></span> Captured Live — March 22, 2026</div>
+
+    <h1>Find Yourself<br>Running the<br>Oakland Marathon</h1>
+
+    <p class="subtitle">Thousands of runners captured in immersive 360° from an 8-foot vantage point at Empowerment Park, Lake Merritt.</p>
+
+    <div class="empowerment-callout">
+      🌳 You passed Empowerment Park. People who run marathons change the world.
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="icon">🎥</div>
+        <div class="label">360° Video</div>
+      </div>
+      <div class="feature">
+        <div class="icon">📸</div>
+        <div class="label">Your Photo</div>
+      </div>
+      <div class="feature">
+        <div class="icon">🖨️</div>
+        <div class="label">Custom Print</div>
+      </div>
+      <div class="feature">
+        <div class="icon">⬇️</div>
+        <div class="label">Download</div>
+      </div>
+    </div>
+
+    <div class="form-card" id="signup-form">
+      <h2>🏃 Capture Your Memories</h2>
+      <p>Register to find yourself in the 360° footage. Your donation supports judicial reform.</p>
+
+      <div class="input-row">
+        <div class="input-group">
+          <label>First Name</label>
+          <input type="text" id="fname" placeholder="First" required>
+        </div>
+        <div class="input-group">
+          <label>Last Name</label>
+          <input type="text" id="lname" placeholder="Last" required>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="your@email.com" required>
+      </div>
+
+      <div class="input-row">
+        <div class="input-group">
+          <label>Phone</label>
+          <input type="tel" id="phone" placeholder="(510) 555-0000">
+        </div>
+        <div class="input-group">
+          <label>Runner / Bib Number</label>
+          <input type="text" id="bib" placeholder="e.g. 4521" style="font-weight:700;font-size:16px;">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Which Race Did You Run?</label>
+        <select id="race" style="background:rgba(255,255,255,0.07);color:#fff;padding:11px 14px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;width:100%;font-size:14px;font-family:Inter,sans-serif;">
+          <option value="marathon">Full Marathon (26.2 mi)</option>
+          <option value="half">Half Marathon (13.1 mi)</option>
+          <option value="10k">10K</option>
+          <option value="5k" selected>5K (Lake Merritt Loop)</option>
+          <option value="spectator">Spectator / Volunteer</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Choose Your Donation</label>
+        <div class="donation-grid">
+          <button class="donation-btn" onclick="selectDonation(this, 1)">$1<small>Support</small></button>
+          <button class="donation-btn selected" onclick="selectDonation(this, 5)">$5<small>Popular</small></button>
+          <button class="donation-btn" onclick="selectDonation(this, 10)">$10<small>Champion</small></button>
+          <button class="donation-btn" onclick="selectDonation(this, 25)">$25<small>Hero</small></button>
+        </div>
+      </div>
+
+      <div class="what-you-get">
+        <strong>What you get:</strong> Access to browse 360° footage, find your moment, download a personalized clip + photo. <strong>$5 donation</strong> = 360° video clip + photo + custom print-ready file. Usually $25 — discounted through the Ashe Foundation.
+      </div>
+
+      <button class="cta-btn" onclick="submitForm()">
+        🏅 DONATE & FIND MY 360° MOMENT
+      </button>
+    </div>
+
+    <div class="success-msg" id="success-msg">
+      <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+      <h2>You're In!</h2>
+      <p>Check your email — we'll send you a link to browse the 360° footage and find your moment from today's marathon.</p>
+      <p style="margin-top:14px;color:#D4AF37;font-weight:600;">Thank you for supporting judicial reform through the Ashe Sanctuary & Empowerment Foundation.</p>
+      <p style="margin-top:20px;font-size:11px;color:rgba(255,255,255,0.3);">Share this page with fellow runners!</p>
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;">
+        <a href="https://twitter.com/intent/tweet?text=I%20ran%20the%20Oakland%20Marathon%20and%20captured%20my%20360%C2%B0%20moment!%20Find%20yours%20at&url=https://staging.500grandlive.com/marathon/" target="_blank" style="padding:8px 16px;background:rgba(255,255,255,0.08);border-radius:8px;color:#fff;text-decoration:none;font-size:12px;font-weight:600;">𝕏 Share</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://staging.500grandlive.com/marathon/" target="_blank" style="padding:8px 16px;background:rgba(59,89,152,0.3);border-radius:8px;color:#fff;text-decoration:none;font-size:12px;font-weight:600;">📘 Share</a>
+      </div>
+    </div>
+
+    <div class="cause">
+      <h3>🕊️ Supporting Judicial Reform</h3>
+      <p>100% of donations go to the Ashe Sanctuary & Empowerment Foundation — fighting for justice and empowering communities. Your marathon moment funds real change.</p>
+    </div>
+
+    <div class="footer">
+      © 2026 <a href="#">Ashe Sanctuary & Empowerment Foundation</a> × <a href="https://500grandlive.com">500 Grand Live</a><br>
+      Oakland, California — Lake Merritt Station
+    </div>
+  </div>
+
+  <script>
+    let selectedAmount = 5;
+
+    function selectDonation(btn, amount) {
+      document.querySelectorAll('.donation-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedAmount = amount;
+    }
+
+    async function submitForm() {
+      const fname = document.getElementById('fname').value.trim();
+      const lname = document.getElementById('lname').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const bib = document.getElementById('bib').value.trim();
+      const race = document.getElementById('race').value;
+
+      if (!fname || !email) {
+        alert('Please enter your name and email');
+        return;
+      }
+      if (!email.includes('@')) {
+        alert('Please enter a valid email');
+        return;
+      }
+
+      const btn = document.querySelector('.cta-btn');
+      btn.textContent = 'Submitting...';
+      btn.style.opacity = '0.7';
+      btn.style.animation = 'none';
+
+      try {
+        await fetch('https://gtfffxwfgcxiiauliynd.supabase.co/rest/v1/marathon_leads', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0ZmZmeHdmZ2N4aWlhdWxpeW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NzU3MzUsImV4cCI6MjA4MjQ1MTczNX0.wTKrNBsynjuvEwpxnOtiAzSjI9KZhomcNuhWIZhUHrc',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0ZmZmeHdmZ2N4aWlhdWxpeW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NzU3MzUsImV4cCI6MjA4MjQ1MTczNX0.wTKrNBsynjuvEwpxnOtiAzSjI9KZhomcNuhWIZhUHrc',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            name: fname + ' ' + lname,
+            email: email,
+            phone: phone || null,
+            bib_number: bib || null,
+            donation_amount: selectedAmount,
+            event: 'oakland_marathon_2026',
+            source: 'lead_magnet_page',
+            race_type: race
+          })
+        });
+      } catch (err) {
+        // Continue regardless
+      }
+
+      document.getElementById('signup-form').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
